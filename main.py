@@ -22,11 +22,11 @@ class Robot:
     def __init__(self):
         """Initialises the Robot:
             Port A: Empty
-            Port B: Empty
-            Port C: Empty
-            Port D: Empty
+            Port B: Medium Motor
+            Port C: Small Motor
+            Port D: Small Motor
             Port E: Empty
-            Port F: Empty
+            Port F: Medium Motor
         """
         # MOTORS: Left () Right () Right Big () Left Big ()
         self.left_drive = Motor(Port.F, Direction.COUNTERCLOCKWISE)
