@@ -45,13 +45,6 @@ class PIDController:
         self.last_error = 0
 
     def reset(self):
-        """
-        Reset integral and derivative history.
-
-        Example
-        -------
-        >>> pid.reset()
-        """
         self.integral = 0
         self.last_error = 0
 
