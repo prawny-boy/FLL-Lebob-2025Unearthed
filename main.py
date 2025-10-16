@@ -60,7 +60,7 @@ class Robot:
     def rotate_left_motor_until_stalled(self, speed=ROBOT_SETTINGS["turn_rate"], then=Stop.COAST, duty_limit=20):
         self.left_big.run_until_stalled(speed, then, duty_limit)
     
-    def drive_for_distance(self, distance, then=Stop.COAST, wait=True):
+    def drive_for_distance(self, distance, then=Stop.BRAKE, wait=True):
         self.drive_base.straight(distance, then, wait)
         sleep(250)
     
@@ -161,18 +161,40 @@ def mission_function_one(r:Robot):
     Start Location Description:
     What It Does:
     """
+    # go to next mission
+    r.drive_for_distance(350)
+    r.turn_in_place(-90)
+    r.drive_for_distance(50)
+    # do brush mission
+    r.turn_in_place(-30)
+    r.turn_in_place(60)
+    r.rotate_left_motor(80)
+    # go to next mission
+    r.turn_in_place(150)
+    r.drive_for_distance(200)
+    r.turn_in_place(-60)
+    # do cart mission
     r.drive_for_distance(100)
-    r.rotate_left_motor(90)
-    r.rotate_right_motor(90)
-    r.turn_in_place(90)
-
-def opp_sean_whacker(r:Robot):
-    r.drive_for_distance(400, wait=True)
-    r.rotate_right_motor(360, then=Stop.COAST)
+    r.drive_for_distance(-100)
+    # go back
+    r.turn_in_place(45)
+    r.drive_for_distance(-200)
+    r.turn_in_place(-45)
+    r.drive_for_distance(-200)
 
 def mission_function_two(r:Robot):
-    while True:
-        print(r.hub.imu.heading())
+    r.drive_for_distance(200)
+    r.turn_in_place(90)
+    r.drive_for_distance(400)
+    r.rotate_right_motor_until_stalled(200)
+    r.drive_for_distance(-50)
+    r.rotate_right_motor(-120)
+    r.drive_for_distance(100)
+    r.drive_for_distance(-50)
+    r.turn_in_place(-45)
+    r.drive_for_distance(100)
+    r.turn_in_place(45)
+    r.drive_for_distance(800)
     
 def mission_function_three(r:Robot):
     pass
@@ -209,8 +231,7 @@ def run_mission(r:Robot, selected):
     r.hub.display.animate(running_animation, 30)
     print(f"Running #{selected}...")
     if selected == "1":
-        opp_sean_whacker(r)
-        # mission_function_one(r)
+        mission_function_one(r)
     elif selected == "2":
         mission_function_two(r)
     elif selected == "3":
