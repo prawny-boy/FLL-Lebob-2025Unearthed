@@ -66,7 +66,7 @@ class Robot:
     
     def turn_in_place(self, degrees, then="brake"):
         self.hub.imu.reset_heading(0)
-        self.drive_base.turn(degrees, then, False)
+        self.drive_base.turn(degrees, Stop.COAST, False)
         while abs(self.hub.imu.heading()) < abs(degrees - 5):
             pass
         if then == "stop":
@@ -161,22 +161,17 @@ def mission_function_one(r:Robot):
     Start Location Description:
     What It Does:
     """
-    # go to next mission
-    r.drive_for_distance(350)
+    r.drive_for_distance(400)
     r.turn_in_place(-90)
     r.drive_for_distance(50)
-    # do brush mission
     r.turn_in_place(-30)
     r.turn_in_place(60)
     r.rotate_left_motor(80)
-    # go to next mission
     r.turn_in_place(150)
     r.drive_for_distance(200)
     r.turn_in_place(-60)
-    # do cart mission
     r.drive_for_distance(100)
     r.drive_for_distance(-100)
-    # go back
     r.turn_in_place(45)
     r.drive_for_distance(-200)
     r.turn_in_place(-45)
