@@ -235,11 +235,22 @@ def rescale(value, in_min, in_max, out_min, out_max):
     if retvalue < out_min: retvalue = out_min
     return retvalue * neg
 
+def stopwatch(command="start"):
+    global my_stopwatch
+    if command == "start":
+        my_stopwatch.pause()
+        my_stopwatch.reset()
+        my_stopwatch.resume()
+    else:
+        return my_stopwatch.time()
+
 def run_mission(r:Robot, selected):
+    global my_stopwatch
     # run current selection
     r.status_light(Color.YELLOW)
     r.hub.display.animate(running_animation, 30)
     print(f"Running #{selected}...")
+    stopwatch("start")
     if selected == "1":
         mission_function_one(r)
     elif selected == "2":
@@ -256,12 +267,13 @@ def run_mission(r:Robot, selected):
         mission_function_seven(r)
     elif selected == '8':
         mission_function_eight(r)
-    print(f"Done running #{selected}.")
+    print(f"Done running #{selected} in {stopwatch("stop")}ms")
     r.status_light(battery_status_light)
     return selected
 
-# create robot
+# create objects
 my_robot = Robot(use_gyro=True)
+my_stopwatch = StopWatch()
 
 # display battery
 battery_status_light = my_robot.battery_display()
