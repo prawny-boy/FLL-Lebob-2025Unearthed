@@ -19,7 +19,7 @@ ROBOT_MAX_TORQUE = 700
 battery_status_light = Color.GREEN
 
 class Robot:
-    def __init__(self):
+    def __init__(self, use_gyro=False):
         """Initialises the Robot:
             Port A: Small Motor (Left Drive)
             Port B: Small Motor (Right Drive)
@@ -34,19 +34,18 @@ class Robot:
         self.right_big = Motor(Port.A)
         self.left_big = Motor(Port.B)
 
-        # Possible Sensors on Robots
-
         # Drivebase Settings
         self.drive_base = DriveBase(self.left_drive, self.right_drive, DRIVEBASE_WHEEL_DIAMETER, DRIVEBASE_AXLE_TRACK)
         self.drive_base.settings(straight_speed=ROBOT_SETTINGS["straight_speed"], straight_acceleration=ROBOT_SETTINGS["straight_acceleration"], turn_rate=ROBOT_SETTINGS["turn_rate"], turn_acceleration=ROBOT_SETTINGS["turn_acceleration"])
-        self.drive_base.use_gyro(False)
         self.drive_base.settings(**ROBOT_SETTINGS)
-        # self.left_drive.control.limits(ROBOT_SETTINGS["straight_speed"], ROBOT_SETTINGS["straight_acceleration"], ROBOT_MAX_TORQUE)
-        # self.right_drive.control.limits(ROBOT_SETTINGS["straight_speed"], ROBOT_SETTINGS["straight_acceleration"], ROBOT_MAX_TORQUE)
 
         # Defines the hub
-        self.hub = PrimeHub(front_side=-Axis.Y)
+        self.hub = PrimeHub(top_side=Axis.Z, front_side=-Axis.X)
         self.hub.system.set_stop_button(Button.BLUETOOTH)
+        
+        # Using Gyro for movement
+        self.hub.imu.reset_heading(0)
+        self.drive_base.use_gyro(use_gyro=use_gyro)
         
     def rotate_right_motor(self, degrees, speed=ROBOT_SETTINGS["turn_rate"], then=Stop.BRAKE, wait=True):
         self.right_big.run_angle(speed, degrees, then, wait)
@@ -262,7 +261,7 @@ def run_mission(r:Robot, selected):
     return selected
 
 # create robot
-my_robot = Robot()
+my_robot = Robot(use_gyro=True)
 
 # display battery
 battery_status_light = my_robot.battery_display()
