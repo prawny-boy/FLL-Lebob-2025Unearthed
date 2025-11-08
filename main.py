@@ -65,10 +65,9 @@ class Robot:
         sleep(250)
     
     def turn_in_place(self, degrees, then="brake"):
+        degrees *= 1.25
         self.hub.imu.reset_heading(0)
-        self.drive_base.turn(degrees, Stop.COAST, False)
-        while abs(self.hub.imu.heading()) < abs(degrees - 5):
-            pass
+        self.drive_base.turn(degrees*-1, Stop.COAST, True)
         if then == "stop":
             self.drive_base.stop()
         else:
@@ -87,16 +86,16 @@ class Robot:
         v = self.hub.battery.voltage()
         v_pct = rescale(v, LOW_VOLTAGE, HIGH_VOLTAGE, 1, 100)
         print(f"Battery %: {round(v_pct, 1)}, Voltage: {v}")
+        if v_pct < 40:
+            print("EMERGENCY: BATTERY LOW!")
+            battery_status_light = Color.RED
         if v_pct < 70:
-            if v_pct < 40:
-                print("EMERGENCY: BATTERY LOW!")
-                battery_status_light = Color.RED
-            else:
-                print("Battery is below 70% Please charge!")
-                battery_status_light = Color.YELLOW
-            self.status_light(battery_status_light)
+            print("Battery is below 70% Please charge!")
+            battery_status_light = Color.YELLOW
         else:
-            self.status_light(Color.GREEN)
+            battery_status_light = Color.GREEN
+        self.status_light(battery_status_light)
+        return battery_status_light
     
     def clean_motors(self):
         self.left_drive.run_angle(999, 1000, wait=False)
@@ -161,14 +160,21 @@ def mission_function_one(r:Robot):
     Start Location Description:
     What It Does:
     """
-    r.drive_for_distance(400)
+    r.rotate_left_motor_until_stalled(-100)
+    r.rotate_right_motor_until_stalled(-100)
+    r.drive_for_distance(750)
     r.turn_in_place(-90)
+    r.rotate_left_motor(90)
     r.drive_for_distance(50)
-    r.turn_in_place(-30)
-    r.turn_in_place(60)
-    r.rotate_left_motor(80)
+    r.turn_in_place(-45)
+    r.turn_in_place(90)
+    r.turn_in_place(-35)
+    r.drive_for_distance(-100)
+    r.drive_for_distance(100)
+    r.rotate_left_motor(-120)
+    r.drive_for_distance(-100)
     r.turn_in_place(150)
-    r.drive_for_distance(200)
+    r.drive_for_distance(150)
     r.turn_in_place(-60)
     r.drive_for_distance(100)
     r.drive_for_distance(-100)
@@ -192,7 +198,17 @@ def mission_function_two(r:Robot):
     r.drive_for_distance(800)
     
 def mission_function_three(r:Robot):
-    pass
+    r.drive_for_distance(730)
+    r.turn_in_place(30)
+    r.drive_for_distance(30)
+    r.turn_in_place(-110)
+    # r.turn_in_place(135)
+    # r.drive_for_distance(-70)
+    # r.turn_in_place(-70)
+    # r.drive_for_distance(130)
+    # r.turn_in_place(-180)
+    r.drive_for_distance(150)
+    r.turn_in_place(-200)
 
 def mission_function_four(r:Robot):
     pass
@@ -249,7 +265,7 @@ def run_mission(r:Robot, selected):
 my_robot = Robot()
 
 # display battery
-my_robot.battery_display()
+battery_status_light = my_robot.battery_display()
 
 # run menu
 last_run = "C"
