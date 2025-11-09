@@ -62,6 +62,28 @@ class Robot:
     def drive_for_distance(self, distance, then=Stop.BRAKE, wait=True):
         self.drive_base.straight(distance, then, wait)
         sleep(250)
+
+    def smart_drive_for_distance(self, 
+                                 distance, 
+                                 speed=ROBOT_SETTINGS["straight_speed"], 
+                                 then=Stop.BRAKE, 
+                                 k_p=1.0, k_i=0.2, k_d=0.25, 
+                                 loop_delay_time=0.05):
+        integral = 0
+        previous_error = 0
+        target_heading = 0
+        self.hub.imu.reset_heading(0)
+        self.drive_base.reset()
+        while abs(self.drive_base.distance()) < abs(distance):
+            error = target_heading - self.hub.imu.heading()
+            proportional = error
+            integral += error * loop_delay_time
+            derivative = (error - previous_error) / loop_delay_time
+            correction = k_p * proportional + k_i * integral + k_d * derivative
+            self.drive_base.drive(speed, correction)
+            previous_error = error
+            sleep(loop_delay_time)
+        self.drive_base.stop(then)
     
     def turn_in_place(self, degrees, then="brake"):
         degrees *= 1.25
@@ -72,6 +94,30 @@ class Robot:
         else:
             self.drive_base.brake()
         sleep(250)
+
+    def smart_turn_in_place(self, 
+                            target_angle, 
+                            speed=ROBOT_SETTINGS["turn_rate"], 
+                            then=Stop.BRAKE,
+                            k_p=2.0, k_i=0.05, k_d=0.8,
+                            loop_delay_time=0.02):
+        integral = 0
+        previous_error = 0
+        self.hub.imu.reset_heading(0)
+        self.drive_base.stop()
+        while True:
+            current_heading = self.hub.imu.heading()
+            error = target_angle - current_heading
+            if abs(error) < 1.0:
+                break
+            integral += error * loop_delay_time
+            derivative = (error - previous_error) / loop_delay_time
+            correction = k_p * error + k_i * integral + k_d * derivative
+            correction = max(-speed, min(speed, correction))
+            self.drive_base.drive(0, correction)
+            previous_error = error
+            sleep(loop_delay_time)
+        self.drive_base.stop(then)
     
     def curve(self, radius, angle, then=Stop.COAST, wait=True):
         self.drive_base.curve(radius, angle, then, wait)
