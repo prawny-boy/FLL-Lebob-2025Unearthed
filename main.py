@@ -209,24 +209,30 @@ def mission_function_one(r:Robot):
     r.rotate_right_motor_until_stalled(-100)
     r.drive_for_distance(750)
     r.turn_in_place(-90)
-    r.rotate_left_motor(90)
     r.drive_for_distance(50)
-    r.turn_in_place(-45)
-    r.turn_in_place(90)
-    r.turn_in_place(-35)
+    r.rotate_left_motor(95)
+    r.turn_in_place(45)
+    r.turn_in_place(-90)
+    r.turn_in_place(45)
     r.drive_for_distance(-100)
+    r.turn_in_place(5)
     r.drive_for_distance(100)
     r.rotate_left_motor(-120)
     r.drive_for_distance(-100)
     r.turn_in_place(150)
     r.drive_for_distance(150)
+    r.rotate_right_motor_until_stalled(100)
     r.turn_in_place(-60)
     r.drive_for_distance(100)
+    r.rotate_right_motor(-100)
+    sleep(1000)
+    r.rotate_right_motor_until_stalled(100)
     r.drive_for_distance(-100)
     r.turn_in_place(45)
+    r.rotate_right_motor_until_stalled(-100)
     r.drive_for_distance(-200)
     r.turn_in_place(-45)
-    r.drive_for_distance(-200)
+    r.drive_for_distance(-700)
 
 def mission_function_two(r:Robot):
     r.drive_for_distance(200)
@@ -256,16 +262,32 @@ def mission_function_three(r:Robot):
     r.turn_in_place(-200)
 
 def mission_function_four(r:Robot):
-    pass
+    r.drive_for_distance(200)
+    r.turn_in_place(-45)
+    r.drive_for_distance(300, wait=False)
+    r.rotate_left_motor_until_stalled(-100)
+    r.rotate_right_motor_until_stalled(-100)
+    sleep(500)
+    r.rotate_left_motor(120, wait=False)
+    r.rotate_right_motor(120, speed=500)
+    r.rotate_right_motor(-120)
+    r.drive_for_distance(-700)
 
 def mission_function_five(r:Robot):
-    pass
+    r.drive_for_distance(100)
+    r.turn_in_place(-30)
+    r.rotate_left_motor_until_stalled(100)
+    r.drive_for_distance(900)
+    r.rotate_left_motor(-120, speed=500, wait=False)
+    sleep(200)
+    r.drive_for_distance(50)
 
 def mission_function_six(r:Robot):
-    pass
+    r.rotate_right_motor(-90)
 
 def mission_function_seven(r:Robot):
-    pass
+    while True:
+        print(r.hub.imu.heading())
 
 def mission_function_eight(r:Robot):
     pass
@@ -313,12 +335,12 @@ def run_mission(r:Robot, selected):
         mission_function_seven(r)
     elif selected == '8':
         mission_function_eight(r)
-    print(f"Done running #{selected} in {stopwatch("stop")}ms")
+    print(f"Done running #{selected} in {stopwatch('stop')}ms")
     r.status_light(battery_status_light)
     return selected
 
 # create objects
-my_robot = Robot(use_gyro=True)
+my_robot = Robot(use_gyro=False)
 my_stopwatch = StopWatch()
 
 # display battery
