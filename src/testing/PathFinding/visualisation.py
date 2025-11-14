@@ -1,66 +1,96 @@
-import pygame
-import math
-from PathFinding.pathfinding import plan_path, missions, other_obstacles, robot, field_size_mm, grid_resolution_mm
+"""Visualise planned paths using pygame (optional dependency)."""
 
-# --- Pygame setup ---
-WIDTH, HEIGHT = int(field_size_mm[0]//5), int(field_size_mm[1]//5)  # scale down for display
-SCALE = WIDTH / field_size_mm[0]
+from __future__ import annotations
 
-WHITE = (255,255,255)
-BLACK = (0,0,0)
-RED = (255,0,0)
-BLUE = (0,0,255)
-GREEN = (0,255,0)
+import argparse
+import sys
+from pathlib import Path
+from typing import Sequence
 
-pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("FLL Pathfinding Visualization")
-clock = pygame.time.Clock()
+try:  # pragma: no cover - optional
+    import pygame
+except ImportError:  # pragma: no cover - optional
+    pygame = None
 
-# --- Utility functions ---
-def mm_to_px(pos):
-    return int(pos[0]*SCALE), int(pos[1]*SCALE)
+HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.append(str(HERE))
 
-def draw_obstacles():
-    for name, m in missions.items():
-        x, y = mm_to_px((m['x']-m['w']/2, m['y']-m['h']/2))
-        w, h = int(m['w']*SCALE), int(m['h']*SCALE)
-        pygame.draw.rect(screen, RED, (x, y, w, h))
-    for o in other_obstacles:
-        x, y = mm_to_px((o.x - o.w/2, o.y - o.h/2))
-        w, h = int(o.w*SCALE), int(o.h*SCALE)
-        pygame.draw.rect(screen, BLUE, (x, y, w, h))
+from pathfinding import DEFAULT_FIELD, DEFAULT_ROBOT, PathPlanner
 
-def draw_path(path):
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 200, 0)
+
+
+def mm_to_px(point, scale):
+    return int(point[0] * scale), int(point[1] * scale)
+
+
+def draw_obstacles(screen, planner, scale):
+    for mission in planner.field.missions.values():
+        x, y = mm_to_px((mission.x - mission.w / 2, mission.y - mission.h / 2), scale)
+        w, h = int(mission.w * scale), int(mission.h * scale)
+        pygame.draw.rect(screen, RED, (x, y, w, h), 0)
+    for obstacle in planner.field.obstacles:
+        x, y = mm_to_px((obstacle.x - obstacle.w / 2, obstacle.y - obstacle.h / 2), scale)
+        w, h = int(obstacle.w * scale), int(obstacle.h * scale)
+        pygame.draw.rect(screen, BLUE, (x, y, w, h), 0)
+
+
+def draw_path(screen, path: Sequence, scale):
     if len(path) < 2:
         return
-    for i in range(len(path)-1):
-        pygame.draw.line(screen, GREEN, mm_to_px(path[i]), mm_to_px(path[i+1]), 3)
+    for i in range(len(path) - 1):
+        pygame.draw.line(screen, GREEN, mm_to_px(path[i], scale), mm_to_px(path[i + 1], scale), 3)
 
-def draw_robot(pos):
-    x, y = mm_to_px(pos)
-    w = int(robot.robot_width_mm*SCALE/2)
-    h = int(robot.robot_length_mm*SCALE/2)
-    pygame.draw.rect(screen, BLACK, (x-w, y-h, 2*w, 2*h), 2)
 
-# --- Main loop ---
-start_position = (100, 100)
-target_mission = 'MissionB'
-path_data = plan_path(start_position, target_mission)
-path = path_data['smooth_path']
+def draw_robot(screen, planner, position, scale):
+    x, y = mm_to_px(position, scale)
+    half_w = int(planner.robot.robot_width_mm * scale / 2)
+    half_h = int(planner.robot.robot_length_mm * scale / 2)
+    pygame.draw.rect(screen, BLACK, (x - half_w, y - half_h, half_w * 2, half_h * 2), 2)
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
 
-    screen.fill(WHITE)
-    draw_obstacles()
-    draw_path(path)
-    draw_robot(start_position)
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Visualise a planned path with pygame")
+    parser.add_argument("mission", choices=sorted(DEFAULT_FIELD.missions.keys()))
+    parser.add_argument("start", nargs=2, type=float, metavar=("X_MM", "Y_MM"))
+    parser.add_argument("--scale", type=float, default=0.2, help="Pixels per mm (smaller shrinks window)")
+    parser.add_argument("--inflation", type=float, default=10.0, help="Obstacle inflation padding in mm")
+    return parser.parse_args()
 
-    pygame.display.flip()
-    clock.tick(30)
 
-pygame.quit()
+def main() -> None:  # pragma: no cover - interactive
+    if pygame is None:
+        raise SystemExit("pygame is not installed. Run `pip install pygame` to enable this visualiser.")
+    args = parse_args()
+    planner = PathPlanner(DEFAULT_FIELD, DEFAULT_ROBOT, inflation_margin_mm=args.inflation)
+    start = (args.start[0], args.start[1])
+    result = planner.plan(start, args.mission)
+
+    width = max(200, int(planner.field.size_mm[0] * args.scale))
+    height = max(200, int(planner.field.size_mm[1] * args.scale))
+    pygame.display.set_caption("FLL Pathfinding Visualisation")
+    screen = pygame.display.set_mode((width, height))
+    clock = pygame.time.Clock()
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        screen.fill(WHITE)
+        draw_obstacles(screen, planner, args.scale)
+        draw_path(screen, result.smooth_path, args.scale)
+        draw_robot(screen, planner, start, args.scale)
+        pygame.display.flip()
+        clock.tick(30)
+
+    pygame.quit()
+
+
+if __name__ == "__main__":
+    main()
