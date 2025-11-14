@@ -312,11 +312,9 @@ def mission_function_eight(r:Robot):
 def rescale(value, in_min, in_max, out_min, out_max):
     neg = value / abs(value) # will either be 1 or -1
     value = abs(value)
-    if value < in_min: value = in_min
-    if value > in_max: value = in_max
+    value = max(min(value, in_max), in_min)
     retvalue = (value - in_min) * (out_max / (in_max - in_min))
-    if retvalue > out_max: retvalue = out_max
-    if retvalue < out_min: retvalue = out_min
+    retvalue = max(min(retvalue, out_max), out_min)
     return retvalue * neg
 
 def stopwatch(command="start"):
@@ -325,8 +323,8 @@ def stopwatch(command="start"):
         my_stopwatch.pause()
         my_stopwatch.reset()
         my_stopwatch.resume()
-    else:
-        return my_stopwatch.time()
+        return
+    return my_stopwatch.time()
 
 def run_mission(r:Robot, selected):
     global my_stopwatch
@@ -367,9 +365,8 @@ battery_status_light = my_robot.battery_display()
 # run menu
 last_run = "C"
 while True:
-    current_menu = []
-    for i in range(len(MENU_OPTIONS)):
-        current_menu.append(MENU_OPTIONS[(i+MENU_OPTIONS.index(last_run)+1) % len(MENU_OPTIONS)])
+    start_index = (MENU_OPTIONS.index(last_run) + 1) % len(MENU_OPTIONS)
+    current_menu = [MENU_OPTIONS[(start_index + i) % len(MENU_OPTIONS)] for i in range(len(MENU_OPTIONS))]
     selected = hub_menu(*current_menu)
     if selected != "C":
         last_run = run_mission(my_robot, selected)
