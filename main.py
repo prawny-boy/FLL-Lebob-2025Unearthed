@@ -58,6 +58,10 @@ class Robot:
 
     def rotate_left_motor_until_stalled(self, speed=ROBOT_SETTINGS["turn_rate"], then=Stop.COAST, duty_limit=20):
         self.left_big.run_until_stalled(speed, then, duty_limit)
+
+    def wrap_angle(self, angle):
+        # Keep angle within [-180, 180]
+        return (angle + 180) % 360 - 180
     
     def drive_for_distance(self, distance, then=Stop.BRAKE, wait=True):
         self.drive_base.straight(distance, then, wait)
@@ -67,23 +71,29 @@ class Robot:
                                  distance, 
                                  speed=ROBOT_SETTINGS["straight_speed"], 
                                  then=Stop.BRAKE, 
-                                 k_p=1.0, k_i=0.2, k_d=0.25, 
-                                 loop_delay_time=0.05):
+                                 k_p=2.5, 
+                                 k_i=0.01, 
+                                 k_d=0.2, 
+                                 loop_delay_time=0.02):
         integral = 0
         previous_error = 0
-        target_heading = 0
-        self.hub.imu.reset_heading(0)
+        target_heading = self.hub.imu.heading()
         self.drive_base.reset()
         while abs(self.drive_base.distance()) < abs(distance):
-            error = target_heading - self.hub.imu.heading()
+            current_heading = self.hub.imu.heading()
+            error = self.wrap_angle(target_heading - current_heading)
             proportional = error
             integral += error * loop_delay_time
             derivative = (error - previous_error) / loop_delay_time
             correction = k_p * proportional + k_i * integral + k_d * derivative
-            self.drive_base.drive(speed, correction)
+            # Drive forward with turn correction
+            self.drive_base.drive(speed, -correction)
             previous_error = error
             sleep(loop_delay_time)
-        self.drive_base.stop(then)
+        if then == Stop.BRAKE:
+            self.drive_base.brake()
+        elif then == Stop.COAST:
+            self.drive_base.stop()
     
     def turn_in_place(self, degrees, then="brake"):
         degrees *= 1.25
@@ -97,27 +107,31 @@ class Robot:
 
     def smart_turn_in_place(self, 
                             target_angle, 
-                            speed=ROBOT_SETTINGS["turn_rate"], 
                             then=Stop.BRAKE,
-                            k_p=2.0, k_i=0.05, k_d=0.8,
+                            k_p=3.5, k_i=0.02, k_d=0.3,
                             loop_delay_time=0.02):
         integral = 0
         previous_error = 0
-        self.hub.imu.reset_heading(0)
+        target_heading = self.wrap_angle(self.hub.imu.heading() + target_angle)
         self.drive_base.stop()
         while True:
             current_heading = self.hub.imu.heading()
-            error = target_angle - current_heading
-            if abs(error) < 1.0:
+            error = self.wrap_angle(target_heading - current_heading)
+            if abs(error) < 2.0:
                 break
+            proportional = error
             integral += error * loop_delay_time
             derivative = (error - previous_error) / loop_delay_time
-            correction = k_p * error + k_i * integral + k_d * derivative
-            correction = max(-speed, min(speed, correction))
-            self.drive_base.drive(0, correction)
+            correction = k_p * proportional + k_i * integral + k_d * derivative
+            # Turn with correction
+            self.drive_base.drive(0, -correction)
             previous_error = error
+            print(f"Heading: {current_heading:.2f} Error: {error:.2f} Corr: {correction:.2f}")
             sleep(loop_delay_time)
-        self.drive_base.stop(then)
+        if then == Stop.BRAKE:
+            self.drive_base.brake()
+        elif then == Stop.COAST:
+            self.drive_base.stop()
     
     def curve(self, radius, angle, then=Stop.COAST, wait=True):
         self.drive_base.curve(radius, angle, then, wait)
@@ -207,28 +221,27 @@ def mission_function_one(r:Robot):
     """
     r.rotate_left_motor_until_stalled(-100)
     r.rotate_right_motor_until_stalled(-100)
-    r.drive_for_distance(750)
+    r.drive_for_distance(755)
     r.turn_in_place(-90)
-    r.drive_for_distance(50)
-    r.rotate_left_motor(95)
-    r.turn_in_place(45)
-    r.turn_in_place(-90)
-    r.turn_in_place(45)
-    r.drive_for_distance(-100)
+    r.drive_for_distance(65)
+    r.rotate_left_motor(98)
+    r.turn_in_place(35)
+    r.turn_in_place(-70)
+    r.turn_in_place(35)
+    r.drive_for_distance(-95)
     r.turn_in_place(5)
-    r.drive_for_distance(100)
-    r.rotate_left_motor(-120)
+    r.drive_for_distance(110)
+    r.rotate_left_motor(-115)
     r.drive_for_distance(-100)
     r.turn_in_place(150)
-    r.drive_for_distance(150)
-    r.rotate_right_motor_until_stalled(100)
-    r.turn_in_place(-60)
-    r.drive_for_distance(100)
-    r.rotate_right_motor(-100)
-    sleep(1000)
+    r.drive_for_distance(155)
+    r.rotate_right_motor_until_stalled(50)
+    r.turn_in_place(-55)
+    r.rotate_right_motor(-55)
+    sleep(2000)
     r.rotate_right_motor_until_stalled(100)
     r.drive_for_distance(-100)
-    r.turn_in_place(45)
+    r.turn_in_place(50)
     r.rotate_right_motor_until_stalled(-100)
     r.drive_for_distance(-200)
     r.turn_in_place(-45)
@@ -283,11 +296,14 @@ def mission_function_five(r:Robot):
     r.drive_for_distance(50)
 
 def mission_function_six(r:Robot):
-    r.rotate_right_motor(-90)
+    r.smart_turn_in_place(90)
+    r.smart_turn_in_place(90)
+    r.smart_turn_in_place(90)
+    r.smart_turn_in_place(90)
+    r.drive_for_distance(1000)
 
 def mission_function_seven(r:Robot):
-    while True:
-        print(r.hub.imu.heading())
+    pass
 
 def mission_function_eight(r:Robot):
     pass
@@ -319,6 +335,8 @@ def run_mission(r:Robot, selected):
     r.hub.display.animate(running_animation, 30)
     print(f"Running #{selected}...")
     stopwatch("start")
+    r.drive_for_distance(-10)
+    r.hub.imu.reset_heading(0)
     if selected == "1":
         mission_function_one(r)
     elif selected == "2":
