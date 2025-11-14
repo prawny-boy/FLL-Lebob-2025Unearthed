@@ -230,11 +230,11 @@ def mission_function_one(r:Robot):
     r.turn_in_place(35)
     r.drive_for_distance(-95)
     r.turn_in_place(5)
-    r.drive_for_distance(110)
+    r.drive_for_distance(120)
     r.rotate_left_motor(-115)
-    r.drive_for_distance(-100)
+    r.drive_for_distance(-110)
     r.turn_in_place(150)
-    r.drive_for_distance(155)
+    r.drive_for_distance(165)
     r.rotate_right_motor_until_stalled(50)
     r.turn_in_place(-55)
     r.rotate_right_motor(-55)
@@ -262,7 +262,8 @@ def mission_function_two(r:Robot):
     r.drive_for_distance(800)
     
 def mission_function_three(r:Robot):
-    r.drive_for_distance(730)
+    r.rotate_left_motor_until_stalled(100)
+    r.drive_for_distance(710)
     r.turn_in_place(30)
     r.drive_for_distance(30)
     r.turn_in_place(-110)
@@ -271,8 +272,8 @@ def mission_function_three(r:Robot):
     # r.turn_in_place(-70)
     # r.drive_for_distance(130)
     # r.turn_in_place(-180)
-    r.drive_for_distance(150)
-    r.turn_in_place(-200)
+    # r.drive_for_distance(150)
+    # r.turn_in_place(-200)
 
 def mission_function_four(r:Robot):
     r.drive_for_distance(200)
