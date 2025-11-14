@@ -21,6 +21,42 @@ DRIVE_PROFILE = {
 DEFAULT_SETTLE_DELAY = 250
 ROBOT_MAX_TORQUE = 700
 
+
+class PIDController:
+    """Basic PID helper reused by the smart drive and turn helpers."""
+
+    def __init__(
+        self,
+        k_p,
+        k_i,
+        k_d,
+        loop_delay_time=0.02,
+        integral_limit=None,
+        output_limit=None,
+    ):
+        self.k_p = k_p
+        self.k_i = k_i
+        self.k_d = k_d
+        self.loop_delay_time = loop_delay_time
+        self.integral_limit = integral_limit
+        self.output_limit = output_limit
+        self.reset()
+
+    def reset(self):
+        self.integral = 0
+        self.previous_error = 0
+
+    def calculate(self, error):
+        self.integral += error * self.loop_delay_time
+        if self.integral_limit is not None:
+            self.integral = max(-self.integral_limit, min(self.integral, self.integral_limit))
+        derivative = (error - self.previous_error) / self.loop_delay_time
+        output = self.k_p * error + self.k_i * self.integral + self.k_d * derivative
+        if self.output_limit is not None:
+            output = max(-self.output_limit, min(output, self.output_limit))
+        self.previous_error = error
+        return output
+
 RUNNING_ANIMATION = tuple(
     Matrix(frame)
     for frame in (
@@ -88,18 +124,17 @@ class Robot:
     """Wrapper around the PrimeHub, drive base, and attachments."""
 
     def __init__(self, use_gyro=False, drive_profile=None):
-        drive_profile = drive_profile or DRIVE_PROFILE
-        self.drive_profile = {
-            "straight_speed": drive_profile["straight_speed"],
-            "straight_acceleration": drive_profile["straight_acceleration"],
-            "turn_rate": drive_profile["turn_rate"],
-            "turn_acceleration": drive_profile["turn_acceleration"],
-        }
+        profile = DRIVE_PROFILE.copy()
+        if drive_profile:
+            profile.update(drive_profile)
+        self.drive_profile = profile
 
         self.left_drive = Motor(Port.C)
         self.right_drive = Motor(Port.D, Direction.COUNTERCLOCKWISE)
         self.right_big = Motor(Port.A)
         self.left_big = Motor(Port.B)
+        self.big_motors = {"left": self.left_big, "right": self.right_big}
+        self.drive_motors = (self.left_drive, self.right_drive)
 
         self.drive_base = DriveBase(
             self.left_drive,
@@ -114,29 +149,46 @@ class Robot:
         self.hub.imu.reset_heading(0)
         self.drive_base.use_gyro(use_gyro=use_gyro)
 
+    def _resolve_speed(self, speed, profile_key):
+        return speed if speed is not None else self.drive_profile[profile_key]
+
+    def _stop_drivebase(self, then):
+        if then == Stop.COAST:
+            self.drive_base.stop()
+        else:
+            self.drive_base.brake()
+
+    def rotate_attachment(self, side, degrees, speed=None, then=Stop.BRAKE, wait=True):
+        motor = self.big_motors.get(side)
+        if motor is None:
+            raise ValueError("Attachment side must be 'left' or 'right'")
+        resolved_speed = self._resolve_speed(speed, "turn_rate")
+        motor.run_angle(resolved_speed, degrees, then, wait)
+
+    def rotate_attachment_until_stalled(
+        self, side, speed=None, then=Stop.COAST, duty_limit=50
+    ):
+        motor = self.big_motors.get(side)
+        if motor is None:
+            raise ValueError("Attachment side must be 'left' or 'right'")
+        resolved_speed = self._resolve_speed(speed, "turn_rate")
+        motor.run_until_stalled(resolved_speed, then, duty_limit)
+
     def rotate_right_motor(self, degrees, speed=None, then=Stop.BRAKE, wait=True):
-        if speed is None:
-            speed = self.drive_profile["turn_rate"]
-        self.right_big.run_angle(speed, degrees, then, wait)
+        self.rotate_attachment("right", degrees, speed, then, wait)
 
     def rotate_left_motor(self, degrees, speed=None, then=Stop.BRAKE, wait=True):
-        if speed is None:
-            speed = self.drive_profile["turn_rate"]
-        self.left_big.run_angle(speed, degrees, then, wait)
+        self.rotate_attachment("left", degrees, speed, then, wait)
 
     def rotate_right_motor_until_stalled(
         self, speed=None, then=Stop.COAST, duty_limit=50
     ):
-        if speed is None:
-            speed = self.drive_profile["turn_rate"]
-        self.right_big.run_until_stalled(speed, then, duty_limit)
+        self.rotate_attachment_until_stalled("right", speed, then, duty_limit)
 
     def rotate_left_motor_until_stalled(
         self, speed=None, then=Stop.COAST, duty_limit=20
     ):
-        if speed is None:
-            speed = self.drive_profile["turn_rate"]
-        self.left_big.run_until_stalled(speed, then, duty_limit)
+        self.rotate_attachment_until_stalled("left", speed, then, duty_limit)
 
     def wrap_angle(self, angle):
         return (angle + 180) % 360 - 180
@@ -144,6 +196,8 @@ class Robot:
     def drive_for_distance(
         self, distance, then=Stop.BRAKE, wait=True, settle_time=DEFAULT_SETTLE_DELAY
     ):
+        if not distance:
+            return
         self.drive_base.straight(distance, then, wait)
         if settle_time:
             sleep(settle_time)
@@ -158,35 +212,26 @@ class Robot:
         k_d=0.2,
         loop_delay_time=0.02,
     ):
-        if speed is None:
-            speed = self.drive_profile["straight_speed"]
-        integral = 0
-        previous_error = 0
+        if not distance:
+            return
+        resolved_speed = self._resolve_speed(speed, "straight_speed")
+        pid = PIDController(k_p, k_i, k_d, loop_delay_time)
         target_heading = self.hub.imu.heading()
         self.drive_base.reset()
+        direction = 1 if distance >= 0 else -1
         while abs(self.drive_base.distance()) < abs(distance):
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
-            proportional = error
-            integral += error * loop_delay_time
-            derivative = (error - previous_error) / loop_delay_time
-            correction = k_p * proportional + k_i * integral + k_d * derivative
-            self.drive_base.drive(speed, -correction)
-            previous_error = error
+            correction = pid.calculate(error)
+            self.drive_base.drive(direction * resolved_speed, -correction)
             sleep(loop_delay_time)
-        if then == Stop.BRAKE:
-            self.drive_base.brake()
-        elif then == Stop.COAST:
-            self.drive_base.stop()
+        self._stop_drivebase(then)
 
     def turn_in_place(self, degrees, then=Stop.BRAKE, settle_time=DEFAULT_SETTLE_DELAY):
         adjusted = degrees * 1.25
         self.hub.imu.reset_heading(0)
         self.drive_base.turn(-adjusted, Stop.COAST, True)
-        if then == Stop.COAST:
-            self.drive_base.stop()
-        else:
-            self.drive_base.brake()
+        self._stop_drivebase(then)
         if settle_time:
             sleep(settle_time)
 
@@ -199,8 +244,7 @@ class Robot:
         k_d=0.3,
         loop_delay_time=0.02,
     ):
-        integral = 0
-        previous_error = 0
+        pid = PIDController(k_p, k_i, k_d, loop_delay_time, output_limit=400)
         target_heading = self.wrap_angle(self.hub.imu.heading() + target_angle)
         self.drive_base.stop()
         while True:
@@ -208,34 +252,28 @@ class Robot:
             error = self.wrap_angle(target_heading - current_heading)
             if abs(error) < 2.0:
                 break
-            proportional = error
-            integral += error * loop_delay_time
-            derivative = (error - previous_error) / loop_delay_time
-            correction = k_p * proportional + k_i * integral + k_d * derivative
+            correction = pid.calculate(error)
             self.drive_base.drive(0, -correction)
-            previous_error = error
             print(
                 "Heading: {:.2f} Error: {:.2f} Corr: {:.2f}".format(
                     current_heading, error, correction
                 )
             )
             sleep(loop_delay_time)
-        if then == Stop.BRAKE:
-            self.drive_base.brake()
-        elif then == Stop.COAST:
-            self.drive_base.stop()
+        self._stop_drivebase(then)
 
     def curve(self, radius, angle, then=Stop.COAST, wait=True):
         self.drive_base.curve(radius, angle, then, wait)
 
     def status_light(self, color):
         self.hub.light.off()
-        self.hub.light.on(color)
+        if color is not None:
+            self.hub.light.on(color)
 
     def battery_display(self):
         voltage = self.hub.battery.voltage()
         pct = rescale(voltage, LOW_VOLTAGE, HIGH_VOLTAGE, 1, 100)
-        print("Battery %: {} Voltage: {}".format(round(pct, 1), voltage))
+        print(f"Battery %: {round(pct, 1)} Voltage: {voltage}")
         if pct < 40:
             print("EMERGENCY: BATTERY LOW!")
             color = Color.RED
@@ -248,12 +286,27 @@ class Robot:
         return color
 
     def clean_motors(self):
-        self.left_drive.run_angle(999, 1000, wait=False)
-        self.right_drive.run_angle(999, 1000, wait=False)
-        self.left_big.run_angle(999, 1000, wait=False)
+        for motor in self.drive_motors + (self.left_big,):
+            motor.run_angle(999, 1000, wait=False)
+        # Ensure the last attachment waits before returning so the hub
+        # does not start another mission mid-cleaning.
         self.right_big.run_angle(999, 1000)
 
 
+MISSION_REGISTRY = {}
+
+
+def mission(slot):
+    """Decorator used to register mission handlers."""
+
+    def decorator(func):
+        MISSION_REGISTRY[slot] = func
+        return func
+
+    return decorator
+
+
+@mission("1")
 def mission_function_one(robot):
     robot.rotate_left_motor_until_stalled(-100)
     robot.rotate_right_motor_until_stalled(-100)
@@ -284,6 +337,7 @@ def mission_function_one(robot):
     robot.drive_for_distance(-700)
 
 
+@mission("2")
 def mission_function_two(robot):
     robot.drive_for_distance(200)
     robot.turn_in_place(90)
@@ -299,6 +353,7 @@ def mission_function_two(robot):
     robot.drive_for_distance(800)
 
 
+@mission("3")
 def mission_function_three(robot):
     robot.rotate_left_motor_until_stalled(100)
     robot.drive_for_distance(710)
@@ -308,6 +363,7 @@ def mission_function_three(robot):
     robot.drive_for_distance(200)
 
 
+@mission("4")
 def mission_function_four(robot):
     robot.drive_for_distance(200)
     robot.turn_in_place(-45)
@@ -321,6 +377,7 @@ def mission_function_four(robot):
     robot.drive_for_distance(-700)
 
 
+@mission("5")
 def mission_function_five(robot):
     robot.drive_for_distance(100)
     robot.turn_in_place(-30)
@@ -331,6 +388,7 @@ def mission_function_five(robot):
     robot.drive_for_distance(50)
 
 
+@mission("6")
 def mission_function_six(robot):
     robot.smart_turn_in_place(90)
     robot.smart_turn_in_place(90)
@@ -339,24 +397,14 @@ def mission_function_six(robot):
     robot.drive_for_distance(1000)
 
 
+@mission("7")
 def mission_function_seven(robot):
     pass
 
 
+@mission("8")
 def mission_function_eight(robot):
     pass
-
-
-MISSIONS = {
-    "1": mission_function_one,
-    "2": mission_function_two,
-    "3": mission_function_three,
-    "4": mission_function_four,
-    "5": mission_function_five,
-    "6": mission_function_six,
-    "7": mission_function_seven,
-    "8": mission_function_eight,
-}
 
 
 def rescale(value, in_min, in_max, out_min, out_max):
@@ -373,19 +421,19 @@ def rescale(value, in_min, in_max, out_min, out_max):
 class MissionControl:
     def __init__(self, robot, missions=None, menu_options=MENU_OPTIONS):
         self.robot = robot
-        self.missions = missions if missions is not None else MISSIONS
+        self.missions = missions if missions is not None else MISSION_REGISTRY
         self.menu_options = menu_options
         self.stopwatch = StopWatch()
         self.battery_status = Color.GREEN
         self.last_run = "C"
 
-    def _start_stopwatch(self):
-        self.stopwatch.reset()
-
     def _build_menu(self):
-        start_index = (self.menu_options.index(self.last_run) + 1) % len(
-            self.menu_options
-        )
+        try:
+            start_index = (self.menu_options.index(self.last_run) + 1) % len(
+                self.menu_options
+            )
+        except ValueError:
+            start_index = 0
         return [
             self.menu_options[(start_index + i) % len(self.menu_options)]
             for i in range(len(self.menu_options))
@@ -399,7 +447,7 @@ class MissionControl:
         self.robot.status_light(Color.YELLOW)
         self.robot.hub.display.animate(RUNNING_ANIMATION, 30)
         print("Running #{}...".format(selection))
-        self._start_stopwatch()
+        self.stopwatch.reset()
         self.robot.drive_for_distance(-10, settle_time=0)
         self.robot.hub.imu.reset_heading(0)
         mission(self.robot)
