@@ -5,7 +5,7 @@ from pybricks.robotics import DriveBase
 from pybricks.hubs import PrimeHub
 
 DRIVEBASE_WHEEL_DIAMETER = 88 # 56 is small, 88 is big
-DRIVEBASE_AXLE_TRACK = 115 # confirm this value
+DRIVEBASE_AXLE_TRACK = 115
 LOW_VOLTAGE = 7000
 HIGH_VOLTAGE = 8300
 MENU_OPTIONS = ["1", "2", "3", "4", "5", "6", "7", "8", "C"]
