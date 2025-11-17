@@ -357,10 +357,15 @@ def mission_function_two(robot):
 def mission_function_three(robot):
     robot.rotate_left_motor_until_stalled(100)
     robot.drive_for_distance(710)
-    robot.turn_in_place(30)
-    robot.drive_for_distance(30)
-    robot.turn_in_place(-110)
+    robot.turn_in_place(20)
+    robot.drive_for_distance(35) # into the boulders
+    robot.turn_in_place(-90) # does boulders and uncovering artifact
+    robot.drive_for_distance(-80)
+    robot.turn_in_place(-30)
     robot.drive_for_distance(200)
+    robot.rotate_left_motor_until_stalled(200, stop=Stop.HOLD)
+    robot.drive_for_distance(-100)
+    #robot.left_drive.run_angle(100, 1000, wait=False)
 
 
 @mission("4")
