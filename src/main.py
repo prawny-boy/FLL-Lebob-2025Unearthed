@@ -458,7 +458,20 @@ def mission_function_six(robot):
 
 @mission("7")
 def mission_function_seven(robot):
-    pass
+    # quick test of smart functions (this is identical to number 3)
+    robot.rotate_left_motor_until_stalled(100)
+    robot.smart_drive_for_distance(710)
+    robot.smart_turn_in_place(20)
+    robot.smart_drive_for_distance(35)  # into the boulders
+    robot.smart_turn_in_place(-75)  # does boulders and uncovering artifact
+    robot.smart_drive_for_distance(-100)
+    robot.smart_turn_in_place(-45)
+    robot.smart_drive_for_distance(230)
+    robot.smart_turn_in_place(30)
+    robot.rotate_left_motor_until_stalled(-200, then=Stop.HOLD)
+    robot.smart_drive_for_distance(-300)
+    robot.rotate_left_motor(100)
+    robot.smart_drive_for_distance(-600)
 
 
 @mission("8")
