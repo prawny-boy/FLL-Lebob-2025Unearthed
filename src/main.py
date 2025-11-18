@@ -158,6 +158,22 @@ class Robot:
         else:
             self.drive_base.brake()
 
+    def _override_drive_settings(self, **overrides):
+        valid = {}
+        for key, value in overrides.items():
+            if value is None or key not in self.drive_profile:
+                continue
+            valid[key] = abs(value)
+        if not valid:
+            return False
+        settings = self.drive_profile.copy()
+        settings.update(valid)
+        self.drive_base.settings(**settings)
+        return True
+
+    def _restore_drive_settings(self):
+        self.drive_base.settings(**self.drive_profile)
+
     def rotate_attachment(self, side, degrees, speed=None, then=Stop.BRAKE, wait=True):
         motor = self.big_motors.get(side)
         if motor is None:
@@ -194,11 +210,25 @@ class Robot:
         return (angle + 180) % 360 - 180
 
     def drive_for_distance(
-        self, distance, then=Stop.BRAKE, wait=True, settle_time=DEFAULT_SETTLE_DELAY
+        self,
+        distance,
+        then=Stop.BRAKE,
+        wait=True,
+        settle_time=DEFAULT_SETTLE_DELAY,
+        speed=None,
     ):
         if not distance:
             return
-        self.drive_base.straight(distance, then, wait)
+        overrides_applied = False
+        if speed is not None:
+            overrides_applied = self._override_drive_settings(
+                straight_speed=speed
+            )
+        try:
+            self.drive_base.straight(distance, then, wait)
+        finally:
+            if overrides_applied:
+                self._restore_drive_settings()
         if settle_time:
             sleep(settle_time)
 
@@ -227,10 +257,19 @@ class Robot:
             sleep(loop_delay_time)
         self._stop_drivebase(then)
 
-    def turn_in_place(self, degrees, then=Stop.BRAKE, settle_time=DEFAULT_SETTLE_DELAY):
+    def turn_in_place(
+        self, degrees, then=Stop.BRAKE, settle_time=DEFAULT_SETTLE_DELAY, speed=None
+    ):
         adjusted = degrees * 1.25
+        overrides_applied = False
+        if speed is not None:
+            overrides_applied = self._override_drive_settings(turn_rate=speed)
         self.hub.imu.reset_heading(0)
-        self.drive_base.turn(-adjusted, Stop.COAST, True)
+        try:
+            self.drive_base.turn(-adjusted, Stop.COAST, True)
+        finally:
+            if overrides_applied:
+                self._restore_drive_settings()
         self._stop_drivebase(then)
         if settle_time:
             sleep(settle_time)
@@ -243,8 +282,10 @@ class Robot:
         k_i=0.02,
         k_d=0.3,
         loop_delay_time=0.02,
+        speed=None,
     ):
-        pid = PIDController(k_p, k_i, k_d, loop_delay_time, output_limit=400)
+        turn_limit = abs(speed) if speed is not None else 400
+        pid = PIDController(k_p, k_i, k_d, loop_delay_time, output_limit=turn_limit)
         target_heading = self.wrap_angle(self.hub.imu.heading() + target_angle)
         self.drive_base.stop()
         while True:
@@ -262,8 +303,17 @@ class Robot:
             sleep(loop_delay_time)
         self._stop_drivebase(then)
 
-    def curve(self, radius, angle, then=Stop.COAST, wait=True):
-        self.drive_base.curve(radius, angle, then, wait)
+    def curve(self, radius, angle, then=Stop.COAST, wait=True, speed=None):
+        overrides_applied = False
+        if speed is not None:
+            overrides_applied = self._override_drive_settings(
+                straight_speed=speed
+            )
+        try:
+            self.drive_base.curve(radius, angle, then, wait)
+        finally:
+            if overrides_applied:
+                self._restore_drive_settings()
 
     def status_light(self, color):
         self.hub.light.off()
