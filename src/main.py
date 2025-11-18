@@ -359,12 +359,16 @@ def mission_function_three(robot):
     robot.drive_for_distance(710)
     robot.turn_in_place(20)
     robot.drive_for_distance(35) # into the boulders
-    robot.turn_in_place(-90) # does boulders and uncovering artifact
-    robot.drive_for_distance(-80)
-    robot.turn_in_place(-30)
-    robot.drive_for_distance(200)
-    robot.rotate_left_motor_until_stalled(200, stop=Stop.HOLD)
+    robot.turn_in_place(-75) # does boulders and uncovering artifact
     robot.drive_for_distance(-100)
+    robot.turn_in_place(-45)
+    robot.drive_for_distance(230)
+    robot.turn_in_place(30)
+    robot.rotate_left_motor_until_stalled(-200, then=Stop.HOLD)
+    robot.drive_for_distance(-300)
+    robot.rotate_left_motor(100)
+    robot.drive_for_distance(-600)
+
     #robot.left_drive.run_angle(100, 1000, wait=False)
 
 
