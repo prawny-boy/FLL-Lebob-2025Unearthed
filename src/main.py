@@ -355,7 +355,7 @@ def mission(slot):
 
     return decorator
 
-
+# TODO the thing jade said (make it register the numebr automatically on spike selection)
 @mission("1")
 def mission_function_one(robot):
     robot.rotate_left_motor_until_stalled(-100)
@@ -438,14 +438,13 @@ def mission_function_four(robot):
 
 @mission("5")
 def mission_function_five(robot):
-    robot.drive_for_distance(100)
-    robot.turn_in_place(-30)
+    # robot.drive_for_distance(100)
+    # robot.turn_in_place(-30)
     robot.rotate_left_motor_until_stalled(100)
     robot.drive_for_distance(900)
     robot.rotate_left_motor(-120, speed=500, wait=False)
     sleep(200)
     robot.drive_for_distance(50)
-# test to see if andre's git signing works again
 
 @mission("6")
 def mission_function_six(robot):
