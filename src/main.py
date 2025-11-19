@@ -355,7 +355,7 @@ def mission(slot):
 
     return decorator
 
-# TODO the thing jade said (make it register the numebr automatically on spike selection)
+# TODO the thing jade said (make it register the number automatically on spike selection)
 @mission("1")
 def mission_function_one(robot:Robot):
     robot.rotate_left_motor_until_stalled(-100)
@@ -490,7 +490,7 @@ def mission_function_eight(robot:Robot):
     pass
 
 
-def rescale(value, in_min, in_max, out_min, out_max):
+3def rescale(value, in_min, in_max, out_min, out_max):
     if in_max == in_min:
         raise ValueError("in_max and in_min must be different values")
     if value < in_min:
