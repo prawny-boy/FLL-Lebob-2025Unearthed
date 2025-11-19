@@ -9,8 +9,8 @@ from pybricks.tools import wait as sleep
 
 DRIVEBASE_WHEEL_DIAMETER = 88  # 56 is small, 88 is big
 DRIVEBASE_AXLE_TRACK = 115
-LOW_VOLTAGE = 7000
-HIGH_VOLTAGE = 8300
+LOW_VOLTAGE = 7200
+HIGH_VOLTAGE = 8400
 MENU_OPTIONS = ("1", "2", "3", "4", "5", "6", "7", "8", "C")
 DRIVE_PROFILE = {
     "straight_speed": 500,
@@ -424,7 +424,7 @@ def mission_function_three(robot:Robot):
     robot.rotate_left_motor(30, speed=100)
     robot.drive_for_distance(100)
     robot.rotate_left_motor(100)
-    robot.drive_for_distance(-600)
+    robot.drive_for_distance(-700)
 
     #robot.left_drive.run_angle(100, 1000, wait=False)
 
@@ -435,10 +435,10 @@ def mission_function_four(robot:Robot):
     robot.smart_turn_in_place(-90)
     robot.drive_for_distance(600)
     robot.turn_in_place(90)
-    robot.drive_for_distance(150, speed=250)
+    robot.drive_for_distance(75, speed=250)
     robot.drive_for_distance(-150)
     robot.turn_in_place(-90)
-    robot.drive_for_distance(-500)
+    robot.drive_for_distance(-600)
 
 
 @mission("5")
@@ -490,7 +490,7 @@ def mission_function_eight(robot:Robot):
     pass
 
 
-3def rescale(value, in_min, in_max, out_min, out_max):
+def rescale(value, in_min, in_max, out_min, out_max):
     if in_max == in_min:
         raise ValueError("in_max and in_min must be different values")
     if value < in_min:
