@@ -485,14 +485,14 @@ def mission_function_four(robot:Robot):
 
 @mission("5")
 def mission_function_five(robot:Robot):
-    robot.drive_for_distance(250)
+    robot.drive_for_distance(300)
     robot.smart_turn_in_place(-90)
-    robot.drive_for_distance(900)
+    robot.drive_for_distance(850)
     robot.turn_in_place(35)
-    robot.rotate_right_motor_until_stalled(-50)
-    robot.drive_for_distance(200)
-    robot.rotate_left_motor(120, speed=50)
-    sleep(200)
+    robot.rotate_right_motor_until_stalled(50)
+    robot.drive_for_distance(90)
+    robot.rotate_right_motor(-120)
+    # TODO go back to home
 
 
 @mission("6")
