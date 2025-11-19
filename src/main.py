@@ -357,7 +357,7 @@ def mission(slot):
 
 # TODO the thing jade said (make it register the numebr automatically on spike selection)
 @mission("1")
-def mission_function_one(robot):
+def mission_function_one(robot:Robot):
     robot.rotate_left_motor_until_stalled(-100)
     robot.rotate_right_motor_until_stalled(-100)
     robot.drive_for_distance(755)
@@ -388,7 +388,7 @@ def mission_function_one(robot):
 
 
 @mission("2")
-def mission_function_two(robot):
+def mission_function_two(robot:Robot):
     robot.drive_for_distance(200)
     robot.turn_in_place(90)
     robot.drive_for_distance(400)
@@ -404,18 +404,25 @@ def mission_function_two(robot):
 
 
 @mission("3")
-def mission_function_three(robot):
+def mission_function_three(robot:Robot):
     robot.rotate_left_motor_until_stalled(100)
-    robot.drive_for_distance(710)
-    robot.turn_in_place(20)
-    robot.drive_for_distance(35) # into the boulders
+    robot.drive_for_distance(30)
+    robot.smart_turn_in_place(-15)
+    robot.drive_for_distance(680)
+    robot.turn_in_place(50)
+    robot.drive_for_distance(75) # into the boulders
     robot.turn_in_place(-75) # does boulders and uncovering artifact
-    robot.drive_for_distance(-100)
+    robot.drive_for_distance(-200)
     robot.turn_in_place(-45)
-    robot.drive_for_distance(230)
-    robot.turn_in_place(30)
+    robot.drive_for_distance(200)
+    robot.turn_in_place(20)
     robot.rotate_left_motor_until_stalled(-200, then=Stop.HOLD)
-    robot.drive_for_distance(-300)
+    robot.rotate_left_motor(30)
+    robot.drive_for_distance(-400, speed=250, wait=False)
+    sleep(500)
+    robot.rotate_left_motor(45, speed=100)
+    robot.rotate_left_motor(30, speed=100)
+    robot.drive_for_distance(100)
     robot.rotate_left_motor(100)
     robot.drive_for_distance(-600)
 
@@ -423,31 +430,29 @@ def mission_function_three(robot):
 
 
 @mission("4")
-def mission_function_four(robot):
-    robot.drive_for_distance(200)
-    robot.turn_in_place(-45)
-    robot.drive_for_distance(300, wait=False)
-    robot.rotate_left_motor_until_stalled(-100)
-    robot.rotate_right_motor_until_stalled(-100)
-    sleep(500)
-    robot.rotate_left_motor(120, wait=False)
-    robot.rotate_right_motor(120, speed=500)
-    robot.rotate_right_motor(-120)
-    robot.drive_for_distance(-700)
+def mission_function_four(robot:Robot):
+    robot.drive_for_distance(250)
+    robot.smart_turn_in_place(-90)
+    robot.drive_for_distance(600)
+    robot.turn_in_place(90)
+    robot.drive_for_distance(150, speed=250)
+    robot.drive_for_distance(-150)
+    robot.turn_in_place(-90)
+    robot.drive_for_distance(-500)
 
 
 @mission("5")
-def mission_function_five(robot):
+def mission_function_five(robot:Robot):
     # robot.drive_for_distance(100)
     # robot.turn_in_place(-30)
-    robot.rotate_left_motor_until_stalled(100)
+    robot.rotate_right_motor_until_stalled(-50)
     robot.drive_for_distance(900)
-    robot.rotate_left_motor(-120, speed=500, wait=False)
+    robot.rotate_left_motor(120, speed=500, wait=False)
     sleep(200)
     robot.drive_for_distance(50)
 
 @mission("6")
-def mission_function_six(robot):
+def mission_function_six(robot:Robot):
     robot.smart_turn_in_place(90)
     robot.smart_turn_in_place(90)
     robot.smart_turn_in_place(90)
@@ -456,7 +461,7 @@ def mission_function_six(robot):
 
 
 @mission("7")
-def mission_function_seven(robot):
+def mission_function_seven(robot:Robot):
     # quick test of smart functions (this is identical to number 3)
     robot.rotate_left_motor_until_stalled(100)
     robot.smart_drive_for_distance(710)
@@ -474,7 +479,7 @@ def mission_function_seven(robot):
 
 
 @mission("8")
-def mission_function_eight(robot):
+def mission_function_eight(robot:Robot):
     pass
 
 
