@@ -11,7 +11,6 @@ DRIVEBASE_WHEEL_DIAMETER = 88  # 56 is small, 88 is big
 DRIVEBASE_AXLE_TRACK = 115
 LOW_VOLTAGE = 7200
 HIGH_VOLTAGE = 8400
-MENU_OPTIONS = ("1", "2", "3", "4", "5", "6", "7", "8", "C")
 DRIVE_PROFILE = {
     "straight_speed": 500,
     "straight_acceleration": 750,
@@ -20,43 +19,6 @@ DRIVE_PROFILE = {
 }
 DEFAULT_SETTLE_DELAY = 250
 ROBOT_MAX_TORQUE = 700
-
-
-class PIDController:
-    """Basic PID helper reused by the smart drive and turn helpers."""
-
-    def __init__(
-        self,
-        k_p,
-        k_i,
-        k_d,
-        loop_delay_time=0.02,
-        integral_limit=None,
-        output_limit=None,
-    ):
-        self.k_p = k_p
-        self.k_i = k_i
-        self.k_d = k_d
-        self.loop_delay_time = loop_delay_time
-        self.integral_limit = integral_limit
-        self.output_limit = output_limit
-        self.reset()
-
-    def reset(self):
-        self.integral = 0
-        self.previous_error = 0
-
-    def calculate(self, error):
-        self.integral += error * self.loop_delay_time
-        if self.integral_limit is not None:
-            self.integral = max(-self.integral_limit, min(self.integral, self.integral_limit))
-        derivative = (error - self.previous_error) / self.loop_delay_time
-        output = self.k_p * error + self.k_i * self.integral + self.k_d * derivative
-        if self.output_limit is not None:
-            output = max(-self.output_limit, min(output, self.output_limit))
-        self.previous_error = error
-        return output
-
 RUNNING_ANIMATION = tuple(
     Matrix(frame)
     for frame in (
@@ -118,6 +80,43 @@ RUNNING_ANIMATION = tuple(
         ],
     )
 )
+MISSION_REGISTRY = {}
+
+
+class PIDController:
+    """Basic PID helper reused by the smart drive and turn helpers."""
+
+    def __init__(
+        self,
+        k_p,
+        k_i,
+        k_d,
+        loop_delay_time=0.02,
+        integral_limit=None,
+        output_limit=None,
+    ):
+        self.k_p = k_p
+        self.k_i = k_i
+        self.k_d = k_d
+        self.loop_delay_time = loop_delay_time
+        self.integral_limit = integral_limit
+        self.output_limit = output_limit
+        self.reset()
+
+    def reset(self):
+        self.integral = 0
+        self.previous_error = 0
+
+    def calculate(self, error):
+        self.integral += error * self.loop_delay_time
+        if self.integral_limit is not None:
+            self.integral = max(-self.integral_limit, min(self.integral, self.integral_limit))
+        derivative = (error - self.previous_error) / self.loop_delay_time
+        output = self.k_p * error + self.k_i * self.integral + self.k_d * derivative
+        if self.output_limit is not None:
+            output = max(-self.output_limit, min(output, self.output_limit))
+        self.previous_error = error
+        return output
 
 
 class Robot:
@@ -343,7 +342,52 @@ class Robot:
         self.right_big.run_angle(999, 1000)
 
 
-MISSION_REGISTRY = {}
+class MissionControl:
+    def __init__(self, robot:Robot, missions=None, menu_options_override=None):
+        self.robot = robot
+        self.missions = missions if missions is not None else MISSION_REGISTRY
+        self.menu_options = menu_options_override if menu_options_override is not None else tuple(MISSION_REGISTRY.keys())
+        self.stopwatch = StopWatch()
+        self.battery_status = Color.GREEN
+        self.last_run = "C"
+
+    def _build_menu(self):
+        try:
+            start_index = (self.menu_options.index(self.last_run) + 1) % len(
+                self.menu_options
+            )
+        except ValueError:
+            start_index = 0
+        return [
+            self.menu_options[(start_index + i) % len(self.menu_options)]
+            for i in range(len(self.menu_options))
+        ]
+
+    def _execute_mission(self, selection):
+        mission = self.missions.get(selection)
+        if mission is None:
+            print("Mission slot {} is unassigned.".format(selection))
+            return self.last_run
+        self.robot.status_light(Color.YELLOW)
+        self.robot.hub.display.animate(RUNNING_ANIMATION, 30)
+        print("Running #{}...".format(selection))
+        self.stopwatch.reset()
+        self.robot.drive_for_distance(-10, settle_time=0)
+        self.robot.hub.imu.reset_heading(0)
+        mission(self.robot)
+        elapsed = self.stopwatch.time()
+        print("Done running #{} in {}ms".format(selection, elapsed))
+        self.robot.status_light(self.battery_status)
+        return selection
+
+    def run(self):
+        self.battery_status = self.robot.battery_display()
+        while True:
+            selection = hub_menu(*self._build_menu())
+            if selection == "C":
+                self.robot.clean_motors()
+                continue
+            self.last_run = self._execute_mission(selection)
 
 
 def mission(slot):
@@ -355,7 +399,7 @@ def mission(slot):
 
     return decorator
 
-# TODO the thing jade said (make it register the number automatically on spike selection)
+
 @mission("1")
 def mission_function_one(robot:Robot):
     robot.rotate_left_motor_until_stalled(-100)
@@ -426,8 +470,6 @@ def mission_function_three(robot:Robot):
     robot.rotate_left_motor(100)
     robot.drive_for_distance(-700)
 
-    #robot.left_drive.run_angle(100, 1000, wait=False)
-
 
 @mission("4")
 def mission_function_four(robot:Robot):
@@ -443,13 +485,15 @@ def mission_function_four(robot:Robot):
 
 @mission("5")
 def mission_function_five(robot:Robot):
-    # robot.drive_for_distance(100)
-    # robot.turn_in_place(-30)
-    robot.rotate_right_motor_until_stalled(-50)
+    robot.drive_for_distance(250)
+    robot.smart_turn_in_place(-90)
     robot.drive_for_distance(900)
-    robot.rotate_left_motor(120, speed=500, wait=False)
+    robot.turn_in_place(35)
+    robot.rotate_right_motor_until_stalled(-50)
+    robot.drive_for_distance(200)
+    robot.rotate_left_motor(120, speed=50)
     sleep(200)
-    robot.drive_for_distance(50)
+
 
 @mission("6")
 def mission_function_six(robot:Robot):
@@ -499,54 +543,6 @@ def rescale(value, in_min, in_max, out_min, out_max):
         value = in_max
     scale = (value - in_min) / (in_max - in_min)
     return out_min + scale * (out_max - out_min)
-
-
-class MissionControl:
-    def __init__(self, robot, missions=None, menu_options=MENU_OPTIONS):
-        self.robot = robot
-        self.missions = missions if missions is not None else MISSION_REGISTRY
-        self.menu_options = menu_options
-        self.stopwatch = StopWatch()
-        self.battery_status = Color.GREEN
-        self.last_run = "C"
-
-    def _build_menu(self):
-        try:
-            start_index = (self.menu_options.index(self.last_run) + 1) % len(
-                self.menu_options
-            )
-        except ValueError:
-            start_index = 0
-        return [
-            self.menu_options[(start_index + i) % len(self.menu_options)]
-            for i in range(len(self.menu_options))
-        ]
-
-    def _execute_mission(self, selection):
-        mission = self.missions.get(selection)
-        if mission is None:
-            print("Mission slot {} is unassigned.".format(selection))
-            return self.last_run
-        self.robot.status_light(Color.YELLOW)
-        self.robot.hub.display.animate(RUNNING_ANIMATION, 30)
-        print("Running #{}...".format(selection))
-        self.stopwatch.reset()
-        self.robot.drive_for_distance(-10, settle_time=0)
-        self.robot.hub.imu.reset_heading(0)
-        mission(self.robot)
-        elapsed = self.stopwatch.time()
-        print("Done running #{} in {}ms".format(selection, elapsed))
-        self.robot.status_light(self.battery_status)
-        return selection
-
-    def run(self):
-        self.battery_status = self.robot.battery_display()
-        while True:
-            selection = hub_menu(*self._build_menu())
-            if selection == "C":
-                self.robot.clean_motors()
-                continue
-            self.last_run = self._execute_mission(selection)
 
 
 def main():
