@@ -346,7 +346,10 @@ class MissionControl:
     def __init__(self, robot:Robot, missions=None, menu_options_override=None):
         self.robot = robot
         self.missions = missions if missions is not None else MISSION_REGISTRY
-        self.menu_options = menu_options_override if menu_options_override is not None else tuple(MISSION_REGISTRY.keys())
+        if menu_options_override is not None:
+            self.menu_options = menu_options_override
+        else:
+            self.menu_options = tuple(sorted(list(MISSION_REGISTRY.keys()), key=int)) + ("C",)
         self.stopwatch = StopWatch()
         self.battery_status = Color.GREEN
         self.last_run = "C"
