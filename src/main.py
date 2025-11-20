@@ -437,6 +437,7 @@ def mission_function_one(robot:Robot):
 
 @mission("2")
 def mission_function_two(robot:Robot):
+    robot.rotate_right_motor_until_stalled(-100)
     robot.drive_for_distance(195)
     robot.smart_turn_in_place(90)
     robot.drive_for_distance(385)
