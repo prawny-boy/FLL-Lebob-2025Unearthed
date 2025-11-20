@@ -436,18 +436,19 @@ def mission_function_one(robot:Robot):
 
 @mission("2")
 def mission_function_two(robot:Robot):
-    robot.drive_for_distance(200)
+    robot.drive_for_distance(195)
     robot.turn_in_place(90)
-    robot.drive_for_distance(400)
-    robot.rotate_right_motor_until_stalled(200)
-    robot.drive_for_distance(-50)
-    robot.rotate_right_motor(-120)
-    robot.drive_for_distance(100)
-    robot.drive_for_distance(-50)
+    robot.drive_for_distance(390)
+    robot.rotate_right_motor_until_stalled(100)
+    robot.drive_for_distance(-70)
+    robot.drive_for_distance(20)
+    robot.rotate_right_motor_until_stalled(-100)
+    robot.drive_for_distance(200)
+    robot.drive_for_distance(-100)
     robot.turn_in_place(-45)
     robot.drive_for_distance(100)
     robot.turn_in_place(45)
-    robot.drive_for_distance(800)
+    robot.drive_for_distance(1000)
 
 
 @mission("3")
