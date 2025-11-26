@@ -439,7 +439,7 @@ def mission_function_one(robot:Robot):
 @mission("2")
 def mission_function_two(robot:Robot):
     robot.rotate_right_motor_until_stalled(-100)
-    robot.drive_for_distance(195)
+    robot.drive_for_distance(190)
     robot.smart_turn_in_place(90)
     robot.drive_for_distance(385)
     robot.rotate_right_motor_until_stalled(100)
@@ -470,9 +470,9 @@ def mission_function_three(robot:Robot):
     robot.rotate_left_motor_until_stalled(-200, then=Stop.HOLD)
     robot.rotate_left_motor(30)
     robot.drive_for_distance(-400, speed=250, wait=False)
-    sleep(500)
-    robot.rotate_left_motor(45, speed=100)
-    robot.rotate_left_motor(30, speed=100)
+    sleep(250)
+    robot.rotate_left_motor(45)
+    robot.rotate_left_motor(30)
     robot.drive_for_distance(100)
     robot.rotate_left_motor(100)
     robot.drive_for_distance(-700)
@@ -482,22 +482,22 @@ def mission_function_three(robot:Robot):
 def mission_function_four(robot:Robot):
     robot.drive_for_distance(250)
     robot.smart_turn_in_place(-90)
-    robot.drive_for_distance(600)
+    robot.drive_for_distance(590)
     robot.turn_in_place(90)
     robot.drive_for_distance(75, speed=250)
-    robot.drive_for_distance(-150)
+    robot.drive_for_distance(-100)
     robot.turn_in_place(-90)
-    robot.drive_for_distance(-600)
+    robot.drive_for_distance(-1000)
 
 
 @mission("5")
 def mission_function_five(robot:Robot):
     robot.drive_for_distance(300)
     robot.smart_turn_in_place(-90)
-    robot.drive_for_distance(850)
-    robot.turn_in_place(35)
+    robot.drive_for_distance(835)
+    robot.turn_in_place(37)
     robot.rotate_right_motor_until_stalled(50)
-    robot.drive_for_distance(90)
+    robot.drive_for_distance(140)
     robot.rotate_right_motor(-120)
     # TODO go back to home
 
