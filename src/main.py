@@ -498,8 +498,7 @@ def mission_function_five(robot:Robot):
     robot.turn_in_place(37)
     robot.rotate_right_motor_until_stalled(100)
     robot.drive_for_distance(140)
-    robot.rotate_right_motor(-120)
-    # TODO go back to home
+    robot.rotate_right_motor(-120, speed=200)
 
 
 @mission("6")
