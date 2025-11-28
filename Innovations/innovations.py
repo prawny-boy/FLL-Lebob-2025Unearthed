@@ -11,7 +11,7 @@ class Servo:
         self.pwm = PWM(self.servo_pin)
         self.pwm.freq(freq)
 
-        # settings
+        # settings (pressure thresholds in PERCENT, 0..100)
         self.NOT_TOUCH = 25
         self.MAX = 80
         self._min_angle = 0.0
@@ -65,9 +65,9 @@ class Servo:
         for i in range(1, steps + 1):
             intermediate = start_angle + step_angle * i
             self.pwm.duty_u16(self.angle_to_duty(intermediate))
-            # Check pressure sensor and stop if threshold exceeded
+            # Check pressure sensor (in %) and stop if threshold exceeded
             try:
-                if self.pressure_pin.read_u16() >= self.MAX:
+                if self.read_pressure() >= self.MAX:
                     # stop movement and hold current intermediate
                     last_intermediate = intermediate
                     stopped_early = True
@@ -126,17 +126,21 @@ class Servo:
     def servo_update(self):
         """Call this frequently from your main loop to advance a cooperative sweep.
 
-        Returns True if an update moved the servo, False otherwise.
-        If pressure exceeds MAX the sweep will be stopped and False returned.
+        Returns the current servo angle in degrees (float).
+        If pressure exceeds MAX the sweep will be stopped and the last
+        angle is returned.
         """
         if not self._sweep_active or self._sweep_speed <= 0:
+            # Not sweeping – simply update the timestamp and report
+            # the current angle without touching the PWM.
             self._last_update_ms = ticks_ms()
-            return False
+            return self.current_angle
 
         now = ticks_ms()
         dt = ticks_diff(now, self._last_update_ms) / 1000.0
         if dt <= 0:
-            return False
+            # No time has passed (or clock wrapped); keep current angle.
+            return self.current_angle
         self._last_update_ms = now
 
         # Calculate movement and apply bounds (bounce / reverse)
@@ -152,24 +156,26 @@ class Servo:
         self.pwm.duty_u16(self.angle_to_duty(new_angle))
         self.current_angle = new_angle
 
-        # pressure sensor check: stop sweep if threshold exceeded
+        # pressure sensor check (use percentage units consistently)
         try:
-            if self.pressure_pin.read_u16() >= self.MAX:
+            if self.read_pressure() >= self.MAX:
                 self.stop_sweep()
-                return False
+                return self.current_angle
         except Exception:
             # ignore sensor read errors
             pass
 
-        return True
+        return self.current_angle
     def read_pressure(self):
-        return self.pressure_pin.read_u16()*100/65535
+        """Return pressure sensor reading as a percentage (0.0–100.0)."""
+        return self.pressure_pin.read_u16() * 100 / 65535
 
 # Instantiate and example usage: Sweep the servo cooperatively
 servo = Servo()  # default pins
-servo.set_servo_angle(0)
+# Start from the middle of the travel range to avoid mechanical end-stop buzzing
+servo.set_servo_angle(90)
 state = "forward"
-servo.start_sweep(speed=30.0, direction=1)  # 90 degrees per second
+servo.start_sweep(speed=30.0, direction=1)  # 30 degrees per second
 while True:
     pressure = servo.read_pressure()
     angle = servo.servo_update()
