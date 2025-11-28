@@ -347,19 +347,28 @@ class MissionControl:
         self.robot = robot
         self.missions = missions if missions is not None else MISSION_REGISTRY
         if menu_options_override is not None:
-            self.menu_options = menu_options_override
+            self.menu_options = list(menu_options_override)
         else:
-            self.menu_options = tuple(sorted(list(MISSION_REGISTRY.keys()), key=int)) + ("C",)
+            # Build default menu from registered missions (sorted by key) and include "C" (clean)
+            # Expect mission keys like "1","2","A","B", etc.
+            default_slots = sorted(self.missions.keys())
+            # Put "C" (clean motors) first for convenience; add if not already present
+            self.menu_options = ["C"] + [s for s in default_slots if s != "C"]
+        # Common initialization
         self.stopwatch = StopWatch()
         self.battery_status = Color.GREEN
-        self.last_run = "C"
+        # Ensure last_run is a valid entry
+        self.last_run = "C" if "C" in self.menu_options else (self.menu_options[0] if self.menu_options else None)
 
     def _build_menu(self):
+        # Defensive: if menu_options somehow empty, return an empty list (hub_menu should handle or caller should guard)
+        if not self.menu_options:
+            return []
         try:
             start_index = (self.menu_options.index(self.last_run) + 1) % len(
                 self.menu_options
             )
-        except ValueError:
+        except (ValueError, TypeError):
             start_index = 0
         return [
             self.menu_options[(start_index + i) % len(self.menu_options)]
@@ -386,7 +395,11 @@ class MissionControl:
     def run(self):
         self.battery_status = self.robot.battery_display()
         while True:
-            selection = hub_menu(*self._build_menu())
+            menu = self._build_menu()
+            if not menu:
+                print("No menu options available.")
+                return
+            selection = hub_menu(*menu)
             if selection == "C":
                 self.robot.clean_motors()
                 continue
@@ -498,7 +511,10 @@ def mission_function_five(robot:Robot):
     robot.turn_in_place(37)
     robot.rotate_right_motor_until_stalled(100)
     robot.drive_for_distance(140)
-    robot.rotate_right_motor(-120, speed=200)
+    robot.rotate_right_motor(-100, speed=200)
+    robot.rotate_right_motor(100)
+    robot.rotate_left_motor_until_stalled(-50)
+    robot.drive_for_distance(-100)
 
 
 @mission("6")
