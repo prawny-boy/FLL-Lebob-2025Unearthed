@@ -459,9 +459,9 @@ def mission_function_three(robot:Robot):
     robot.rotate_left_motor_until_stalled(100)
     robot.drive_for_distance(30)
     robot.smart_turn_in_place(-15)
-    robot.drive_for_distance(680)
+    robot.drive_for_distance(690)
     robot.turn_in_place(50)
-    robot.drive_for_distance(75) # into the boulders
+    robot.drive_for_distance(65) # into the boulders
     robot.turn_in_place(-75) # does boulders and uncovering artifact
     robot.drive_for_distance(-200)
     robot.turn_in_place(-45)
