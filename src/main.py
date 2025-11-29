@@ -294,11 +294,11 @@ class Robot:
                 break
             correction = pid.calculate(error)
             self.drive_base.drive(0, -correction)
-            print(
-                "Heading: {:.2f} Error: {:.2f} Corr: {:.2f}".format(
-                    current_heading, error, correction
-                )
-            )
+            # print(
+            #     "Heading: {:.2f} Error: {:.2f} Corr: {:.2f}".format(
+            #         current_heading, error, correction
+            #     )
+            # )
             sleep(loop_delay_time)
         self._stop_drivebase(then)
 
@@ -515,19 +515,22 @@ def mission_function_five(robot:Robot):
     robot.drive_for_distance(300)
     robot.smart_turn_in_place(-90)
     robot.drive_for_distance(855)# Drive up to the statue
-    robot.turn_in_place(39) # Face statue MANY INCONSISTENCIES WITH THIS ONE
+    robot.turn_in_place(41) # Face statue MANY INCONSISTENCIES WITH THIS ONE
     robot.rotate_right_motor_until_stalled(180, then=Stop.COAST) # Move arm to ground
-    robot.drive_for_distance(125) # Drive up to statue so the arm is under it
-    robot.drive_for_distance(15) # Kingsley said do in seaparte function
-    robot.rotate_right_motor(-20) # Move arm back up
-    robot.turn_in_place(14) # Turn right so the arm is wedged better into the robot
-    robot.turn_in_place(8) # Turn right so the arm is wedged better into the robot even more. There is a lot of inconsistency.
-    robot.turn_in_place(-7) # Turn back just in case went too far.
-    robot.rotate_right_motor(-50) # Lift statue up
-    # robot.rotate_right_motor(50) # Move the arm back up, not needed
-    robot.rotate_left_motor(-100, speed=60) # Dump stuff into oval
-    robot.rotate_left_motor(90) # Move arm back up
-    robot.drive_for_distance(-100) # Retreat for no reason
+    robot.drive_for_distance(125, speed=100) # Drive up to the statue so the arm is under it
+    robot.drive_for_distance(19) # Kingsley said do in a separate function
+    robot.drive_for_distance(-4) # Kingsley said do in a separate function
+    # robot.rotate_right_motor(-20) # Move arm back up
+    robot.turn_in_place(8) # Turn right so the arm is wedged better into the robot
+    robot.turn_in_place(9) # Turn right so the arm is wedged better into the robot even more. There are a lot of inconsistencies.
+    robot.turn_in_place(-6) # Turn back just in case went too far.
+    robot.rotate_right_motor(-90, then=Stop.COAST) # Lift statue up
+    # robot.rotate_right_motor(50) # Move the arm back down, not needed
+    robot.drive_for_distance(-8) # Retreat slightly
+    robot.turn_in_place(8) # Turn right so stuff falls into the oval
+    robot.rotate_left_motor(-150, speed=80, then=Stop.COAST) # Dump stuff into the oval
+    robot.rotate_left_motor(110) # Move arm back up
+    robot.drive_for_distance(-100, then=Stop.COAST) # Retreat so not touching
 
 @mission("6")
 def mission_function_six(robot:Robot):
