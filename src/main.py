@@ -428,7 +428,7 @@ def mission_function_one(robot:Robot):
     robot.rotate_left_motor(-45)
     robot.turn_in_place(35)
     robot.turn_in_place(-70)
-    robot.turn_in_place(35)
+    robot.turn_in_place(32)
     robot.drive_for_distance(-95)
     robot.turn_in_place(10)
     robot.drive_for_distance(120)
