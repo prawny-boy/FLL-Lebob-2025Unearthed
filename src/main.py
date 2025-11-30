@@ -425,7 +425,7 @@ def mission_function_one(robot:Robot):
     robot.drive_for_distance(65) # Go forward a lot to align
     robot.drive_for_distance(-30) # Go back to give space for the arm
     robot.rotate_left_motor_until_stalled(100) # Align the arm to the frame
-    robot.rotate_left_motor(-45) # Move the arm up to the right height to pick up
+    robot.rotate_left_motor(-35) # Move the arm up to the right height to pick up
     robot.turn_in_place(35) # Sweep left
     robot.turn_in_place(-70) # Sweep right
     robot.turn_in_place(32) # Return to middle
