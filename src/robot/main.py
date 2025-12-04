@@ -13,7 +13,7 @@ LOW_VOLTAGE = 7200
 HIGH_VOLTAGE = 8400
 DRIVE_PROFILE = {
     "straight_speed": 500,
-    "straight_acceleration": 750,
+    "straight_acceleration": 1000,
     "turn_rate": 300,
     "turn_acceleration": 500,
 }
@@ -420,37 +420,34 @@ def mission(slot):
 def mission_function_one(robot:Robot):
     robot.rotate_left_motor_until_stalled(-100) # Reset motors
     robot.rotate_right_motor_until_stalled(-100)
-    robot.drive_for_distance(745) # Go up to sweep
+    robot.drive_for_distance(745, speed=1000) # Go up to sweep
     robot.turn_in_place(-90) # Turn to face the sweep
     robot.drive_for_distance(65) # Go forward a lot to align
     robot.drive_for_distance(-30) # Go back to give space for the arm
     robot.rotate_left_motor_until_stalled(100) # Align the arm to the frame
-    robot.rotate_left_motor(-26) # Move the arm up to the right height to pick up
+    robot.rotate_left_motor(-40) # Move the arm up to the right height to pick up
     robot.turn_in_place(35) # Sweep left
-    robot.turn_in_place(-70) # Sweep right
-    robot.turn_in_place(32) # Return to middle
+    robot.turn_in_place(-60, speed=100) # Sweep right
+    robot.turn_in_place(27) # Return to middle
     robot.drive_for_distance(-95) # Go back
     robot.turn_in_place(10)
     sleep(400) # Wait for brush to stop swaying.
-    robot.drive_for_distance(120)
-    robot.rotate_left_motor(-115) # Pick up brush
+    robot.drive_for_distance(115)
+    robot.rotate_left_motor(-115, speed=100) # Pick up brush
     # robot.drive_for_distance(-110)
     robot.turn_in_place(35) # Turn to map reveal
-    robot.drive_for_distance(230) # Push map
-    robot.drive_for_distance(-250) # Go back
-    robot.turn_in_place(45) # Turn to face the other start area
-    robot.drive_for_distance(-700) # Drive to other start area
-    # robot.rotate_right_motor_until_stalled(50)
-    # robot.turn_in_place(-55)
-    # robot.rotate_right_motor(-55)
-    # sleep(2000)
-    # robot.rotate_right_motor_until_stalled(100)
-    # robot.drive_for_distance(-100)
-    # robot.turn_in_place(50)
-    # robot.rotate_right_motor_until_stalled(-100)
-    # robot.drive_for_distance(-200)
-    # robot.turn_in_place(-45)
-    # robot.drive_for_distance(-700)
+    robot.drive_for_distance(50, speed=100)
+    robot.rotate_right_motor_until_stalled(100, then=Stop.HOLD)
+    robot.drive_for_distance(50,speed=100) # Push map
+    robot.rotate_right_motor(-20)
+    robot.drive_for_distance(50)
+    robot.drive_for_distance(-75) # Go back
+    robot.rotate_right_motor(-90)
+    # robot.rotate_right_motor(-35, speed=100, wait=False)
+    # robot.drive_for_distance(50, speed=100)
+    robot.drive_for_distance(-150, speed=1000)
+    robot.turn_in_place(50, speed=1000) # Turn to face the other start area
+    robot.drive_for_distance(-800, speed=1000) # Drive to other start area
 
 
 @mission("2")
