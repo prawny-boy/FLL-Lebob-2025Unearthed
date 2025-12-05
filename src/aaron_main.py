@@ -182,7 +182,7 @@ class Robot:
         motor.run_angle(resolved_speed, degrees, then, wait)
 
     def rotate_attachment_until_stalled(
-        self, side, speed=None, then=Stop.COAST, duty_limit=50
+        self, side, speed=None, then=Stop.BRAKE, duty_limit=50
     ):
         motor = self.big_motors.get(side)
         if motor is None:
@@ -200,6 +200,7 @@ class Robot:
         self, speed=None, then=Stop.COAST, duty_limit=50
     ):
         self.rotate_attachment_until_stalled("right", speed, then, duty_limit)
+        self.rotate_right_motor(-10, then=Stop.COAST, wait=False)
 
     def rotate_left_motor_until_stalled(
         self, speed=None, then=Stop.COAST, duty_limit=20
@@ -410,41 +411,62 @@ def run_1(r:Robot):
     # ALIGN THE 
     # Sweep
     r.drive_for_distance(644) # Drive up to the sweep box
-    r.turn_in_place(-110) # Sweep
-    r.turn_in_place(20) # Right
-    r.drive_for_distance(-10) # Drive back a bit
-    r.drive_for_distance(20) # Drive forward to align
-    r.turn_in_place(-20) # Back to middle
-    r.drive_for_distance(-100) # Drive back a bit
-    r.drive_for_distance(140, then=Stop.COAST) # Drive forward to pick up brush
+    r.smart_turn_in_place(-90) # Face thing
+    r.drive_for_distance(20)
+    r.smart_turn_in_place(-30) # Sweep left
+    r.smart_turn_in_place(60) # Right
+    r.smart_turn_in_place(-30) # Back to middle
+    r.drive_for_distance(-100) # Drive back
+    r.rotate_left_motor(90) # Arm down
+    sleep(1000) # Wait for brush to stop moving
+    r.drive_for_distance(90, then=Stop.COAST, speed=300) # Drive forward to align and pick up the brush
+    r.rotate_left_motor(-90, speed=200, wait=False) # Pick up brush (hopefully), move arm up, yeet into the oval
+    sleep(1000)
+    r.drive_for_distance(-50) # Drive back a bit
 
+    # Map
+    r.smart_turn_in_place(90) # Turn to move to map
+    r.drive_for_distance(60) # Go to map
+    r.turn_in_place(-74) # Turn to face map
+    r.rotate_left_motor(90) # Arm down
+    r.drive_for_distance(185) # Push map section
+    r.smart_turn_in_place(12) # Finish rotating the map section
+    r.smart_turn_in_place(-12)
+    r.rotate_left_motor(-90, speed=200, wait=False)
+    r.smart_turn_in_place(29)
+    r.drive_for_distance(80)
+    r.rotate_left_motor(90)
+    r.drive_for_distance(15)
 
-    if False:
-        r.drive_for_distance(210) # Pick up brush
-        r.rotate_left_motor(-90) # Bring arm up to hold brush
-        r.turn_in_place(180) # Turn to the oval
-        r.rotate_left_motor(90) # Dump brush in oval
-        r.rotate_left_motor(-90) # Bring arm up
-        r.turn_in_place(-90)
+    # Post map alignment
+    r.drive_for_distance(-120) # Leave map
+    r.rotate_left_motor(-135, wait=False) # Move long arm out the way
+    r.turn_in_place(60) # Face wall
+    r.drive_for_distance(500, stop=Stop.COAST) # Go to wall to align
 
-        # Map
-        r.drive_for_distance(220) # Go to map
-        r.turn_in_place(-45) # Turn to map
-        r.drive_for_distance(60) # Go closer to map
-        r.rotate_left_motor(90) # Arm down to push the map section
-        r.drive_for_distance(20) # Push map section
-        r.rotate_left_motor(-90) # Release
-        r.drive_for_distance(-100) # Space
-        r.turn_in_place(-25) # Turn to map
-        r.rotate_left_motor(90) # Arm down to rotate the map section
-        r.drive_for_distance(40) # Push map section
-        r.turn_in_place(20) # Finish rotating the map section
-        r.rotate_left_motor(-90) # Release
+def run_2(r:Robot):
+    # Minecart
+    r.drive_for_distance(-220) # Drive back from wall
+    r.smart_turn_in_place(90) # Get in position for minecart
+    r.drive_for_distance(170)
 
-        # Post map alignment
-        r.drive_for_distance(-120) # Leave map
-        r.turn_in_place(60) # Face wall
-        r.drive_for_distance(500, stop=Stop.COAST) # Go to wall to align
+    # Detour for the statue
+    r.rotate_right_motor(-40, then=Stop.COAST, wait=False) # Move short arm onto ground
+    r.drive_for_distance(215) # Arrive at statue
+    sleep(1000)
+    r.rotate_right_motor(30) # Push statue up
+    r.drive_for_distance(36, then=Stop.COAST, wait=False) # Drive to statue and push it up more
+    r.rotate_right_motor(40, then=Stop.COAST) # Moving arm up more
+    r.drive_for_distance(-280)
+
+    # Back to the minecart
+    r.rotate_right_motor(-80, then=Stop.COAST, wait=False) # Move short arm onto ground
+    r.smart_turn_in_place(-90)
+    r.drive_for_distance(65) # Arrive at minecart
+    r.rotate_right_motor(70, speed=100) # Push up minecart
+    sleep(1000) # Wait for minecart to roll down
+    r.drive_for_distance(-120)
+    r.rotate_right_motor(-30) # Arm down
 
 my_robot = Robot()
 run_1(my_robot)
