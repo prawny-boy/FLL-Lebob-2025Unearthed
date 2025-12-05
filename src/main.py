@@ -425,7 +425,7 @@ def mission_function_one(robot:Robot):
     robot.drive_for_distance(65)
     robot.drive_for_distance(-30)
     robot.rotate_left_motor_until_stalled(100)
-    robot.rotate_left_motor(-45)
+    robot.rotate_left_motor(-35)
     robot.turn_in_place(35)
     robot.turn_in_place(-70)
     robot.turn_in_place(35)
@@ -433,9 +433,17 @@ def mission_function_one(robot:Robot):
     robot.turn_in_place(10)
     robot.drive_for_distance(120)
     robot.rotate_left_motor(-115)
-    robot.drive_for_distance(-110)
-    robot.turn_in_place(90)
-    robot.drive_for_distance(-700)
+
+    robot.drive_for_distance(-55)
+    robot.turn_in_place(27)
+    robot.rotate_right_motor_until_stalled(100)
+    robot.drive_for_distance(105, speed=90)
+    robot.drive_for_distance(-20)
+    robot.rotate_right_motor(-90)
+
+    robot.drive_for_distance(-200)
+    robot.turn_in_place(60)
+    robot.drive_for_distance(-670)
     # robot.rotate_right_motor_until_stalled(50)
     # robot.turn_in_place(-55)
     # robot.rotate_right_motor(-55)
@@ -451,16 +459,21 @@ def mission_function_one(robot:Robot):
 
 @mission("2")
 def mission_function_two(robot:Robot):
-    #robot.rotate_right_motor_until_stalled(-100) #reset the angle
-    robot.drive_for_distance(190) # line up with the boat
+    robot.rotate_right_motor_until_stalled(-100) #reset the angle
+    robot.drive_for_distance(220) # line up with the boat
     robot.smart_turn_in_place(90) # turn to face the boat
-    robot.drive_for_distance(585) # flip th4e boat
-    robot.rotate_right_motor_until_stalled(100) # lower the boat arm
+    robot.drive_for_distance(650) # flip th4e boat
+    robot.drive_for_distance(-20)
+    robot.rotate_right_motor_until_stalled(100)
+    robot.rotate_right_motor(-20)
+    robot.drive_for_distance(-200)
+    robot.rotate_right_motor_until_stalled(-200)
+    """robot.rotate_right_motor_until_stalled(100) # lower the boat arm
     robot.rotate_right_motor(15)
     robot.drive_for_distance(-50)
     robot.rotate_right_motor_until_stalled(100)
     robot.drive_for_distance(-30) # pull all the way back
-    robot.rotate_right_motor_until_stalled(-100) # raise the boat arm
+    robot.rotate_right_motor_until_stalled(-100) # raise the boat arm"""
     robot.turn_in_place(-45)
     robot.drive_for_distance(200)
     robot.turn_in_place(45)
@@ -480,14 +493,14 @@ def mission_function_three(robot:Robot):
     robot.turn_in_place(-45)
     robot.drive_for_distance(200)
     robot.turn_in_place(20)
-    robot.rotate_left_motor_until_stalled(-200, then=Stop.HOLD)
-    robot.rotate_left_motor(30)
+    robot.rotate_left_motor_until_stalled(-300, then=Stop.HOLD)
+    robot.rotate_left_motor(10)
     robot.drive_for_distance(-400, speed=250, wait=False)
     sleep(250)
     robot.rotate_left_motor(45)
     robot.rotate_left_motor(30)
     robot.drive_for_distance(100)
-    robot.rotate_left_motor(100)
+    robot.rotate_left_motor_until_stalled(100)
     robot.drive_for_distance(-700)
 
 
@@ -524,11 +537,23 @@ def mission_function_five(robot:Robot):
 
 @mission("6")
 def mission_function_six(robot:Robot):
+    robot.rotate_left_motor_until_stalled(200)
+    robot.rotate_right_motor_until_stalled(-200)
+    robot.drive_for_distance(1000, speed=1000)
+    robot.drive_for_distance(-10)
+    robot.smart_turn_in_place(95)
+    robot.rotate_right_motor_until_stalled(100)
+    robot.rotate_left_motor_until_stalled(-200)
+    robot.rotate_left_motor(30)
+    #robot.drive_for_distance(200, speed=100)
+    robot.drive_for_distance(100)
+    robot.rotate_left_motor(20)
+    robot.rotate_right_motor(-90)
+    sleep(1000)
+    robot.rotate_right_motor(75)
+    robot.drive_for_distance(-200)
     robot.smart_turn_in_place(90)
-    robot.smart_turn_in_place(90)
-    robot.smart_turn_in_place(90)
-    robot.smart_turn_in_place(90)
-    robot.drive_for_distance(1000)
+    robot.drive_for_distance(800)
 
 
 @mission("7")
