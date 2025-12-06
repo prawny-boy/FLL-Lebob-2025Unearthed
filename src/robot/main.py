@@ -218,6 +218,7 @@ class Robot:
         k_i=0.02,
         k_d=0.3,
         delta_time=0.02,
+        allowed_error=2.0
     ):
         pid = PIDController(k_p, k_i, k_d, delta_time)
         target_heading = self.wrap_angle(self.hub.imu.heading() + target_angle)
@@ -225,7 +226,7 @@ class Robot:
         while True:
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
-            if abs(error) < 2.0:
+            if abs(error) < allowed_error:
                 break
             correction = pid.calculate(error)
             self.drive_base.drive(0, -correction)
@@ -236,7 +237,7 @@ class Robot:
             self.drive_base.stop()
 
     def curve(self, radius, angle, then=Stop.COAST, wait=True):
-        self.drive_base.curve(radius, angle, then, wait)
+        self.drive_base.curve(radius, -angle*1.25, then, wait)
 
     def change_drive_settings(self, reset=False, speed=None, acceleration=None, turn_rate=None, turn_acceleration=None):
         if reset:
@@ -328,20 +329,20 @@ def mission_function_one(robot:Robot):
     robot.rotate_left_motor_until_stalled(-100) # Reset motors
     robot.rotate_right_motor_until_stalled(-100)
     robot.change_drive_settings(speed=1000)
-    robot.drive_for_distance(745) # Go up to sweep
+    robot.drive_for_distance(740) # Go up to sweep
     robot.change_drive_settings(reset=True)
     robot.turn_in_place(-90) # Turn to face the sweep
     robot.drive_for_distance(75) # Go forward a lot to align
     robot.drive_for_distance(-30) # Go back to give space for the arm
     robot.rotate_left_motor_until_stalled(100) # Align the arm to the frame
-    robot.rotate_left_motor(-35) # Move the arm up to the right height to pick up
+    robot.rotate_left_motor(-40) # Move the arm up to the right height to pick up
     robot.turn_in_place(35) # Sweep left
     robot.change_drive_settings(turn_rate=100)
     robot.turn_in_place(-60) # Sweep right
     robot.change_drive_settings(reset=True)
     robot.turn_in_place(27) # Return to middle
     robot.drive_for_distance(-95) # Go back
-    robot.turn_in_place(7)
+    robot.turn_in_place(10)
     sleep(400) # Wait for brush to stop swaying.
     robot.drive_for_distance(100)
     robot.rotate_left_motor(-115, speed=100) # Pick up brush
@@ -366,21 +367,24 @@ def mission_function_two(robot:Robot):
     robot.rotate_right_motor_until_stalled(-200)
     robot.change_drive_settings(speed=1000)
     robot.drive_for_distance(1000)
+    robot.hub.imu.reset_heading(0)
+    robot.drive_for_distance(-205)
     robot.change_drive_settings(reset=True)
-    robot.drive_for_distance(-10)
-    robot.smart_turn_in_place(90)
+    robot.curve(150, 90)
+    robot.drive_for_distance(-150)
+    robot.smart_turn_in_place(-(robot.hub.imu.heading()-90), allowed_error=0.5)
     robot.rotate_right_motor_until_stalled(100)
     robot.rotate_left_motor_until_stalled(-200)
     robot.rotate_left_motor(25)
     robot.change_drive_settings(speed=100)
-    robot.drive_for_distance(100)
+    robot.drive_for_distance(150)
     robot.change_drive_settings(speed=1000)
-    robot.rotate_left_motor(15)
+    robot.rotate_left_motor(20)
     robot.rotate_right_motor(-90)
     sleep(1000)
     robot.rotate_right_motor(75)
-    robot.drive_for_distance(-150)
-    robot.smart_turn_in_place(90)
+    robot.drive_for_distance(-200)
+    robot.smart_turn_in_place(100)
     robot.drive_for_distance(800)
 
 
@@ -441,31 +445,31 @@ def mission_function_five(robot:Robot):
     robot.drive_for_distance(30) # Forward to give space
     robot.smart_turn_in_place(-15)
     robot.drive_for_distance(490)
-    robot.turn_in_place(-120) # Raise the goods
+    robot.smart_turn_in_place(-120) # Raise the goods
     robot.drive_for_distance(200)
     robot.smart_turn_in_place(-45)
-    robot.drive_for_distance(140)
-    robot.turn_in_place(90)
-    robot.drive_for_distance(305)
-    robot.turn_in_place(90)
-    robot.drive_for_distance(95, speed=100)
+    robot.drive_for_distance(110)
+    robot.smart_turn_in_place(90)
+    robot.drive_for_distance(300)
+    robot.smart_turn_in_place(90)
+    robot.change_drive_settings(speed=100)
+    robot.drive_for_distance(110)
+    robot.change_drive_settings(reset=True)
     robot.drive_for_distance(-100)
     robot.turn_in_place(-90)
-    robot.drive_for_distance(-850)
+    robot.change_drive_settings(speed=1000, acceleration=1000)
+    robot.drive_for_distance(-780)
+    sleep(5000)
     # mission 5
     robot.drive_for_distance(300)
     robot.smart_turn_in_place(-90)
-    robot.drive_for_distance(847)# Drive up to the statue
-    robot.turn_in_place(35) # Face statue MANY INCONSISTENCIES WITH THIS ONE
-    robot.rotate_right_motor_until_stalled(180) # Move arm to ground
-    robot.drive_for_distance(90, speed=100) # Drive up to the statue so the arm is under it
-    robot.rotate_right_motor(0, then=Stop.COAST)
-    robot.rotate_right_motor(-120) # Lift statue up
-    robot.turn_in_place(5)
-    robot.drive_for_distance(30)
-    robot.rotate_right_motor(-45)
-    robot.rotate_left_motor(-120, speed=90, then=Stop.COAST) # Dump stuff into the oval
-    robot.rotate_left_motor(110) # Move arm back up
+    robot.drive_for_distance(610) # Drive up to the statue
+    robot.change_drive_settings(reset=True)
+    robot.turn_in_place(37) # Face statue MANY INCONSISTENCIES WITH THIS ONE
+    robot.rotate_left_motor_until_stalled(-180) # Move arm to ground
+    robot.drive_for_distance(280) # Drive up to the statue so the arm is under it
+    robot.rotate_left_motor(0, then=Stop.COAST)
+    robot.rotate_left_motor(120, speed=1000) # Lift statue up
     robot.drive_for_distance(-100, then=Stop.COAST) # Retreat so not touching
 
 
