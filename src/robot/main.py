@@ -452,6 +452,26 @@ def mission_function_one(robot:Robot):
 
 @mission("2")
 def mission_function_two(robot:Robot):
+    robot.rotate_left_motor_until_stalled(200)
+    robot.rotate_right_motor_until_stalled(-200)
+    robot.drive_for_distance(1000, speed=1000)
+    robot.drive_for_distance(-10)
+    robot.smart_turn_in_place(95)
+    robot.rotate_right_motor_until_stalled(100)
+    robot.rotate_left_motor_until_stalled(-200)
+    robot.rotate_left_motor(30)
+    robot.drive_for_distance(100)
+    robot.rotate_left_motor(20)
+    robot.rotate_right_motor(-90)
+    sleep(1000)
+    robot.rotate_right_motor(75)
+    robot.drive_for_distance(-200)
+    robot.smart_turn_in_place(90)
+    robot.drive_for_distance(800)
+
+
+@mission("3")
+def mission_function_three(robot:Robot):
     robot.rotate_right_motor_until_stalled(-100) # Reset arm
     robot.drive_for_distance(195) # Drive forward
     robot.smart_turn_in_place(90) # Turn to face shipwreck
@@ -469,8 +489,8 @@ def mission_function_two(robot:Robot):
     robot.rotate_right_motor_until_stalled(120)
 
 
-@mission("3")
-def mission_function_three(robot:Robot):
+@mission("4")
+def mission_function_four(robot:Robot):
     robot.rotate_left_motor_until_stalled(100) # Reset arm
     robot.drive_for_distance(30) # Move forward to give space for turning
     robot.smart_turn_in_place(-15) # Turn to face the mission
@@ -494,8 +514,9 @@ def mission_function_three(robot:Robot):
     robot.drive_for_distance(-700)
 
 
-@mission("4")
-def mission_function_four(robot:Robot):
+@mission("5")
+def mission_function_five(robot:Robot):
+    # mission 4, will be combining 4 & 5
     robot.drive_for_distance(30) # Forward to give space
     robot.smart_turn_in_place(-15)
     robot.drive_for_distance(490)
@@ -510,66 +531,26 @@ def mission_function_four(robot:Robot):
     robot.drive_for_distance(-100)
     robot.turn_in_place(-90)
     robot.drive_for_distance(-850)
-
-
-@mission("5")
-def mission_function_five(robot:Robot):
+    # mission 5
     robot.drive_for_distance(300)
     robot.smart_turn_in_place(-90)
     robot.drive_for_distance(847)# Drive up to the statue
     robot.turn_in_place(35) # Face statue MANY INCONSISTENCIES WITH THIS ONE
     robot.rotate_right_motor_until_stalled(180) # Move arm to ground
     robot.drive_for_distance(90, speed=100) # Drive up to the statue so the arm is under it
-    # robot.drive_for_distance(10) # Kingsley said do in a separate function
-    # robot.drive_for_distance(-4) # Kingsley said do in a separate function
-    # robot.rotate_right_motor(-20) # Move arm back up
-    # robot.turn_in_place(9) # Turn right so the arm is wedged better into the robot even more. There are a lot of inconsistencies.
-    # robot.turn_in_place(-6) # Turn back just in case went too far.
     robot.rotate_right_motor(0, then=Stop.COAST)
     robot.rotate_right_motor(-120) # Lift statue up
     robot.turn_in_place(5)
     robot.drive_for_distance(30)
     robot.rotate_right_motor(-45)
-    # robot.rotate_right_motor(50) # Move the arm back down
     robot.rotate_left_motor(-120, speed=90, then=Stop.COAST) # Dump stuff into the oval
     robot.rotate_left_motor(110) # Move arm back up
     robot.drive_for_distance(-100, then=Stop.COAST) # Retreat so not touching
 
 
-@mission("6")
-def mission_function_six(robot:Robot):
+@mission("T")
+def test_mission_function(robot:Robot):
     pass
-
-
-@mission("7")
-def mission_function_seven(robot:Robot):
-    # identical to mission 3, but using smart functions where applicable
-    robot.rotate_left_motor_until_stalled(100)
-    robot.smart_drive_for_distance(30)
-    robot.smart_turn_in_place(-15)
-    robot.smart_drive_for_distance(680)
-    robot.smart_turn_in_place(50)
-    robot.smart_drive_for_distance(75)  # into the boulders
-    robot.smart_turn_in_place(-75)  # does boulders and uncovering artifact
-    robot.smart_drive_for_distance(-200)
-    robot.smart_turn_in_place(-45)
-    robot.smart_drive_for_distance(200)
-    robot.smart_turn_in_place(20)
-    robot.rotate_left_motor_until_stalled(-200, then=Stop.HOLD)
-    robot.rotate_left_motor(30)
-    robot.smart_drive_for_distance(-400, speed=250)
-    sleep(500)
-    robot.rotate_left_motor(45, speed=100)
-    robot.rotate_left_motor(30, speed=100)
-    robot.smart_drive_for_distance(100)
-    robot.rotate_left_motor(100)
-    robot.smart_drive_for_distance(-600)
-
-
-@mission("8")
-def mission_function_eight(robot:Robot):
-    robot.rotate_right_motor_until_stalled(100)
-    robot.rotate_right_motor_until_stalled(-100)
 
 
 def rescale(value, in_min, in_max, out_min, out_max):
