@@ -391,11 +391,22 @@ def mission_function_two(robot:Robot):
 @mission("3")
 def mission_function_three(robot:Robot):
     robot.rotate_right_motor_until_stalled(-100) # Reset arm
+    robot.drive_for_distance(210) # Drive forward
     robot.drive_for_distance(198) # Drive forward
     robot.smart_turn_in_place(90) # Turn to face shipwreck
-    robot.drive_for_distance(580) # Drive to shipwreck
+    robot.drive_for_distance(600) # Drive to shipwreck
     robot.drive_for_distance(-50) # Move backwards to pull the lever
     robot.turn_in_place(-20)
+    robot.rotate_right_motor_until_stalled(150, duty_limit=1000) # Move arm onto ground to pull the lever
+    robot.rotate_right_motor(-45)
+    robot.drive_for_distance(-100) # Move backwards to pull the lever
+    robot.rotate_right_motor_until_stalled(200, duty_limit=1000)
+    robot.drive_for_distance(-80) # Move backwards to pull the lever
+    robot.rotate_right_motor_until_stalled(200, duty_limit=1000)
+    robot.drive_for_distance(-80) # Move backwards to pull the lever
+    robot.drive_for_distance(35) # Get to correct position
+    robot.rotate_right_motor_until_stalled(-200, duty_limit=1000) # Move arm back up so it's no in the way
+    robot.rotate_right_motor(45)
     robot.rotate_right_motor_until_stalled(35, duty_limit=100) # Move arm onto ground to pull the lever
     robot.rotate_right_motor(-50)
     robot.change_drive_settings(speed=100)
@@ -404,6 +415,8 @@ def mission_function_three(robot:Robot):
     robot.drive_for_distance(35)
     robot.rotate_right_motor(-80) # Move arm back up so it's no in the way
     robot.turn_in_place(-45) # Start driving to the other start area
+    robot.drive_for_distance(100)
+    robot.turn_in_place(60)
     robot.drive_for_distance(200)
     robot.turn_in_place(65)
     robot.drive_for_distance(1250) # Drive to other start area
