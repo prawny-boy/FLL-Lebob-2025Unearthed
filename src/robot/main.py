@@ -294,7 +294,6 @@ class MissionControl:
         if mission is None:
             print("Mission slot {} is unassigned.".format(selection))
             return self.last_run
-        self.robot.status_light(Color.YELLOW)
         self.robot.hub.display.animate(RUNNING_ANIMATION, 30)
         print("Running #{}...".format(selection))
         self.stopwatch.reset()
@@ -303,7 +302,6 @@ class MissionControl:
         mission(self.robot)
         elapsed = self.stopwatch.time()
         print("Done running #{} in {}ms".format(selection, elapsed))
-        self.robot.status_light(self.battery_status)
         return selection
 
     def run(self):
