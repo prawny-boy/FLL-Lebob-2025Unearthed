@@ -241,6 +241,8 @@ class Robot:
     def change_drive_settings(self, reset=False, speed=None, acceleration=None, turn_rate=None, turn_acceleration=None):
         if reset == True:
             self.drive_profile = DRIVE_PROFILE
+            print(self.drive_profile["turn_rate"])
+            self.drive_base.settings(**self.drive_profile)
             return
         if speed != None:
             self.drive_profile["straight_speed"] = speed
@@ -250,6 +252,7 @@ class Robot:
             self.drive_profile["turn_rate"] = speed
         if turn_acceleration != None:
             self.drive_profile["turn_acceleration"] = speed
+        self.drive_base.settings(**self.drive_profile)
 
     def battery_display(self):
         voltage = self.hub.battery.voltage()
@@ -326,52 +329,59 @@ def mission(slot):
 def mission_function_one(robot:Robot):
     robot.rotate_left_motor_until_stalled(-100) # Reset motors
     robot.rotate_right_motor_until_stalled(-100)
-    robot.drive_for_distance(745, speed=1000) # Go up to sweep
+    robot.change_drive_settings(speed=1000)
+    robot.drive_for_distance(745) # Go up to sweep
+    robot.change_drive_settings(reset=True)
     robot.turn_in_place(-90) # Turn to face the sweep
-    robot.drive_for_distance(65) # Go forward a lot to align
+    robot.drive_for_distance(75) # Go forward a lot to align
     robot.drive_for_distance(-30) # Go back to give space for the arm
     robot.rotate_left_motor_until_stalled(100) # Align the arm to the frame
-    robot.rotate_left_motor(-40) # Move the arm up to the right height to pick up
+    robot.rotate_left_motor(-35) # Move the arm up to the right height to pick up
     robot.turn_in_place(35) # Sweep left
-    robot.turn_in_place(-60, speed=100) # Sweep right
+    robot.change_drive_settings(turn_rate=100)
+    robot.turn_in_place(-60) # Sweep right
+    robot.change_drive_settings(reset=True)
     robot.turn_in_place(27) # Return to middle
     robot.drive_for_distance(-95) # Go back
-    robot.turn_in_place(10)
+    robot.turn_in_place(7)
     sleep(400) # Wait for brush to stop swaying.
-    robot.drive_for_distance(115)
+    robot.drive_for_distance(100)
     robot.rotate_left_motor(-115, speed=100) # Pick up brush
     # robot.drive_for_distance(-110)
-    robot.turn_in_place(35) # Turn to map reveal
-    robot.drive_for_distance(50, speed=100)
+    robot.turn_in_place(30) # Turn to map reveal
+    robot.drive_for_distance(-30)
     robot.rotate_right_motor_until_stalled(100, then=Stop.HOLD)
-    robot.drive_for_distance(50,speed=100) # Push map
-    robot.rotate_right_motor(-20)
-    robot.drive_for_distance(50)
-    robot.drive_for_distance(-75) # Go back
-    robot.rotate_right_motor(-90)
-    # robot.rotate_right_motor(-35, speed=100, wait=False)
-    # robot.drive_for_distance(50, speed=100)
-    robot.drive_for_distance(-150, speed=1000)
-    robot.turn_in_place(50, speed=1000) # Turn to face the other start area
-    robot.drive_for_distance(-800, speed=1000) # Drive to other start area
-
+    robot.change_drive_settings(speed=100)
+    robot.drive_for_distance(75) # Push map
+    robot.change_drive_settings(reset=True)
+    robot.rotate_right_motor(-110)
+    robot.drive_for_distance(100)
+    robot.change_drive_settings(speed=1000, turn_rate=1000)
+    robot.drive_for_distance(-200)
+    robot.turn_in_place(50) # Turn to face the other start area
+    robot.drive_for_distance(-800) # Drive to other start area
+    robot.change_drive_settings(reset=True)
 
 @mission("2")
 def mission_function_two(robot:Robot):
     robot.rotate_left_motor_until_stalled(200)
     robot.rotate_right_motor_until_stalled(-200)
-    robot.drive_for_distance(1000, speed=1000)
+    robot.change_drive_settings(speed=1000)
+    robot.drive_for_distance(1000)
+    robot.change_drive_settings(reset=True)
     robot.drive_for_distance(-10)
-    robot.smart_turn_in_place(95)
+    robot.smart_turn_in_place(90)
     robot.rotate_right_motor_until_stalled(100)
     robot.rotate_left_motor_until_stalled(-200)
-    robot.rotate_left_motor(30)
+    robot.rotate_left_motor(25)
+    robot.change_drive_settings(speed=100)
     robot.drive_for_distance(100)
-    robot.rotate_left_motor(20)
+    robot.change_drive_settings(speed=1000)
+    robot.rotate_left_motor(15)
     robot.rotate_right_motor(-90)
     sleep(1000)
     robot.rotate_right_motor(75)
-    robot.drive_for_distance(-200)
+    robot.drive_for_distance(-150)
     robot.smart_turn_in_place(90)
     robot.drive_for_distance(800)
 
@@ -379,17 +389,19 @@ def mission_function_two(robot:Robot):
 @mission("3")
 def mission_function_three(robot:Robot):
     robot.rotate_right_motor_until_stalled(-100) # Reset arm
-    robot.drive_for_distance(195) # Drive forward
+    robot.drive_for_distance(200) # Drive forward
     robot.smart_turn_in_place(90) # Turn to face shipwreck
-    robot.drive_for_distance(385) # Drive to shipwreck
-    robot.rotate_right_motor_until_stalled(100) # Move arm onto ground to pull the level
+    robot.drive_for_distance(580) # Drive to shipwreck
+    robot.drive_for_distance(-50) # Move backwards to pull the lever
+    robot.turn_in_place(-20)
+    robot.rotate_right_motor_until_stalled(200, duty_limit=1000) # Move arm onto ground to pull the lever
+    robot.drive_for_distance(-100) # Move backwards to pull the lever
+    robot.rotate_right_motor_until_stalled(200, duty_limit=1000)
     robot.drive_for_distance(-80) # Move backwards to pull the lever
     robot.drive_for_distance(35) # Get to correct position
-    robot.rotate_right_motor_until_stalled(-100) # Move arm back up so it's no in the way
-    robot.drive_for_distance(220) # Drive forward to push the red thing which pushes up the ship
-    robot.drive_for_distance(-100) # Back up for space
+    robot.rotate_right_motor_until_stalled(-200, duty_limit=1000) # Move arm back up so it's no in the way
     robot.turn_in_place(-45) # Start driving to the other start area
-    robot.drive_for_distance(200)
+    robot.drive_for_distance(300)
     robot.turn_in_place(45)
     robot.drive_for_distance(1250) # Drive to other start area
     robot.rotate_right_motor_until_stalled(120)
@@ -400,18 +412,24 @@ def mission_function_four(robot:Robot):
     robot.rotate_left_motor_until_stalled(100) # Reset arm
     robot.drive_for_distance(30) # Move forward to give space for turning
     robot.smart_turn_in_place(-15) # Turn to face the mission
-    robot.drive_for_distance(690) # Drive to mission (flipping the platform)
+    robot.drive_for_distance(680) # Drive to mission (flipping the platform)
     robot.turn_in_place(50)
+    robot.rotate_right_motor_until_stalled(200)
+    robot.smart_turn_in_place(45)
+    robot.rotate_right_motor(-100)
+    robot.smart_turn_in_place(-45)
     robot.drive_for_distance(65) # Move into the boulders
     robot.turn_in_place(-75) # Rotate to flip the platform and push the boulders
-    robot.drive_for_distance(-200) # Go back to give space to return
+    robot.drive_for_distance(-220) # Go back to give space to return
     robot.turn_in_place(-45) # Face the raising platform
-    robot.drive_for_distance(210) # Move to raising platform
+    robot.drive_for_distance(190) # Move to raising platform
     robot.turn_in_place(25)
-    robot.drive_for_distance(15)
+    robot.drive_for_distance(20)
     robot.rotate_left_motor_until_stalled(-200, then=Stop.HOLD) # Move arm down, move down the bucket
     robot.rotate_left_motor(30)
-    robot.drive_for_distance(-400, speed=250, wait=False) # Move back to flip the platform
+    robot.change_drive_settings(speed=250)
+    robot.drive_for_distance(-400, wait=False) # Move back to flip the platform
+    robot.change_drive_settings(speed=500)
     sleep(300)
     robot.rotate_left_motor(45) # Return to starting area
     robot.rotate_left_motor(30)
