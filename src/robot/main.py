@@ -239,19 +239,19 @@ class Robot:
         self.drive_base.curve(radius, angle, then, wait)
 
     def change_drive_settings(self, reset=False, speed=None, acceleration=None, turn_rate=None, turn_acceleration=None):
-        if reset == True:
-            self.drive_profile = DRIVE_PROFILE
-            print(self.drive_profile["turn_rate"])
+        if reset:
+            self.drive_profile = DRIVE_PROFILE.copy()
+            print(self.drive_profile)
             self.drive_base.settings(**self.drive_profile)
             return
-        if speed != None:
+        if speed is not None:
             self.drive_profile["straight_speed"] = speed
-        if acceleration != None:
-            self.drive_profile["straight_acceleration"] = speed
-        if turn_rate != None:
-            self.drive_profile["turn_rate"] = speed
-        if turn_acceleration != None:
-            self.drive_profile["turn_acceleration"] = speed
+        if acceleration is not None:
+            self.drive_profile["straight_acceleration"] = acceleration
+        if turn_rate is not None:
+            self.drive_profile["turn_rate"] = turn_rate
+        if turn_acceleration is not None:
+            self.drive_profile["turn_acceleration"] = turn_acceleration
         self.drive_base.settings(**self.drive_profile)
 
     def battery_display(self):
@@ -294,14 +294,12 @@ class MissionControl:
 
     def execute_mission(self, selection):
         mission = self.missions.get(selection)
-        if mission is None:
-            print("Mission slot {} is unassigned.".format(selection))
-            return self.last_run
         self.robot.hub.display.animate(RUNNING_ANIMATION, 30)
         print("Running #{}...".format(selection))
         self.stopwatch.reset()
         self.robot.drive_for_distance(-10, settle_time=0)
         self.robot.hub.imu.reset_heading(0)
+        self.robot.change_drive_settings(reset=True)
         mission(self.robot)
         elapsed = self.stopwatch.time()
         print("Done running #{} in {}ms".format(selection, elapsed))
@@ -389,22 +387,22 @@ def mission_function_two(robot:Robot):
 @mission("3")
 def mission_function_three(robot:Robot):
     robot.rotate_right_motor_until_stalled(-100) # Reset arm
-    robot.drive_for_distance(200) # Drive forward
+    robot.drive_for_distance(198) # Drive forward
     robot.smart_turn_in_place(90) # Turn to face shipwreck
     robot.drive_for_distance(580) # Drive to shipwreck
     robot.drive_for_distance(-50) # Move backwards to pull the lever
     robot.turn_in_place(-20)
-    robot.rotate_right_motor_until_stalled(200, duty_limit=1000) # Move arm onto ground to pull the lever
-    robot.drive_for_distance(-100) # Move backwards to pull the lever
-    robot.rotate_right_motor_until_stalled(200, duty_limit=1000)
-    robot.drive_for_distance(-80) # Move backwards to pull the lever
-    robot.drive_for_distance(35) # Get to correct position
-    robot.rotate_right_motor_until_stalled(-200, duty_limit=1000) # Move arm back up so it's no in the way
+    robot.rotate_right_motor_until_stalled(35, duty_limit=100) # Move arm onto ground to pull the lever
+    robot.rotate_right_motor(-50)
+    robot.change_drive_settings(speed=100)
+    robot.drive_for_distance(-200) # Move backwards to pull the lever
+    robot.change_drive_settings(speed=1000, acceleration=1000)
+    robot.drive_for_distance(35)
+    robot.rotate_right_motor(-80) # Move arm back up so it's no in the way
     robot.turn_in_place(-45) # Start driving to the other start area
-    robot.drive_for_distance(300)
-    robot.turn_in_place(45)
+    robot.drive_for_distance(200)
+    robot.turn_in_place(65)
     robot.drive_for_distance(1250) # Drive to other start area
-    robot.rotate_right_motor_until_stalled(120)
 
 
 @mission("4")
