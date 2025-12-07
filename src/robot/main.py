@@ -368,7 +368,7 @@ def mission_function_two(robot:Robot):
     robot.change_drive_settings(speed=1000)
     robot.drive_for_distance(1000)
     robot.hub.imu.reset_heading(0)
-    robot.drive_for_distance(-205)
+    robot.drive_for_distance(-195)
     robot.change_drive_settings(reset=True)
     robot.curve(150, 90)
     robot.drive_for_distance(-150)
@@ -379,47 +379,33 @@ def mission_function_two(robot:Robot):
     robot.change_drive_settings(speed=100)
     robot.drive_for_distance(150)
     robot.change_drive_settings(speed=1000)
-    robot.rotate_left_motor(20)
-    robot.rotate_right_motor(-90)
+    robot.rotate_left_motor(15)
+    robot.rotate_right_motor(-70)
     sleep(1000)
-    robot.rotate_right_motor(75)
+    robot.rotate_right_motor(60)
     robot.drive_for_distance(-200)
-    robot.smart_turn_in_place(100)
+    robot.smart_turn_in_place(95)
     robot.drive_for_distance(800)
 
 
 @mission("3")
 def mission_function_three(robot:Robot):
     robot.rotate_right_motor_until_stalled(-100) # Reset arm
-    robot.drive_for_distance(210) # Drive forward
-    robot.drive_for_distance(198) # Drive forward
+    robot.drive_for_distance(195) # Drive forward
     robot.smart_turn_in_place(90) # Turn to face shipwreck
+    robot.change_drive_settings(speed=350)
     robot.drive_for_distance(600) # Drive to shipwreck
-    robot.drive_for_distance(-50) # Move backwards to pull the lever
-    robot.turn_in_place(-20)
-    robot.rotate_right_motor_until_stalled(150, duty_limit=1000) # Move arm onto ground to pull the lever
+    robot.drive_for_distance(-40) # Move backwards make space
+    robot.smart_turn_in_place(-(robot.hub.imu.heading()-90))
+    robot.rotate_right_motor_until_stalled(100, duty_limit=75) # Move arm onto ground to pull the lever
     robot.rotate_right_motor(-45)
-    robot.drive_for_distance(-100) # Move backwards to pull the lever
-    robot.rotate_right_motor_until_stalled(200, duty_limit=1000)
-    robot.drive_for_distance(-80) # Move backwards to pull the lever
-    robot.rotate_right_motor_until_stalled(200, duty_limit=1000)
-    robot.drive_for_distance(-80) # Move backwards to pull the lever
-    robot.drive_for_distance(35) # Get to correct position
-    robot.rotate_right_motor_until_stalled(-200, duty_limit=1000) # Move arm back up so it's no in the way
-    robot.rotate_right_motor(45)
-    robot.rotate_right_motor_until_stalled(35, duty_limit=100) # Move arm onto ground to pull the lever
-    robot.rotate_right_motor(-50)
-    robot.change_drive_settings(speed=100)
     robot.drive_for_distance(-200) # Move backwards to pull the lever
     robot.change_drive_settings(speed=1000, acceleration=1000)
     robot.drive_for_distance(35)
-    robot.rotate_right_motor(-80) # Move arm back up so it's no in the way
+    robot.rotate_right_motor(-80, wait=False) # Move arm back up so it's no in the way
     robot.turn_in_place(-45) # Start driving to the other start area
-    robot.drive_for_distance(100)
-    robot.turn_in_place(60)
-    robot.drive_for_distance(200)
-    robot.turn_in_place(65)
-    robot.drive_for_distance(1250) # Drive to other start area
+    robot.curve(300, 70)
+    robot.drive_for_distance(1000) # Drive to other start area
 
 
 @mission("4")
@@ -428,7 +414,7 @@ def mission_function_four(robot:Robot):
     robot.drive_for_distance(30) # Move forward to give space for turning
     robot.smart_turn_in_place(-15) # Turn to face the mission
     robot.drive_for_distance(680) # Drive to mission (flipping the platform)
-    robot.turn_in_place(50)
+    robot.turn_in_place(55)
     robot.rotate_right_motor_until_stalled(200)
     robot.smart_turn_in_place(45)
     robot.rotate_right_motor(-100)
@@ -443,7 +429,7 @@ def mission_function_four(robot:Robot):
     robot.rotate_left_motor_until_stalled(-200, then=Stop.HOLD) # Move arm down, move down the bucket
     robot.rotate_left_motor(30)
     robot.change_drive_settings(speed=300)
-    robot.drive_for_distance(-400, wait=False) # Move back to flip the platform
+    robot.drive_for_distance(-600, wait=False) # Move back to flip the platform
     robot.change_drive_settings(speed=500)
     sleep(300)
     robot.rotate_left_motor(45) # Return to starting area
@@ -457,33 +443,28 @@ def mission_function_five(robot:Robot):
     # mission 4, will be combining 4 & 5
     robot.drive_for_distance(30) # Forward to give space
     robot.smart_turn_in_place(-15)
-    robot.drive_for_distance(490)
-    robot.smart_turn_in_place(-120) # Raise the goods
-    robot.drive_for_distance(200)
-    robot.smart_turn_in_place(-45)
-    robot.drive_for_distance(110)
+    robot.drive_for_distance(320, wait=False)
+    robot.rotate_left_motor_until_stalled(500)
+    sleep(750)
+    robot.curve(55, -120) # raise the goods
+    robot.drive_for_distance(250)
+    robot.turn_in_place(45)
+    robot.drive_for_distance(185)
     robot.smart_turn_in_place(90)
-    robot.drive_for_distance(300)
-    robot.smart_turn_in_place(90)
-    robot.change_drive_settings(speed=100)
-    robot.drive_for_distance(110)
-    robot.change_drive_settings(reset=True)
+    robot.hub.imu.reset_heading(0)
+    robot.change_drive_settings(speed=200)
+    robot.drive_for_distance(100)
     robot.drive_for_distance(-100)
-    robot.turn_in_place(-90)
     robot.change_drive_settings(speed=1000, acceleration=1000)
-    robot.drive_for_distance(-780)
-    sleep(5000)
-    # mission 5
-    robot.drive_for_distance(300)
-    robot.smart_turn_in_place(-90)
-    robot.drive_for_distance(610) # Drive up to the statue
+    robot.turn_in_place(-90)
+    robot.drive_for_distance(100) # Drive up to the statue
     robot.change_drive_settings(reset=True)
-    robot.turn_in_place(37) # Face statue MANY INCONSISTENCIES WITH THIS ONE
-    robot.rotate_left_motor_until_stalled(-180) # Move arm to ground
-    robot.drive_for_distance(280) # Drive up to the statue so the arm is under it
+    robot.turn_in_place(45) # Face statue MANY INCONSISTENCIES WITH THIS ONE
+    robot.rotate_left_motor_until_stalled(-500) # Move arm to ground
+    robot.drive_for_distance(250) # Drive up to the statue so the arm is under it
     robot.rotate_left_motor(0, then=Stop.COAST)
     robot.rotate_left_motor(120, speed=1000) # Lift statue up
-    robot.drive_for_distance(-100, then=Stop.COAST) # Retreat so not touching
+    robot.drive_for_distance(-50)
 
 
 @mission("T")
