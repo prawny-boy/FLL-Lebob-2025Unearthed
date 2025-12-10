@@ -416,12 +416,12 @@ def mission_function_four(robot:Robot):
     robot.drive_for_distance(30) # Move forward to give space for turning
     robot.smart_turn_in_place(-15) # Turn to face the mission
     robot.drive_for_distance(680) # Drive to mission (flipping the platform)
-    robot.turn_in_place(55)
+    robot.turn_in_place(50)
     robot.rotate_right_motor_until_stalled(200)
     robot.smart_turn_in_place(45)
     robot.rotate_right_motor(-100)
     robot.smart_turn_in_place(-45)
-    robot.drive_for_distance(65) # Move into the boulders
+    robot.drive_for_distance(85) # Move into the boulders
     robot.turn_in_place(-75) # Rotate to flip the platform and push the boulders
     robot.drive_for_distance(-220) # Go back to give space to return
     robot.turn_in_place(-43) # Face the raising platform
