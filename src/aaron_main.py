@@ -19,69 +19,6 @@ DRIVE_PROFILE = {
 }
 DEFAULT_SETTLE_DELAY = 250
 ROBOT_MAX_TORQUE = 700
-RUNNING_ANIMATION = tuple(
-    Matrix(frame)
-    for frame in (
-        [
-            [0, 0, 100, 100, 100],
-            [100, 0, 0, 0, 100],
-            [100, 0, 0, 0, 100],
-            [100, 0, 0, 0, 100],
-            [100, 100, 100, 0, 0],
-        ],
-        [
-            [100, 0, 0, 100, 100],
-            [100, 0, 0, 0, 100],
-            [100, 0, 0, 0, 100],
-            [100, 0, 0, 0, 100],
-            [100, 100, 0, 0, 100],
-        ],
-        [
-            [100, 100, 0, 0, 100],
-            [100, 0, 0, 0, 100],
-            [100, 0, 0, 0, 100],
-            [100, 0, 0, 0, 100],
-            [100, 0, 0, 100, 100],
-        ],
-        [
-            [100, 100, 100, 0, 0],
-            [100, 0, 0, 0, 100],
-            [100, 0, 0, 0, 100],
-            [100, 0, 0, 0, 100],
-            [0, 0, 100, 100, 100],
-        ],
-        [
-            [100, 100, 100, 100, 0],
-            [100, 0, 0, 0, 0],
-            [100, 0, 0, 0, 100],
-            [0, 0, 0, 0, 100],
-            [0, 100, 100, 100, 100],
-        ],
-        [
-            [100, 100, 100, 100, 100],
-            [100, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 100],
-            [0, 0, 0, 0, 100],
-        ],
-        [
-            [100, 100, 100, 100, 100],
-            [0, 0, 0, 0, 100],
-            [0, 0, 0, 0, 0],
-            [100, 0, 0, 0, 0],
-            [100, 100, 100, 100, 100],
-        ],
-        [
-            [0, 100, 100, 100, 100],
-            [0, 0, 0, 0, 100],
-            [100, 0, 0, 0, 100],
-            [100, 0, 0, 0, 0],
-            [100, 100, 100, 100, 0],
-        ],
-    )
-)
-MISSION_REGISTRY = {}
-
 
 class PIDController:
     """Basic PID helper reused by the smart drive and turn helpers."""
@@ -343,70 +280,6 @@ class Robot:
         # does not start another mission mid-cleaning.
         self.right_big.run_angle(999, 1000)
 
-
-class MissionControl:
-    def __init__(self, robot:Robot, missions=None, menu_options_override=None):
-        self.robot = robot
-        self.missions = missions if missions is not None else MISSION_REGISTRY
-        if menu_options_override is not None:
-            self.menu_options = list(menu_options_override)
-        else:
-            # Build default menu from registered missions (sorted by key) and include "C" (clean)
-            # Expect mission keys like "1","2","A","B", etc.
-            default_slots = sorted(self.missions.keys())
-            # Put "C" (clean motors) first for convenience; add if not already present
-            self.menu_options = ["C"] + [s for s in default_slots if s != "C"]
-        # Common initialization
-        self.stopwatch = StopWatch()
-        self.battery_status = Color.GREEN
-        # Ensure last_run is a valid entry
-        self.last_run = "C" if "C" in self.menu_options else (self.menu_options[0] if self.menu_options else None)
-
-    def _build_menu(self):
-        # Defensive: if menu_options somehow empty, return an empty list (hub_menu should handle or caller should guard)
-        if not self.menu_options:
-            return []
-        try:
-            start_index = (self.menu_options.index(self.last_run) + 1) % len(
-                self.menu_options
-            )
-        except (ValueError, TypeError):
-            start_index = 0
-        return [
-            self.menu_options[(start_index + i) % len(self.menu_options)]
-            for i in range(len(self.menu_options))
-        ]
-
-    # def _execute_mission(self, selection):
-    #     mission = self.missions.get(selection)
-    #     if mission is None:
-    #         print("Mission slot {} is unassigned.".format(selection))
-    #         return self.last_run
-    #     self.robot.status_light(Color.YELLOW)
-    #     self.robot.hub.display.animate(RUNNING_ANIMATION, 30)
-    #     print("Running #{}...".format(selection))
-    #     self.stopwatch.reset()
-    #     self.robot.drive_for_distance(-10, settle_time=0)
-    #     self.robot.hub.imu.reset_heading(0)
-    #     mission(self.robot)
-    #     elapsed = self.stopwatch.time()
-    #     print("Done running #{} in {}ms".format(selection, elapsed))
-    #     self.robot.status_light(self.battery_status)
-    #     return selection
-
-    def run(self):
-        self.battery_status = self.robot.battery_display()
-        while True:
-            menu = self._build_menu()
-            if not menu:
-                print("No menu options available.")
-                return
-            selection = hub_menu(*menu)
-            if selection == "C":
-                self.robot.clean_motors()
-                continue
-            self.last_run = self._execute_mission(selection)
-
 def run_1(r:Robot):
     # Position arms
     r.rotate_right_motor(-90, then=Stop.COAST)
@@ -438,7 +311,6 @@ def run_1(r:Robot):
     sleep(500)
     r.drive_for_distance(-30) # Drive back
     sleep(1000)
-    r.drive_for_distance(-50) # Drive back a bit
 
     # Map
     r.smart_turn_in_place(50) # Turn to face map
