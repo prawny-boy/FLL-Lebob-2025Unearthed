@@ -408,6 +408,13 @@ class MissionControl:
             self.last_run = self._execute_mission(selection)
 
 def run_1(r:Robot):
+    # Position arms
+    r.rotate_right_motor(-90, then=Stop.COAST)
+    r.rotate_left_motor(140, then=Stop.COAST, wait=False)
+    sleep(800)
+    r.rotate_right_motor(-25, then=Stop.COAST, wait=False)
+    r.rotate_left_motor(-90)
+
     # ALIGN THE 
     # Sweep
     r.drive_for_distance(644) # Drive up to the sweep box
