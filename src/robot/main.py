@@ -180,6 +180,7 @@ class Robot:
         self,
         distance,
         then=Stop.BRAKE,
+        speed=300,
         k_p=2.5,
         k_i=0.01,
         k_d=0.2,
@@ -195,7 +196,7 @@ class Robot:
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
             correction = pid.calculate(error)
-            self.drive_base.drive(direction, -correction)
+            self.drive_base.drive(direction*speed, -correction)
             sleep(delta_time)
         if then == Stop.BRAKE:
             self.drive_base.brake()
@@ -366,25 +367,26 @@ def mission_function_two(robot:Robot):
     robot.rotate_left_motor_until_stalled(200)
     robot.rotate_right_motor_until_stalled(-200)
     robot.change_drive_settings(speed=1000)
-    robot.drive_for_distance(1000)
+    robot.smart_drive_for_distance(885, speed=1000)
+    robot.drive_for_distance(100)
+    sleep(1000)
+    robot.drive_for_distance(-210)
     robot.hub.imu.reset_heading(0)
-    robot.drive_for_distance(-195)
     robot.change_drive_settings(reset=True)
     robot.curve(150, 90)
-    robot.drive_for_distance(-150)
-    robot.smart_turn_in_place(-(robot.hub.imu.heading()-90), allowed_error=0.5)
+    robot.drive_for_distance(-155)
+    robot.smart_turn_in_place(-(robot.hub.imu.heading()-90), allowed_error=1)
+    robot.rotate_left_motor(-100, wait=False)
     robot.rotate_right_motor_until_stalled(100)
-    robot.rotate_left_motor_until_stalled(-200)
-    robot.rotate_left_motor(25)
     robot.change_drive_settings(speed=100)
     robot.drive_for_distance(150)
     robot.change_drive_settings(speed=1000)
-    robot.rotate_left_motor(15)
+    robot.rotate_left_motor(30, wait=False)
     robot.rotate_right_motor(-70)
     sleep(1000)
     robot.rotate_right_motor(60)
     robot.drive_for_distance(-200)
-    robot.smart_turn_in_place(95)
+    robot.smart_turn_in_place(90)
     robot.drive_for_distance(800)
 
 
