@@ -417,39 +417,47 @@ def run_1(r:Robot):
 
     # ALIGN THE 
     # Sweep
+    r.hub.imu.reset_heading(0)
     r.drive_for_distance(644) # Drive up to the sweep box
     r.smart_turn_in_place(-90) # Face thing
     r.drive_for_distance(20)
     r.smart_turn_in_place(-30) # Sweep left
-    r.smart_turn_in_place(60) # Right
+    r.smart_turn_in_place(60, speed=200) # Right
     r.smart_turn_in_place(-30) # Back to middle
-    r.drive_for_distance(-100) # Drive back
-    r.rotate_left_motor(90) # Arm down
-    sleep(1000) # Wait for brush to stop moving
-    r.drive_for_distance(90, then=Stop.COAST, speed=300) # Drive forward to align and pick up the brush
-    r.rotate_left_motor(-90, speed=200, wait=False) # Pick up brush (hopefully), move arm up, yeet into the oval
+    sleep(200) # Wait for robot to stop moving
+    r.drive_for_distance(-110) # Drive back
+    r.rotate_left_motor(90, then=Stop.COAST, wait=False) # Arm down
+    sleep(500)
+    r.drive_for_distance(100, then=Stop.COAST, speed=300) # Drive forward to align
+    r.smart_turn_in_place(-r.hub.imu.heading() - 90)
+    sleep(500) # Wait for align
+    r.drive_for_distance(-50, speed=200) # Drive back
+    sleep(2000) # Wait for brush to stop moving
+    r.drive_for_distance(50, speed=200) # Drive forward to pick up the brush
+    r.rotate_left_motor(-90, wait=False) # Pick up brush (hopefully), move arm up, yeet into the oval
+    sleep(500)
+    r.drive_for_distance(-30) # Drive back
     sleep(1000)
     r.drive_for_distance(-50) # Drive back a bit
 
     # Map
-    r.smart_turn_in_place(90) # Turn to move to map
-    r.drive_for_distance(60) # Go to map
-    r.turn_in_place(-74) # Turn to face map
-    r.rotate_left_motor(90) # Arm down
-    r.drive_for_distance(185) # Push map section
-    r.smart_turn_in_place(12) # Finish rotating the map section
-    r.smart_turn_in_place(-12)
-    r.rotate_left_motor(-90, speed=200, wait=False)
-    r.smart_turn_in_place(29)
-    r.drive_for_distance(80)
-    r.rotate_left_motor(90)
-    r.drive_for_distance(15)
+    r.smart_turn_in_place(50) # Turn to face map
+    r.rotate_left_motor(88, then=Stop.COAST, wait=False) # Arm down
+    r.drive_for_distance(180) # Push map section
+    sleep(300)
+    r.drive_for_distance(-45)
+    r.rotate_left_motor(-90, wait=False) # Arm up
+    r.drive_for_distance(57) # Move to position for sliding the map
+    r.smart_turn_in_place(8)
+    r.rotate_left_motor(85, then=Stop.COAST, wait=False) # Arm down onto the slide map
+    sleep(500)
+    r.drive_for_distance(64) # Slide the map
 
     # Post map alignment
-    r.drive_for_distance(-120) # Leave map
-    r.rotate_left_motor(-135, wait=False) # Move long arm out the way
-    r.turn_in_place(60) # Face wall
-    r.drive_for_distance(500, stop=Stop.COAST) # Go to wall to align
+    r.rotate_left_motor(-140, then=Stop.COAST, wait=False) # Move long arm out the way
+    r.drive_for_distance(-227)
+    r.smart_turn_in_place(33)
+    r.drive_for_distance(500, then=Stop.COAST, speed=250) # Go to wall to align
 
 def run_2(r:Robot):
     # Minecart
