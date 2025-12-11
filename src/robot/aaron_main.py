@@ -379,6 +379,7 @@ def run_3(r:Robot):
     sleep(400)
 
 def run_4(r:Robot):
+    "Raise the platform and bucket"
     # Platform
     r.drive_for_distance(-10) # Back up to give space
     r.smart_turn_in_place(90) # Move left a little
@@ -414,6 +415,7 @@ def run_5(r:Robot):
     sleep(1600)
 
 def run_6(r:Robot):
+    "Flip platform, boulders and silo"
     # Platform and boulders
     r.rotate_right_motor(-75, then=Stop.COAST, wait=False)
     r.drive_for_distance(250)
