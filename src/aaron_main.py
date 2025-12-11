@@ -463,34 +463,49 @@ def run_2(r:Robot):
     # Minecart
     r.drive_for_distance(-220) # Drive back from wall
     r.smart_turn_in_place(90) # Get in position for minecart
-    r.drive_for_distance(170)
+    r.drive_for_distance(150)
 
     # Detour for the statue
     r.rotate_right_motor(-40, then=Stop.COAST, wait=False) # Move short arm onto ground
-    r.drive_for_distance(215) # Arrive at statue
+    r.drive_for_distance(204) # Arrive at statue
+    r.drive_for_distance(-10)
     sleep(1000)
-    r.rotate_right_motor(30) # Push statue up
-    r.drive_for_distance(36, then=Stop.COAST, wait=False) # Drive to statue and push it up more
-    r.rotate_right_motor(40, then=Stop.COAST) # Moving arm up more
-    r.drive_for_distance(-280)
+    r.rotate_right_motor(90, speed=500) # Push statue up
+    r.drive_for_distance(-215)
 
     # Back to the minecart
-    r.rotate_right_motor(-80, then=Stop.COAST, wait=False) # Move short arm onto ground
-    r.smart_turn_in_place(-90)
-    r.drive_for_distance(65) # Arrive at minecart
-    r.rotate_right_motor(70, speed=100) # Push up minecart
+    r.rotate_right_motor(-93, then=Stop.COAST)
+    r.smart_turn_in_place(-90) # Face minecart
+    r.drive_for_distance(50) # Arrive at minecart
+    r.rotate_right_motor(56, speed=50) # Push up minecart
     sleep(1000) # Wait for minecart to roll down
     r.drive_for_distance(-120)
-    r.rotate_right_motor(-30) # Arm down
 
-my_robot = Robot()
-run_1(my_robot)
+def run_3(r:Robot):
+    # Post minecart alignment
+    r.smart_turn_in_place(90)
+    r.drive_for_distance(140)
+    r.smart_turn_in_place(-28)
+    r.drive_for_distance(400)
 
-# # Button press
-# while True:
-#     # Get the set of buttons currently pressed
-#     pressed_buttons = my_robot.hub.buttons.pressed() 
+    # Align arms
+    r.rotate_right_motor(-40, then=Stop.COAST)
+    r.rotate_right_motor(-30, then=Stop.COAST, wait=False)
+    r.rotate_left_motor(140, then=Stop.COAST, wait=False)
+    sleep(800)
+    r.rotate_right_motor(-35, then=Stop.COAST, wait=False)
+    sleep(800)
+    r.rotate_left_motor(-135, then=Stop.COAST)
+    sleep(1500)
 
-#     # Check for a specific button being pressed
-#     if Button.CENTER in pressed_buttons:
-#         run_1(my_robot)
+    # Post minecart alignment finish
+    r.smart_turn_in_place(-62)
+    r.drive_for_distance(250, then=Stop.COAST, wait=True)
+
+def run_4(r:Robot):
+    r.drive_for_distance(100)
+
+r = Robot()
+# run_1(r)
+# run_2(r)
+# run_3(r)
