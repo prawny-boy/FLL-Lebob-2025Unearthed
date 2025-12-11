@@ -413,6 +413,28 @@ def run_5(r:Robot):
     r.drive_for_distance(-120, then=Stop.COAST, wait=False)
     sleep(1600)
 
+def run_6(r:Robot):
+    # Platform and boulders
+    r.rotate_right_motor(-75, then=Stop.COAST, wait=False)
+    r.drive_for_distance(250)
+    r.smart_turn_in_place(-45)
+    r.rotate_right_motor(40, then=Stop.COAST, wait=False)
+    r.smart_turn_in_place(-45)
+    r.drive_for_distance(300)
+    r.rotate_right_motor(-30, then=Stop.COAST, wait=False)
+    r.rotate_left_motor(140, then=Stop.COAST, wait=False)
+    sleep(800)
+    r.rotate_right_motor(-25, then=Stop.COAST, wait=False)
+    sleep(1800)
+    r.rotate_left_motor(-135, then=Stop.COAST)
+    r.drive_for_distance(100)
+    r.smart_turn_in_place(-70)
+    r.smart_turn_in_place(70)
+    r.drive_for_distance(-150)
+    r.smart_turn_in_place(90)
+    r.drive_for_distance(100)
+    r.smart_turn_in_place(180)
+
 r = Robot()
 # run_1(r)
 # run_2(r)
