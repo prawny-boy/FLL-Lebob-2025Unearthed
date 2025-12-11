@@ -281,6 +281,7 @@ class Robot:
         self.right_big.run_angle(999, 1000)
 
 def run_1(r:Robot):
+    "Sweep and map"
     # Position arms
     r.rotate_right_motor(-90, then=Stop.COAST)
     r.rotate_left_motor(140, then=Stop.COAST, wait=False)
@@ -332,6 +333,7 @@ def run_1(r:Robot):
     r.drive_for_distance(500, then=Stop.COAST, speed=250) # Go to wall to align
 
 def run_2(r:Robot):
+    "Statue and minecart"
     # Minecart
     r.drive_for_distance(-220) # Drive back from wall
     r.smart_turn_in_place(90) # Get in position for minecart
@@ -354,6 +356,7 @@ def run_2(r:Robot):
     r.drive_for_distance(-120)
 
 def run_3(r:Robot):
+    "Align"
     # Post minecart alignment
     r.smart_turn_in_place(90)
     r.drive_for_distance(140)
@@ -375,6 +378,7 @@ def run_3(r:Robot):
     r.drive_for_distance(250, then=Stop.COAST, wait=True)
 
 def run_4(r:Robot):
+    "Flip and boulders"
     r.drive_for_distance(100)
 
 r = Robot()
