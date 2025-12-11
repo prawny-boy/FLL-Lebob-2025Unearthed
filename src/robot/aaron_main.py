@@ -398,6 +398,21 @@ def run_4(r:Robot):
     r.smart_turn_in_place(38)
     r.drive_for_distance(-300, then=Stop.COAST, speed=200, wait=False) # Align against wall
 
+def run_5(r:Robot):
+    "Post bucket alignment, no points, important"
+    # Post bucket alignment
+    r.rotate_right_motor(40)
+    sleep(1000)
+
+    r.drive_for_distance(65)
+    r.smart_turn_in_place(90)
+    r.drive_for_distance(300, then=Stop.COAST, speed=250, wait=False)
+    sleep(4000)
+    r.drive_for_distance(-280)
+    r.smart_turn_in_place(-90)
+    r.drive_for_distance(-120, then=Stop.COAST, wait=False)
+    sleep(1600)
+
 r = Robot()
 # run_1(r)
 # run_2(r)
