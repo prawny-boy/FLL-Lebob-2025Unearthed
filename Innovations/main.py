@@ -36,7 +36,7 @@ force = Force()
 vals = []
 state = "close"
 angle = 0.0
-diff = 1
+diff = 5.0
 start_time = time.ticks_ms()
 while True:
     if state == "close":
@@ -48,8 +48,8 @@ while True:
         angle += diff
         if angle >= 180:
             end_time = time.ticks_ms()
-            diff -= 2
+            diff = -diff
         if angle <= 0:
             end_time = time.ticks_ms()
-            diff += 2
+            diff = abs(diff)
         time.sleep_ms(50)
