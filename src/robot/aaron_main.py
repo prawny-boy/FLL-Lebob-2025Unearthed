@@ -288,6 +288,8 @@ def run_1(r:Robot):
     sleep(800)
     r.rotate_right_motor(-25, then=Stop.COAST, wait=False)
     r.rotate_left_motor(-90)
+    r.drive_for_distance(-20, then=Stop.COAST, wait=False)
+    sleep(500)
 
     # ALIGN THE 
     # Sweep
@@ -298,25 +300,26 @@ def run_1(r:Robot):
     r.smart_turn_in_place(-30) # Sweep left
     r.smart_turn_in_place(60, speed=200) # Right
     r.smart_turn_in_place(-30) # Back to middle
+
+    # Brush
     sleep(200) # Wait for robot to stop moving
-    r.drive_for_distance(-110) # Drive back
-    r.rotate_left_motor(90, then=Stop.COAST, wait=False) # Arm down
-    sleep(500)
-    r.drive_for_distance(100, then=Stop.COAST, speed=300) # Drive forward to align
-    r.smart_turn_in_place(-r.hub.imu.heading() - 90)
-    sleep(500) # Wait for align
-    r.drive_for_distance(-50, speed=200) # Drive back
+    r.drive_for_distance(-70, speed=200) # Drive back
+    r.smart_turn_in_place(-r.hub.imu.heading() - 90) # Face brush
+    r.rotate_left_motor(90) # Arm down
     sleep(2000) # Wait for brush to stop moving
-    r.drive_for_distance(50, speed=200) # Drive forward to pick up the brush
-    r.rotate_left_motor(-90, wait=False) # Pick up brush (hopefully), move arm up, yeet into the oval
+    r.drive_for_distance(75, speed=200, then=Stop.COAST, wait=False) # Drive forward to pick up the brush
+    sleep(800) # Wait for align
+    r.rotate_left_motor(-45, wait=False) # Pick up brush, hold it
     sleep(500)
-    r.drive_for_distance(-30) # Drive back
-    sleep(1000)
+    r.drive_for_distance(-30)
+    r.smart_turn_in_place(16)
+    r.rotate_left_motor(-45, speed=600) # Throw into oval
+    r.smart_turn_in_place(-16)
 
     # Map
-    r.smart_turn_in_place(50) # Turn to face map
+    r.smart_turn_in_place(48) # Turn to face map
     r.rotate_left_motor(88, then=Stop.COAST, wait=False) # Arm down
-    r.drive_for_distance(180) # Push map section
+    r.drive_for_distance(187) # Push map section
     sleep(300)
     r.drive_for_distance(-45)
     r.rotate_left_motor(-90, wait=False) # Arm up
@@ -368,7 +371,7 @@ def run_3(r:Robot):
     r.rotate_right_motor(-30, then=Stop.COAST, wait=False)
     r.rotate_left_motor(140, then=Stop.COAST, wait=False)
     sleep(800)
-    r.rotate_right_motor(-35, then=Stop.COAST, wait=False)
+    r.rotate_right_motor(-25, then=Stop.COAST, wait=False)
     sleep(800)
     r.rotate_left_motor(-135, then=Stop.COAST)
     sleep(1500)
@@ -430,7 +433,6 @@ def run_6(r:Robot):
     sleep(700)
     r.rotate_left_motor(-135, then=Stop.COAST)
 
-
     r.drive_for_distance(100)
     r.smart_turn_in_place(-45)
     r.rotate_right_motor(-30, then=Stop.COAST, wait=False)
@@ -449,9 +451,9 @@ def run_6(r:Robot):
     r.drive_for_distance(-240)
 
 r = Robot()
-# run_1(r)
-# run_2(r)
-# run_3(r)
-# run_4(r)
-# run_5(r)
+run_1(r)
+run_2(r)
+run_3(r)
+run_4(r)
+run_5(r)
 run_6(r)
