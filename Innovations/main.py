@@ -14,7 +14,7 @@ class Force:
         return force_value
     def get_percentage(self) -> float:
         force_value = self.read(self.force) - self.read(self.standard)
-        percentage = (force_value - self.min) / (self.max - self.min) * 100
+        percentage = (force_value) / (self.max - force_value) * 100
         percentage = max(0, min(100, percentage))
         return percentage
 
