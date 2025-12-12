@@ -363,25 +363,26 @@ def mission_function_one(robot:Robot):
 @mission("2")
 def mission_function_two(robot:Robot):
     robot.change_drive_settings(speed=1000)
-    robot.smart_drive_for_distance(885, speed=1000)
+    robot.drive_for_distance(1000)
     robot.drive_for_distance(75)
     sleep(1000)
-    robot.drive_for_distance(-145)
+    robot.drive_for_distance(-147)
     robot.hub.imu.reset_heading(0)
     robot.change_drive_settings(reset=True)
-    robot.curve(100, 90)
+    robot.curve(100, 92)
     robot.drive_for_distance(-100)
-    robot.smart_turn_in_place(-(robot.hub.imu.heading()-90), allowed_error=1)
     robot.rotate_left_motor(-100, wait=False)
     robot.rotate_right_motor_until_stalled(500)
     robot.change_drive_settings(speed=100)
     robot.drive_for_distance(110)
     robot.change_drive_settings(speed=1000)
-    robot.rotate_left_motor(20, wait=False)
-    robot.rotate_right_motor(-70)
+    robot.rotate_left_motor(25, wait=False)
+    robot.rotate_right_motor(-60)
     sleep(1000)
     robot.rotate_right_motor(60)
     robot.drive_for_distance(-150)
+    robot.rotate_left_motor(80, wait=False)
+    robot.rotate_right_motor(-90, wait=False)
     robot.smart_turn_in_place(90)
     robot.drive_for_distance(850)
 
@@ -402,7 +403,7 @@ def mission_function_three(robot:Robot):
     robot.drive_for_distance(35)
     robot.rotate_right_motor(-80, wait=False) # Move arm back up so it's no in the way
     robot.turn_in_place(-45) # Start driving to the other start area
-    robot.curve(250, 70)
+    robot.curve(250, 65)
     robot.drive_for_distance(1000) # Drive to other start area
 
 
@@ -412,14 +413,15 @@ def mission_function_four(robot:Robot):
     robot.drive_for_distance(30) # Move forward to give space for turning
     robot.smart_turn_in_place(-15) # Turn to face the mission
     robot.drive_for_distance(680) # Drive to mission (flipping the platform)
-    robot.turn_in_place(50)
+    robot.turn_in_place(47)
     robot.rotate_right_motor_until_stalled(200)
     robot.smart_turn_in_place(45)
     robot.rotate_right_motor(-100)
     robot.smart_turn_in_place(-45)
-    robot.drive_for_distance(85) # Move into the boulders
+    robot.drive_for_distance(70) # Move into the boulders
+    #robot.change_drive_settings(turn_rate=100)
     robot.turn_in_place(-75) # Rotate to flip the platform and push the boulders
-    robot.change_drive_settings(reset=True)
+    #robot.change_drive_settings(reset=True)
     robot.drive_for_distance(-203) # Go back to give space to return
     robot.turn_in_place(-43) # Face the raising platform
     robot.drive_for_distance(160) # Move to raising platform
@@ -446,13 +448,12 @@ def mission_function_five(robot:Robot):
     robot.drive_for_distance(320)
     robot.curve(55, -120) # raise the goods
     robot.drive_for_distance(230)
-    robot.smart_turn_in_place((robot.hub.imu.heading()-182))
-    robot.hub.imu.reset_heading(-90)
+    robot.turn_in_place(45)
     robot.drive_for_distance(210)
     robot.smart_turn_in_place(90)
     robot.change_drive_settings(speed=200)
-    robot.drive_for_distance(100)
-    robot.drive_for_distance(-100)
+    robot.drive_for_distance(110)
+    robot.drive_for_distance(-110)
     robot.change_drive_settings(speed=1000, acceleration=1000)
     robot.turn_in_place(-90)
     robot.drive_for_distance(60) # Drive up to the statue
