@@ -9,11 +9,14 @@ class Force:
         self.min = 13000
         self.force = machine.ADC(machine.Pin(self.fing_pin))
         self.standard = machine.ADC(machine.Pin(self.const_pin))
+        self.samples = []
     def read(self, sensor) -> int:
         force_value = sensor.read_u16()
         return force_value
     def get_percentage(self) -> float:
-        force_value = self.read(self.force) - self.read(self.standard)
+        self.samples.append(self.read(self.standard))
+        stand_avg = sum(self.samples)/len(self.samples)
+        force_value = self.read(self.force) - int(stand_avg)
         percentage = (force_value) / (self.max - force_value) * 100
         percentage = max(0, min(100, percentage))
         return percentage
@@ -33,7 +36,6 @@ class Servo:
 
 servo = Servo()
 force = Force()
-vals = []
 state = "close"
 angle = 0.0
 diff = 5.0
@@ -41,8 +43,8 @@ start_time = time.ticks_ms()
 while True:
     if state == "close":
         servo.set_angle(angle)
-        f = force.get_percentage()
-        if f >= 70:
+        f = force.read(force.force)
+        if f >= 10000:
             state = "hold"
             print("Closing force reached:", f)
         angle += diff
@@ -53,3 +55,4 @@ while True:
             end_time = time.ticks_ms()
             diff = abs(diff)
         time.sleep_ms(50)
+        print(f)
