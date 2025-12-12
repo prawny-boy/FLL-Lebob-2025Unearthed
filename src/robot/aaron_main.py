@@ -375,13 +375,72 @@ def run_3(r:Robot):
 
     # Post minecart alignment finish
     r.smart_turn_in_place(-62)
-    r.drive_for_distance(250, then=Stop.COAST, wait=True)
+    r.drive_for_distance(250, then=Stop.COAST, wait=False)
+    sleep(400)
 
 def run_4(r:Robot):
-    "Flip and boulders"
+    "Raise the platform and bucket"
+    # Platform
+    r.drive_for_distance(-10) # Back up to give space
+    r.smart_turn_in_place(90) # Move left a little
+    r.drive_for_distance(40) # Drive left
+    r.smart_turn_in_place(45) # Turn to face platform
+    r.rotate_right_motor(90) # Put shovel on ground (short right arm)
+    r.drive_for_distance(450, then=Stop.COAST, wait=False) # Push up the statue
+    sleep(1400)
+    r.drive_for_distance(-150) # Go back out
+    r.rotate_right_motor(-90) # Flatten right motor
+
+    # Bucket
+    r.smart_turn_in_place(7) # Face bucket
+    r.rotate_left_motor(130, then=Stop.COAST, wait=False) # Push down the bucket
+    sleep(1500)
+    r.rotate_left_motor(-135) # Arm up again
+    r.smart_turn_in_place(38)
+    r.drive_for_distance(-300, then=Stop.COAST, speed=200, wait=False) # Align against wall
+
+def run_5(r:Robot):
+    "Post bucket alignment, no points, important"
+    # Post bucket alignment
+    r.rotate_right_motor(40)
+    sleep(1000)
+
+    r.drive_for_distance(65)
+    r.smart_turn_in_place(90)
+    r.drive_for_distance(300, then=Stop.COAST, speed=250, wait=False)
+    sleep(4000)
+    r.drive_for_distance(-280)
+    r.smart_turn_in_place(-90)
+    r.drive_for_distance(-120, then=Stop.COAST, wait=False)
+    sleep(1600)
+
+def run_6(r:Robot):
+    "Flip platform, boulders and silo"
+    # Platform and boulders
+    r.rotate_right_motor(-75, then=Stop.COAST, wait=False)
+    r.drive_for_distance(250)
+    r.smart_turn_in_place(-45)
+    r.rotate_right_motor(40, then=Stop.COAST, wait=False)
+    r.smart_turn_in_place(-45)
+    r.drive_for_distance(300)
+    r.rotate_right_motor(-30, then=Stop.COAST, wait=False)
+    r.rotate_left_motor(140, then=Stop.COAST, wait=False)
+    sleep(800)
+    r.rotate_right_motor(-25, then=Stop.COAST, wait=False)
+    sleep(1800)
+    r.rotate_left_motor(-135, then=Stop.COAST)
     r.drive_for_distance(100)
+    r.smart_turn_in_place(-70)
+    r.smart_turn_in_place(70)
+    r.drive_for_distance(-150)
+    r.smart_turn_in_place(90)
+    r.drive_for_distance(100)
+    r.smart_turn_in_place(180)
 
 r = Robot()
 # run_1(r)
 # run_2(r)
 # run_3(r)
+# run_4(r)
+# run_5(r)
+# run_6(r)
