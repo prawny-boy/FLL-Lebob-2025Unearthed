@@ -327,8 +327,6 @@ def mission(slot):
 
 @mission("1")
 def mission_function_one(robot:Robot):
-    robot.rotate_left_motor_until_stalled(-100) # Reset motors
-    robot.rotate_right_motor_until_stalled(-100)
     robot.change_drive_settings(speed=1000)
     robot.drive_for_distance(740) # Go up to sweep
     robot.change_drive_settings(reset=True)
@@ -341,7 +339,7 @@ def mission_function_one(robot:Robot):
     robot.change_drive_settings(turn_rate=100)
     robot.turn_in_place(-60) # Sweep right
     robot.change_drive_settings(reset=True)
-    robot.turn_in_place(27) # Return to middle
+    robot.turn_in_place(28) # Return to middle
     robot.drive_for_distance(-95) # Go back
     robot.turn_in_place(10)
     sleep(400) # Wait for brush to stop swaying.
@@ -366,8 +364,6 @@ def mission_function_one(robot:Robot):
 def mission_function_two(robot:Robot):
     robot.change_drive_settings(speed=1000)
     robot.drive_for_distance(1000)
-    robot.drive_for_distance(75)
-    sleep(1000)
     robot.drive_for_distance(-147)
     robot.hub.imu.reset_heading(0)
     robot.change_drive_settings(reset=True)
@@ -379,7 +375,7 @@ def mission_function_two(robot:Robot):
     robot.drive_for_distance(150)
     robot.change_drive_settings(speed=1000)
     robot.rotate_left_motor(25, wait=False)
-    robot.rotate_right_motor(-60)
+    robot.rotate_right_motor(-70)
     sleep(1000)
     robot.rotate_right_motor(60)
     robot.drive_for_distance(-150)
@@ -405,7 +401,7 @@ def mission_function_three(robot:Robot):
     robot.drive_for_distance(35)
     robot.rotate_right_motor(-80, wait=False) # Move arm back up so it's no in the way
     robot.turn_in_place(-45) # Start driving to the other start area
-    robot.curve(250, 65)
+    robot.curve(250, 70)
     robot.drive_for_distance(1000) # Drive to other start area
 
 
