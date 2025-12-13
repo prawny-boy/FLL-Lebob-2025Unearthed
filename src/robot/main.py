@@ -334,7 +334,7 @@ def mission_function_one(robot:Robot):
     robot.drive_for_distance(75) # Go forward a lot to align
     robot.drive_for_distance(-30) # Go back to give space for the arm
     robot.rotate_left_motor_until_stalled(100) # Align the arm to the frame
-    robot.rotate_left_motor(-40) # Move the arm up to the right height to pick up
+    robot.rotate_left_motor(-39) # Move the arm up to the right height to pick up
     robot.turn_in_place(35) # Sweep left
     robot.change_drive_settings(turn_rate=100)
     robot.turn_in_place(-60) # Sweep right
@@ -364,7 +364,7 @@ def mission_function_one(robot:Robot):
 def mission_function_two(robot:Robot):
     robot.change_drive_settings(speed=1000)
     robot.drive_for_distance(1000)
-    robot.drive_for_distance(-147)
+    robot.drive_for_distance(-145)
     robot.hub.imu.reset_heading(0)
     robot.change_drive_settings(reset=True)
     robot.curve(100, 92)
@@ -372,13 +372,14 @@ def mission_function_two(robot:Robot):
     robot.rotate_left_motor(-100, wait=False)
     robot.rotate_right_motor_until_stalled(500)
     robot.change_drive_settings(speed=100)
-    robot.drive_for_distance(150)
+    robot.drive_for_distance(110)
     robot.change_drive_settings(speed=1000)
-    robot.rotate_left_motor(25, wait=False)
-    robot.rotate_right_motor(-70)
+    robot.rotate_right_motor(-70, speed=100, wait=False)
+    robot.rotate_left_motor(40)
     sleep(1000)
     robot.rotate_right_motor(60)
-    robot.drive_for_distance(-150)
+    robot.turn_in_place(10)
+    robot.drive_for_distance(-180)
     robot.rotate_left_motor(80, wait=False)
     robot.rotate_right_motor(-90, wait=False)
     robot.smart_turn_in_place(90)
@@ -388,13 +389,13 @@ def mission_function_two(robot:Robot):
 @mission("3")
 def mission_function_three(robot:Robot):
     robot.rotate_right_motor_until_stalled(-100) # Reset arm
-    robot.drive_for_distance(195) # Drive forward
+    robot.drive_for_distance(210) # Drive forward
     robot.smart_turn_in_place(90) # Turn to face shipwreck
     robot.change_drive_settings(speed=500)
     robot.drive_for_distance(600) # Drive to shipwreck
     robot.drive_for_distance(-40) # Move backwards make space
     robot.smart_turn_in_place(-(robot.hub.imu.heading()-90))
-    robot.rotate_right_motor_until_stalled(100, duty_limit=75) # Move arm onto ground to pull the lever
+    robot.rotate_right_motor_until_stalled(50, duty_limit=75) # Move arm onto ground to pull the lever
     robot.rotate_right_motor(-45)
     robot.drive_for_distance(-200) # Move backwards to pull the lever
     robot.change_drive_settings(speed=1000, acceleration=1000)
@@ -411,11 +412,13 @@ def mission_function_four(robot:Robot):
     robot.drive_for_distance(30) # Move forward to give space for turning
     robot.smart_turn_in_place(-15) # Turn to face the mission
     robot.drive_for_distance(680) # Drive to mission (flipping the platform)
-    robot.turn_in_place(47)
+    robot.change_drive_settings(turn_rate=50)
+    robot.turn_in_place(45)
+    robot.change_drive_settings(reset=True)
     robot.rotate_right_motor_until_stalled(200)
     robot.smart_turn_in_place(45)
     robot.rotate_right_motor(-100)
-    robot.smart_turn_in_place(-45)
+    robot.smart_turn_in_place(-38)
     robot.drive_for_distance(70) # Move into the boulders
     robot.change_drive_settings(turn_rate=50)
     robot.turn_in_place(-75) # Rotate to flip the platform and push the boulders
@@ -432,7 +435,7 @@ def mission_function_four(robot:Robot):
     robot.change_drive_settings(speed=500)
     sleep(300)
     robot.rotate_left_motor(45) # Return to starting area
-    robot.drive_for_distance(100)
+    robot.drive_for_distance(75)
     robot.rotate_left_motor(100)
     robot.drive_for_distance(-700)
 
@@ -451,8 +454,8 @@ def mission_function_five(robot:Robot):
     robot.drive_for_distance(210)
     robot.smart_turn_in_place(90)
     robot.change_drive_settings(speed=200)
-    robot.drive_for_distance(110)
-    robot.drive_for_distance(-110)
+    robot.drive_for_distance(100)
+    robot.drive_for_distance(-100)
     robot.change_drive_settings(speed=1000, acceleration=1000)
     robot.turn_in_place(-90)
     robot.drive_for_distance(60) # Drive up to the statue
