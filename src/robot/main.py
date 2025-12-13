@@ -417,9 +417,9 @@ def mission_function_four(robot:Robot):
     robot.rotate_right_motor(-100)
     robot.smart_turn_in_place(-45)
     robot.drive_for_distance(70) # Move into the boulders
-    #robot.change_drive_settings(turn_rate=100)
+    robot.change_drive_settings(turn_rate=50)
     robot.turn_in_place(-75) # Rotate to flip the platform and push the boulders
-    #robot.change_drive_settings(reset=True)
+    robot.change_drive_settings(reset=True)
     robot.drive_for_distance(-203) # Go back to give space to return
     robot.turn_in_place(-43) # Face the raising platform
     robot.drive_for_distance(160) # Move to raising platform
@@ -442,15 +442,14 @@ def mission_function_five(robot:Robot):
     # mission 4, will be combining 4 & 5
     robot.drive_for_distance(30) # Forward to give space
     robot.smart_turn_in_place(-15)
-    robot.drive_for_distance(320, wait=False)
-    robot.rotate_left_motor_until_stalled(500)
-    sleep(750)
+    robot.hub.imu.reset_heading(-15)
+    robot.drive_for_distance(320)
     robot.curve(55, -120) # raise the goods
     robot.drive_for_distance(230)
-    robot.turn_in_place(45)
+    robot.smart_turn_in_place((robot.hub.imu.heading()-182))
+    robot.hub.imu.reset_heading(-90)
     robot.drive_for_distance(210)
     robot.smart_turn_in_place(90)
-    robot.hub.imu.reset_heading(0)
     robot.change_drive_settings(speed=200)
     robot.drive_for_distance(110)
     robot.drive_for_distance(-110)
@@ -458,12 +457,12 @@ def mission_function_five(robot:Robot):
     robot.turn_in_place(-90)
     robot.drive_for_distance(60) # Drive up to the statue
     robot.change_drive_settings(reset=True)
-    robot.turn_in_place(45) # Face statue MANY INCONSISTENCIES WITH THIS ONE
+    robot.smart_turn_in_place(45) # Face statue MANY INCONSISTENCIES WITH THIS ONE
     robot.rotate_left_motor_until_stalled(-500) # Move arm to ground
     robot.drive_for_distance(300) # Drive up to the statue so the arm is under it
     robot.rotate_left_motor(0, then=Stop.COAST)
     robot.rotate_left_motor(120, speed=1000) # Lift statue up
-    robot.drive_for_distance(-50)
+    robot.drive_for_distance(-100)
 
 
 @mission("T")
