@@ -417,9 +417,9 @@ def mission_function_four(robot:Robot):
     robot.rotate_right_motor(-100)
     robot.smart_turn_in_place(-45)
     robot.drive_for_distance(70) # Move into the boulders
-    #robot.change_drive_settings(turn_rate=100)
+    robot.change_drive_settings(turn_rate=50)
     robot.turn_in_place(-75) # Rotate to flip the platform and push the boulders
-    #robot.change_drive_settings(reset=True)
+    robot.change_drive_settings(reset=True)
     robot.drive_for_distance(-203) # Go back to give space to return
     robot.turn_in_place(-43) # Face the raising platform
     robot.drive_for_distance(160) # Move to raising platform
@@ -446,7 +446,8 @@ def mission_function_five(robot:Robot):
     robot.drive_for_distance(320)
     robot.curve(55, -120) # raise the goods
     robot.drive_for_distance(230)
-    robot.turn_in_place(45)
+    robot.smart_turn_in_place((robot.hub.imu.heading()-182))
+    robot.hub.imu.reset_heading(-90)
     robot.drive_for_distance(210)
     robot.smart_turn_in_place(90)
     robot.change_drive_settings(speed=200)
