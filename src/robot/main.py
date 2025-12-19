@@ -470,8 +470,13 @@ def mission_function_five(robot:Robot):
 
 @mission("T")
 def test_mission_function(robot:Robot):
-    pass
-
+    robot.drive_for_distance(200)
+    robot.rotate_right_motor(360*5, speed=500)
+    robot.rotate_right_motor(100, speed=1000)
+    robot.rotate_right_motor(1000, speed=-500)
+    robot.drive_for_distance(-100)
+    robot.turn_in_place(180)
+    robot.drive_for_distance(200)
 
 def rescale(value, in_min, in_max, out_min, out_max):
     if value < in_min:
