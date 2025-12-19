@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Light FLL Scoring Calculator</title>
+        <style>
+            body {
+                font-family: Consolas, monospace;
+                background: #1d2227;
+                color: #e8e8e8;
+                margin: 0;
+                padding: 15px;
+                line-height: 1.2;
+            }
+
+            a {
+                color: #3391ff;
+            }
+
+            h1, h2, h3 {
+                font-weight: 600;
+                color: #e8e8e8;
+            }         
+
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            th, td{
+                padding: 8px;
+                background: #181a1b;
+                border-bottom: 1px solid #5e6162;
+                width: 10px;
+            }
+            
+            th {
+                background: #212325;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            input[type="number"] {
+                width: 80px;
+                padding: 5px;
+                border: 1px solid #bbb;
+                background-color: #212325;
+                color: #e8e8e8;
+                border-radius: 4px;
+                font-family: Consolas, monospace;
+            }
+            
+            div.container {
+                border: 2px solid;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 20px;
+                background: #181a1b;
+                border-color: #304d72;
+                position: relative;
+            }
+
+            div.container-title {
+                position: absolute;
+                top: -12px;
+                left: 10px;
+                
+                background: #27456a;
+                padding: 3px 10px;
+                font-weight: bold;
+                color: white;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Light FLL Scoring Calculator</h1>
+        <p>An unofficial scoring calculator for FIRST Lego League Unearthed (2025-2026).</p>
+        <p>Built to be small and fast.</p>
+        <p>Official website link: <a title="Official FLL Unearthed Scoring Calculator" href="https://eventhub.firstinspires.org/scoresheet" target="_blank">https://eventhub.firstinspires.org/scoresheet</a></p>
+        <table>
+            <tbody>
+                <tr>
+                    <th>Mission</th>
+                    <th>Part</th>
+                    <th>Description</th>
+                    <th>ENT</th>
+                    <th>Points</th>
+                    <th>Buttons</th>
+                </tr>
+                <tr>
+                    <td>E</td>
+                    <td>Fits</td>
+                    <td>Equipment fits into launch area, under height limit.</td>
+                    <td>N</td>
+                    <td>20</td>
+                    <td><input id="e" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>01</td>
+                    <td>Push</td>
+                    <td>Brush dirt to the side, touching mat.
+                    </td>
+                    <td>Y
+                    </td>
+                    <td>10 each, 2</td>
+                    <td><label><input name="m01soil" type="radio" value="0"> 0 </label><br>
+                        <label><input name="m01soil" type="radio" value="1"> 1 </label><br>
+                        <label><input name="m01soil" type="radio" value="2"> 2 </label></td>
+                </tr>
+                <tr>
+                    <td>01</td>
+                    <td>Brush</td>
+                    <td>Brush not touching mission.</td>
+                    <td>N</td>
+                    <td>10</td>
+                    <td><input id="m01brush" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>02</td>
+                    <td>Map</td>
+                    <td>Completely cleared, past dotted lines.</td>
+                    <td>N</td>
+                    <td>10 each, 3</td>
+                    <td><label><input name="m02map" type="radio" value="0"> 0 </label><br>
+                        <label><input name="m02map" type="radio" value="1"> 1 </label><br>
+                        <label><input name="m02map" type="radio" value="2"> 2 </label><br>
+                        <label><input name="m02map" type="radio" value="3"> 3 </label></td>
+                </tr>
+                <tr>
+                    <td>03</td>
+                    <td>Your minecart</td>
+                    <td>Minecart fully on other side.</td>
+                    <td>N</td>
+                    <td>30</td>
+                    <td><input id="m03yourMinecart" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>03</td>
+                    <td>Other minecart</td>
+                    <td>Bonus. Opposing minecart on your side.</td>
+                    <td>N</td>
+                    <td>10</td>
+                    <td><input id="m03otherMinecart" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>04</td>
+                    <td>Artefact</td>
+                    <td>Not touching mine.</td>
+                    <td>Y</td>
+                    <td>30</td>
+                    <td><input id="m04artefact" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>04</td>
+                    <td>Support</td>
+                    <td>Standing.</td>
+                    <td>Y</td>
+                    <td>10</td>
+                    <td><input id="m04support" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>05</td>
+                    <td>Flip</td>
+                    <td>Platform completely upright.</td>
+                    <td>Y</td>
+                    <td>30</td>
+                    <td><input id="m05flip" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>06</td>
+                    <td>Forge</td>
+                    <td>Boulders not touching.</td>
+                    <td>N</td>
+                    <td>10 each, 3</td>
+                    <td><label><input name="m06forge" type="radio" value="0"> 0 </label><br>
+                        <label><input name="m06forge" type="radio" value="1"> 1 </label><br>
+                        <label><input name="m06forge" type="radio" value="2"> 2 </label><br>
+                        <label><input name="m06forge" type="radio" value="3"> 3 </label></td>
+                </tr>
+                <tr>
+                    <td>07</td>
+                    <td>Heavy</td>
+                    <td>Not touching base.</td>
+                    <td>N</td>
+                    <td>30</td>
+                    <td><input id="m07heavy" type="checkbox"></td>
+                </tr>
+                <tr >
+                    <td>08</td>
+                    <td>Silo</td>
+                    <td>Gear out of silo.</td>
+                    <td>N</td>
+                    <td>10 each, 3</td>
+                    <td><label><input name="m08silo" type="radio" value="0"> 0 </label><br>
+                        <label><input name="m08silo" type="radio" value="1"> 1 </label><br>
+                        <label><input name="m08silo" type="radio" value="2"> 2 </label><br>
+                        <label><input name="m08silo" type="radio" value="3"> 3 </label></td>
+                </tr>
+                <tr>
+                    <td>09</td>
+                    <td>Roof</td>
+                    <td>Completely raised.</td>
+                    <td>Y</td>
+                    <td>20</td>
+                    <td><input id="m09roof" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>09</td>
+                    <td>Market</td>
+                    <td>Raised.</td>
+                    <td>Y</td>
+                    <td>10</td>
+                    <td><input id="m09market" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>10</td>
+                    <td>Bucket</td>
+                    <td>Touching mat.</td>
+                    <td>N</td>
+                    <td>20</td>
+                    <td><input id="m10bucket" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>10</td>
+                    <td>Pan</td>
+                    <td>Completely removed.</td>
+                    <td>N</td>
+                    <td>10</td>
+                    <td><input id="m10pan" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>11</td>
+                    <td>Raised</td>
+                    <td>Pulley item not touching ground.</td>
+                    <td>Y</td>
+                    <td>20</td>
+                    <td><input id="m11raised" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>11</td>
+                    <td>Flag</td>
+                    <td>Blue flag partly down.</td>
+                    <td>Y</td>
+                    <td>10</td>
+                    <td><input id="m11flag" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>12</td>
+                    <td>Sand</td>
+                    <td>Red piece past line.</td>
+                    <td>Y</td>
+                    <td>20</td>
+                    <td><input id="m12sand" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>12</td>
+                    <td>Ship</td>
+                    <td>Up.</td>
+                    <td>Y</td>
+                    <td>10</td>
+                    <td><input id="m12ship" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>13</td>
+                    <td>Statue</td>
+                    <td>Head not touching mat.</td>
+                    <td>Y</td>
+                    <td>30</td>
+                    <td><input id="m13statue" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>14</td>
+                    <td>Forum items</td>
+                    <td>Touching mat in forum.Brush, Liftable Map, Artefact, Opposing Minecart, Boulders, Millstone, Scale Pan</td>
+                    <td>Y</td>
+                    <td>10 each, 7</td>
+                    <td><label><input name="m14forumItems" type="radio" value="0"> 0 </label><br>
+                        <label><input name="m14forumItems" type="radio" value="1"> 1 </label><br>
+                        <label><input name="m14forumItems" type="radio" value="2"> 2 </label><br>
+                        <label><input name="m14forumItems" type="radio" value="3"> 3 </label><br>
+                        <label><input name="m14forumItems" type="radio" value="4"> 4 </label><br>
+                        <label><input name="m14forumItems" type="radio" value="5"> 5 </label><br>
+                        <label><input name="m14forumItems" type="radio" value="6"> 6 </label><br>
+                        <label><input name="m14forumItems" type="radio" value="7"> 7 </label></td>
+                </tr>
+                <tr>
+                    <td>15</td>
+                    <td>Site flags</td>
+                    <td>Touching mat inside.</td>
+                    <td>N</td>
+                    <td>10 each, 3</td>
+                    <td><label><input name="m15siteFlags" type="radio" value="0"> 0 </label><br>
+                        <label><input name="m15siteFlags" type="radio" value="1"> 1 </label><br>
+                        <label><input name="m15siteFlags" type="radio" value="2"> 2 </label><br>
+                        <label><input name="m15siteFlags" type="radio" value="3"> 3 </label></td>
+                </tr>
+                <tr>
+                    <td>PT</td>
+                    <td>Precisions</td>
+                    <td>Start with 6, removed when touching robot outside of launch area.</td>
+                    <td>N</td>
+                    <td>10 each, 6, but 6th is 0 pts</td>
+                    <td><label><input name="pt" type="radio" value="0"> 0 </label><br>
+                        <label><input name="pt" type="radio" value="1"> 1 </label><br>
+                        <label><input name="pt" type="radio" value="2"> 2 </label><br>
+                        <label><input name="pt" type="radio" value="3"> 3 </label><br>
+                        <label><input name="pt" type="radio" value="4"> 4 </label><br>
+                        <label><input name="pt" type="radio" value="5"> 5 </label><br>
+                        <label><input name="pt" type="radio" value="6"> 6 </label></td>
+                </tr>
+                <tr>
+                    <td>GP</td>
+                    <td>Gratifying Potatoes</td>
+                    <td>How nice the team were.</td>
+                    <td>N</td>
+                    <td>No points</td>
+                    <td><label><input name="gp" type="radio" value="0"> Opp (2) </label><br>
+                        <label><input name="gp" type="radio" value="1"> OK (3) </label><br>
+                        <label><input name="gp" type="radio" value="2"> Nice (4) </label><br></td>
+                </tr>
+            </tbody>
+        </table>
+        <p>Score: <span id="score">0</span></p>
+        <script>
+            const scoreElement = document.getElementById("score");
+
+            function clamp(value, minimum, maximum) {
+                return Math.min(Math.max(value, minimum), maximum);
+            }
+            
+            function checked(id) {
+                return document.getElementById(id)?.checked ? 1 : 0;
+            }
+
+            function radioValue(name) {
+                const r = document.querySelector(`input[name="${name}"]:checked`);
+                return r ? Number(r.value) : 0;
+            }
+
+            function calculateScore() {
+                let score = 0;
+
+                score += checked("e") * 20;
+
+                score += radioValue("m01soil") * 10;
+                score += checked("m01brush") * 10;
+
+                score += radioValue("m02map") * 10;
+
+                score += checked("m03yourMinecart") * 30;
+                score += checked("m03otherMinecart") * 10;
+
+                score += checked("m04artefact") * 30;
+                score += checked("m04support") * 10;
+
+                score += checked("m05flip") * 30;
+
+                score += radioValue("m06forge") * 10;
+
+                score += checked("m07heavy") * 30;
+
+                score += radioValue("m08silo") * 10;
+
+                score += checked("m09roof") * 20;
+                score += checked("m09market") * 10;
+
+                score += checked("m10bucket") * 20;
+                score += checked("m10pan") * 10;
+
+                score += checked("m11raised") * 20;
+                score += checked("m11flag") * 10;
+
+                score += checked("m12sand") * 20;
+                score += checked("m12ship") * 10;
+
+                score += checked("m13statue") * 30;
+
+                score += radioValue("m14forumItems") * 10;
+
+                score += radioValue("m15siteFlags") * 10;
+
+                const pt = radioValue("pt");
+                score += clamp(pt, 0, 5) * 10;
+
+                scoreElement.textContent = score;
+            }
+
+            // Recalculate on any input change
+            document.querySelectorAll("input").forEach(input =>
+                input.addEventListener("change", calculateScore)
+            );
+
+            // Initial calculation
+            calculateScore();
+        </script>
+    </body>
+</html>
