@@ -1,5 +1,7 @@
 """PrimeHub entry point for the FLL Unearthed 2025 robot."""
 
+# I know the solution to all your problems is to use more PIDs - Andre
+
 from pybricks.hubs import PrimeHub
 from pybricks.parameters import Axis, Button, Color, Direction, Port, Stop
 from pybricks.pupdevices import Motor
@@ -7,10 +9,8 @@ from pybricks.robotics import DriveBase
 from pybricks.tools import Matrix, StopWatch, hub_menu
 from pybricks.tools import wait as sleep
 
-# bee movie
-
-DRIVEBASE_WHEEL_DIAMETER = 88  # 56 is small, 88 is big
-DRIVEBASE_AXLE_TRACK = 115
+DRIVEBASE_WHEEL_DIAMETER = 62.4  # 56 is small, 88 is big
+DRIVEBASE_AXLE_TRACK = 145
 LOW_VOLTAGE = 7200
 HIGH_VOLTAGE = 8400
 DRIVE_PROFILE = {
@@ -85,68 +85,40 @@ RUNNING_ANIMATION = tuple(
 MISSION_REGISTRY = {}
 
 
-class LQRController:
-    """Small LQR helper reused by the smart drive and turn helpers."""
+class PIDController:
+    """Basic PID helper reused by the smart drive and turn helpers."""
 
     def __init__(
         self,
+        k_p,
+        k_i,
+        k_d,
         delta_time=0.02,
-        q_angle=6.0,
-        q_rate=1.5,
-        r=0.25,
-        output_limit=720,
-        iterations=80,
+        integral_limit=None,
+        output_limit=None,
     ):
+        self.k_p = k_p
+        self.k_i = k_i
+        self.k_d = k_d
         self.delta_time = delta_time
+        self.integral_limit = integral_limit
         self.output_limit = output_limit
-        self.k_angle, self.k_rate = self._solve_heading_gain(
-            delta_time, q_angle, q_rate, r, iterations
-        )
-        self.previous_error = 0.0
-
-    def _solve_heading_gain(self, delta_time, q_angle, q_rate, r, iterations):
-        # Discrete-time Riccati solution for a double-integrator yaw model:
-        # x = [heading error, yaw rate], u = steering command.
-        P00, P01, P11 = q_angle, 0.0, q_rate
-        dt = delta_time
-        for _ in range(iterations):
-            s = r + (dt * dt) * P11
-            inv_s = 1.0 / s
-            k0 = dt * P01 * inv_s
-            k1 = dt * (P01 * dt + P11) * inv_s
-
-            atpa00 = P00
-            atpa01 = P00 * dt + P01
-            atpa11 = dt * dt * P00 + 2 * dt * P01 + P11
-
-            atpb0 = dt * P01
-            atpb1 = dt * dt * P01 + P11 * dt
-            btpa0 = dt * P01
-            btpa1 = dt * (P01 * dt + P11)
-
-            term00 = atpb0 * btpa0 * inv_s
-            term01 = atpb0 * btpa1 * inv_s
-            term11 = atpb1 * btpa1 * inv_s
-
-            P00 = atpa00 - term00 + q_angle
-            P01 = atpa01 - term01
-            P11 = atpa11 - term11 + q_rate
-        return k0, k1
+        self.reset()
 
     def reset(self):
-        self.previous_error = 0.0
+        self.integral = 0
+        self.previous_error = 0
 
     def calculate(self, error):
-        error_rate = (error - self.previous_error) / self.delta_time
-        control = self.k_angle * error + self.k_rate * error_rate
+        self.integral += error * self.delta_time
+        if self.integral_limit is not None:
+            self.integral = max(-self.integral_limit, min(self.integral, self.integral_limit))
+        derivative = (error - self.previous_error) / self.delta_time
+        output = self.k_p * error + self.k_i * self.integral + self.k_d * derivative
         if self.output_limit is not None:
-            limit = self.output_limit
-            if control > limit:
-                control = limit
-            elif control < -limit:
-                control = -limit
+            output = max(-self.output_limit, min(output, self.output_limit))
         self.previous_error = error
-        return control
+        return output
 
 
 class Robot:
@@ -159,9 +131,9 @@ class Robot:
         self.drive_profile = profile
 
         self.left_drive = Motor(Port.D, Direction.COUNTERCLOCKWISE)
-        self.right_drive = Motor(Port.C) #, Direction.COUNTERCLOCKWISE)
+        self.right_drive = Motor(Port.C)
         self.right_big = Motor(Port.E)
-        self.left_big = Motor(Port.B)
+        self.left_big = Motor(Port.F)
 
         self.drive_base = DriveBase(
             self.left_drive,
@@ -175,11 +147,6 @@ class Robot:
         self.hub.system.set_stop_button(Button.BLUETOOTH)
         self.hub.imu.reset_heading(0)
         self.drive_base.use_gyro(use_gyro=use_gyro)
-
-    def zero_heading(self, heading=0):
-        """Reset IMU heading to a known reference."""
-        self.hub.imu.reset_heading(heading)
-        return heading
 
     def rotate_right_motor(self, degrees, speed=300, then=Stop.BRAKE, wait=True):
         self.right_big.run_angle(speed, degrees, then, wait)
@@ -216,28 +183,21 @@ class Robot:
         distance,
         then=Stop.BRAKE,
         speed=300,
+        k_p=2.25,
+        k_i=0.01,
+        k_d=0.2,
         delta_time=0.02,
-        q_angle=6.0,
-        q_rate=1.5,
-        r=0.25,
-        turn_limit=720,
     ):
         if not distance:
             return
-        controller = LQRController(
-            delta_time=delta_time,
-            q_angle=q_angle,
-            q_rate=q_rate,
-            r=r,
-            output_limit=turn_limit,
-        )
+        pid = PIDController(k_p, k_i, k_d, delta_time)
         target_heading = self.hub.imu.heading()
         self.drive_base.reset()
         direction = 1 if distance >= 0 else -1
         while abs(self.drive_base.distance()) < abs(distance):
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
-            correction = controller.calculate(error)
+            correction = pid.calculate(error)
             self.drive_base.drive(direction*speed, -correction)
             sleep(delta_time)
         if then == Stop.BRAKE:
@@ -257,20 +217,13 @@ class Robot:
         self,
         target_angle,
         then=Stop.BRAKE,
+        k_p=3.5,
+        k_i=0.02,
+        k_d=0.3,
         delta_time=0.02,
-        q_angle=6.0,
-        q_rate=1.5,
-        r=0.2,
-        allowed_error=2.0,
-        turn_limit=720,
+        allowed_error=2.0
     ):
-        controller = LQRController(
-            delta_time=delta_time,
-            q_angle=q_angle,
-            q_rate=q_rate,
-            r=r,
-            output_limit=turn_limit,
-        )
+        pid = PIDController(k_p, k_i, k_d, delta_time)
         target_heading = self.wrap_angle(self.hub.imu.heading() + target_angle)
         self.drive_base.stop()
         while True:
@@ -278,7 +231,7 @@ class Robot:
             error = self.wrap_angle(target_heading - current_heading)
             if abs(error) < allowed_error:
                 break
-            correction = controller.calculate(error)
+            correction = pid.calculate(error)
             self.drive_base.drive(0, -correction)
             sleep(delta_time)
         if then == Stop.BRAKE:
@@ -345,12 +298,11 @@ class MissionControl:
 
     def execute_mission(self, selection):
         mission = self.missions.get(selection)
-        self.robot.zero_heading()
         self.robot.hub.display.animate(RUNNING_ANIMATION, 30)
         print("Running #{}...".format(selection))
         self.stopwatch.reset()
         self.robot.drive_for_distance(-10, settle_time=0)
-        self.robot.zero_heading()
+        self.robot.hub.imu.reset_heading(0)
         self.robot.change_drive_settings(reset=True)
         mission(self.robot)
         elapsed = self.stopwatch.time()
@@ -380,7 +332,7 @@ def mission_function_one(robot:Robot):
     robot.change_drive_settings(speed=1000)
     robot.drive_for_distance(740) # Go up to sweep
     robot.change_drive_settings(reset=True)
-    robot.turn_in_place(-90) # Turn to face the sweep
+    robot.turn_in_place(90) # Turn to face the sweep
     robot.drive_for_distance(75) # Go forward a lot to align
     robot.drive_for_distance(-30) # Go back to give space for the arm
     robot.rotate_left_motor_until_stalled(100) # Align the arm to the frame
