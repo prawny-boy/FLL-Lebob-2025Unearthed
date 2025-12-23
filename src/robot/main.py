@@ -1,5 +1,7 @@
 """PrimeHub entry point for the FLL Unearthed 2025 robot."""
 
+# I know the solution to all your problems is to use more PIDs - Andre
+
 from pybricks.hubs import PrimeHub
 from pybricks.parameters import Axis, Button, Color, Direction, Port, Stop
 from pybricks.pupdevices import Motor
@@ -7,9 +9,7 @@ from pybricks.robotics import DriveBase
 from pybricks.tools import Matrix, StopWatch, hub_menu
 from pybricks.tools import wait as sleep
 
-# bee movie
-
-DRIVEBASE_WHEEL_DIAMETER = 62.5  # 56 is small, 88 is big
+DRIVEBASE_WHEEL_DIAMETER = 62.4  # 56 is small, 88 is big
 DRIVEBASE_AXLE_TRACK = 145
 LOW_VOLTAGE = 7200
 HIGH_VOLTAGE = 8400
@@ -131,7 +131,7 @@ class Robot:
         self.drive_profile = profile
 
         self.left_drive = Motor(Port.D, Direction.COUNTERCLOCKWISE)
-        self.right_drive = Motor(Port.C) #, Direction.COUNTERCLOCKWISE)
+        self.right_drive = Motor(Port.C)
         self.right_big = Motor(Port.E)
         self.left_big = Motor(Port.F)
 
@@ -147,11 +147,6 @@ class Robot:
         self.hub.system.set_stop_button(Button.BLUETOOTH)
         self.hub.imu.reset_heading(0)
         self.drive_base.use_gyro(use_gyro=use_gyro)
-
-    def zero_heading(self, heading=0):
-        """Reset IMU heading to a known reference."""
-        self.hub.imu.reset_heading(heading)
-        return heading
 
     def rotate_right_motor(self, degrees, speed=300, then=Stop.BRAKE, wait=True):
         self.right_big.run_angle(speed, degrees, then, wait)
@@ -213,9 +208,9 @@ class Robot:
     def turn_in_place(
         self, degrees, then=Stop.BRAKE, wait=True
     ):
-        adjusted = degrees
+        adjusted = degrees * 1.25
         self.hub.imu.reset_heading(0)
-        self.drive_base.turn(adjusted, then, wait)
+        self.drive_base.turn(-adjusted, then, wait)
         sleep(DEFAULT_SETTLE_DELAY)
 
     def smart_turn_in_place(
@@ -303,12 +298,11 @@ class MissionControl:
 
     def execute_mission(self, selection):
         mission = self.missions.get(selection)
-        self.robot.zero_heading()
         self.robot.hub.display.animate(RUNNING_ANIMATION, 30)
         print("Running #{}...".format(selection))
         self.stopwatch.reset()
         self.robot.drive_for_distance(-10, settle_time=0)
-        self.robot.zero_heading()
+        self.robot.hub.imu.reset_heading(0)
         self.robot.change_drive_settings(reset=True)
         mission(self.robot)
         elapsed = self.stopwatch.time()
@@ -338,7 +332,7 @@ def mission_function_one(robot:Robot):
     robot.change_drive_settings(speed=1000)
     robot.drive_for_distance(740) # Go up to sweep
     robot.change_drive_settings(reset=True)
-    robot.smart_turn_in_place(-90) # Turn to face the sweep
+    robot.turn_in_place(90) # Turn to face the sweep
     robot.drive_for_distance(75) # Go forward a lot to align
     robot.drive_for_distance(-30) # Go back to give space for the arm
     robot.rotate_left_motor_until_stalled(100) # Align the arm to the frame
