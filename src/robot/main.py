@@ -158,9 +158,9 @@ class Robot:
             profile.update(drive_profile)
         self.drive_profile = profile
 
-        self.left_drive = Motor(Port.C)
-        self.right_drive = Motor(Port.D, Direction.COUNTERCLOCKWISE)
-        self.right_big = Motor(Port.A)
+        self.left_drive = Motor(Port.D, Direction.COUNTERCLOCKWISE)
+        self.right_drive = Motor(Port.C) #, Direction.COUNTERCLOCKWISE)
+        self.right_big = Motor(Port.E)
         self.left_big = Motor(Port.B)
 
         self.drive_base = DriveBase(
@@ -175,6 +175,11 @@ class Robot:
         self.hub.system.set_stop_button(Button.BLUETOOTH)
         self.hub.imu.reset_heading(0)
         self.drive_base.use_gyro(use_gyro=use_gyro)
+
+    def zero_heading(self, heading=0):
+        """Reset IMU heading to a known reference."""
+        self.hub.imu.reset_heading(heading)
+        return heading
 
     def rotate_right_motor(self, degrees, speed=300, then=Stop.BRAKE, wait=True):
         self.right_big.run_angle(speed, degrees, then, wait)
@@ -340,11 +345,12 @@ class MissionControl:
 
     def execute_mission(self, selection):
         mission = self.missions.get(selection)
+        self.robot.zero_heading()
         self.robot.hub.display.animate(RUNNING_ANIMATION, 30)
         print("Running #{}...".format(selection))
         self.stopwatch.reset()
         self.robot.drive_for_distance(-10, settle_time=0)
-        self.robot.hub.imu.reset_heading(0)
+        self.robot.zero_heading()
         self.robot.change_drive_settings(reset=True)
         mission(self.robot)
         elapsed = self.stopwatch.time()
