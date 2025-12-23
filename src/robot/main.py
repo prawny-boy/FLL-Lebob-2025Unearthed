@@ -7,8 +7,14 @@ from pybricks.robotics import DriveBase
 from pybricks.tools import Matrix, StopWatch, hub_menu
 from pybricks.tools import wait as sleep
 
-DRIVEBASE_WHEEL_DIAMETER = 88  # 56 is small, 88 is big
+# Geometry for the current wheel/drivebase setup (in millimetres).
+# Set these to the *actual* wheel diameter and axle track; the helpers below no
+# longer apply a hidden scale factor, so accurate values keep both turning and
+# distance consistent.
+DRIVEBASE_WHEEL_DIAMETER = 62.4  # Medium treaded wheel diameter (mm)
 DRIVEBASE_AXLE_TRACK = 145
+# Optional open-loop turn scaling (leave at 1.0 when geometry is correct).
+TURN_CORRECTION = 1.0
 LOW_VOLTAGE = 7200
 HIGH_VOLTAGE = 8400
 DRIVE_PROFILE = {
@@ -206,9 +212,8 @@ class Robot:
     def turn_in_place(
         self, degrees, then=Stop.BRAKE, wait=True
     ):
-        adjusted = degrees * 1.25
         self.hub.imu.reset_heading(0)
-        self.drive_base.turn(-adjusted, then, wait)
+        self.drive_base.turn(-degrees * TURN_CORRECTION, then, wait)
         sleep(DEFAULT_SETTLE_DELAY)
 
     def smart_turn_in_place(
@@ -238,7 +243,7 @@ class Robot:
             self.drive_base.stop()
 
     def curve(self, radius, angle, then=Stop.COAST, wait=True):
-        self.drive_base.curve(radius, -angle*1.25, then, wait)
+        self.drive_base.curve(radius, -angle * TURN_CORRECTION, then, wait)
 
     def change_drive_settings(self, reset=False, speed=None, acceleration=None, turn_rate=None, turn_acceleration=None):
         if reset:
