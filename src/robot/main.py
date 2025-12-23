@@ -9,7 +9,7 @@ from pybricks.tools import wait as sleep
 
 # bee movie
 
-DRIVEBASE_WHEEL_DIAMETER = 88  # 56 is small, 88 is big
+DRIVEBASE_WHEEL_DIAMETER = 62.5  # 56 is small, 88 is big
 DRIVEBASE_AXLE_TRACK = 115
 LOW_VOLTAGE = 7200
 HIGH_VOLTAGE = 8400
@@ -161,7 +161,7 @@ class Robot:
         self.left_drive = Motor(Port.D, Direction.COUNTERCLOCKWISE)
         self.right_drive = Motor(Port.C) #, Direction.COUNTERCLOCKWISE)
         self.right_big = Motor(Port.E)
-        self.left_big = Motor(Port.B)
+        self.left_big = Motor(Port.F)
 
         self.drive_base = DriveBase(
             self.left_drive,
