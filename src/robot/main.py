@@ -207,7 +207,7 @@ class Robot:
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
             correction = pid.calculate(error)
-            self.drive_base.drive(direction * resolved_speed, -correction)
+            self.drive_base.drive(direction * resolved_speed, correction)
             sleep(loop_delay_ms)
         # Hold heading briefly while stopping so we do not finish with a swerve.
         self.drive_base.stop()
@@ -219,7 +219,7 @@ class Robot:
             if abs(error) <= heading_tolerance:
                 break
             correction = pid.calculate(error)
-            self.drive_base.drive(0, -correction)
+            self.drive_base.drive(0, correction)
             sleep(loop_delay_ms)
         if then == Stop.BRAKE:
             self.drive_base.brake()
