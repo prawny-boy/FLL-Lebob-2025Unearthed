@@ -246,9 +246,7 @@ class Robot:
             return
 
         loop_delay_ms = max(1, int(delta_time * 1000))
-        resolved_turn_limit = (
-            turn_limit if turn_limit is not None else 120
-        )
+        resolved_turn_limit = turn_limit if turn_limit is not None else 90
         pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
         target_heading = self.wrap_angle(self.hub.imu.heading() - degrees)
         self.drive_base.stop()
@@ -259,17 +257,7 @@ class Robot:
                 break
             correction = pid.calculate(error)
             if abs(error) < 10:
-                correction *= 0.5  # soften near target to avoid overshoot
-            self.drive_base.drive(0, correction)
-            sleep(loop_delay_ms)
-        # Brief settle loop to pull the heading exactly on target.
-        pid.reset()
-        for _ in range(5):
-            current_heading = self.hub.imu.heading()
-            error = self.wrap_angle(target_heading - current_heading)
-            if abs(error) <= allowed_error / 2:
-                break
-            correction = pid.calculate(error)
+                correction *= 0.4  # soften near target to avoid overshoot
             self.drive_base.drive(0, correction)
             sleep(loop_delay_ms)
         if then == Stop.BRAKE:
