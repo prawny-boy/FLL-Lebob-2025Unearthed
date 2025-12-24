@@ -235,7 +235,7 @@ class Robot:
         k_i=0.02,
         k_d=0.3,
         delta_time=0.02,
-        allowed_error=2.0,
+        allowed_error=1.0,
         turn_limit=None,
         max_iterations=200,
     ):
@@ -256,6 +256,16 @@ class Robot:
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
             if abs(error) < allowed_error:
+                break
+            correction = pid.calculate(error)
+            self.drive_base.drive(0, correction)
+            sleep(loop_delay_ms)
+        # Brief settle loop to pull the heading exactly on target.
+        pid.reset()
+        for _ in range(5):
+            current_heading = self.hub.imu.heading()
+            error = self.wrap_angle(target_heading - current_heading)
+            if abs(error) <= allowed_error / 2:
                 break
             correction = pid.calculate(error)
             self.drive_base.drive(0, correction)
