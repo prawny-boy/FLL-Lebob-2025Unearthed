@@ -237,6 +237,7 @@ class Robot:
         delta_time=0.02,
         allowed_error=2.0,
         turn_limit=None,
+        max_iterations=200,
     ):
         if not smart:
             self.hub.imu.reset_heading(0)
@@ -251,13 +252,13 @@ class Robot:
         pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
         target_heading = self.wrap_angle(self.hub.imu.heading() + degrees)
         self.drive_base.stop()
-        while True:
+        for _ in range(max_iterations):
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
             if abs(error) < allowed_error:
                 break
             correction = pid.calculate(error)
-            self.drive_base.drive(0, -correction)
+            self.drive_base.drive(0, correction)
             sleep(loop_delay_ms)
         if then == Stop.BRAKE:
             self.drive_base.brake()
@@ -520,9 +521,9 @@ def mission_function_seven(robot:Robot):
     for i in range(4):
         robot.drive_for_distance(200, smart=True)
         if i < 3:
-            robot.turn_in_place(90)
-    robot.turn_in_place(90)
-    robot.drive_for_distance(-300)
+            robot.turn_in_place(90, smart=True)
+    robot.turn_in_place(90, smart=True)
+    robot.drive_for_distance(-300, smart=True)
     robot.change_drive_settings(reset=True)
 
 def rescale(value, in_min, in_max, out_min, out_max):
