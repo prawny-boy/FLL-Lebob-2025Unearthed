@@ -538,13 +538,13 @@ def mission_function_six(robot:Robot):
 @mission("7")
 def mission_function_seven(robot:Robot):
     robot.change_drive_settings(speed=500)
-    robot.drive_for_distance(300, smart=True)
-    for i in range(4):
-        robot.drive_for_distance(200, smart=True)
-        if i < 3:
+    side_lengths = (500, 200, 200, 200)
+    for idx, length in enumerate(side_lengths):
+        robot.drive_for_distance(length, smart=True)
+        if idx < len(side_lengths) - 1:
             robot.turn_in_place(90, smart=True)
     robot.turn_in_place(90, smart=True)
-    robot.drive_for_distance(-300, smart=True)
+    robot.drive_for_distance(-500, smart=True)
     robot.change_drive_settings(reset=True)
 
 def rescale(value, in_min, in_max, out_min, out_max):
