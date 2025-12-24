@@ -177,15 +177,7 @@ class Robot:
         then=Stop.BRAKE,
         wait=True,
         settle_time=DEFAULT_SETTLE_DELAY,
-    ):
-        self.drive_base.straight(distance, then, wait)
-        if settle_time:
-            sleep(settle_time)
-
-    def smart_drive_for_distance(
-        self,
-        distance,
-        then=Stop.BRAKE,
+        smart=False,
         speed=300,
         k_p=2.25,
         k_i=0.01,
@@ -195,6 +187,12 @@ class Robot:
     ):
         if not distance:
             return
+        if not smart:
+            self.drive_base.straight(distance, then, wait)
+            if settle_time:
+                sleep(settle_time)
+            return
+
         loop_delay_ms = max(1, int(delta_time * 1000))
         pid = PIDController(k_p, k_i, k_d, delta_time)
         target_heading = self.hub.imu.heading()
@@ -222,6 +220,8 @@ class Robot:
             self.drive_base.brake()
         else:
             self.drive_base.stop()
+        if settle_time:
+            sleep(settle_time)
 
     def turn_in_place(
         self, degrees, then=Stop.BRAKE, wait=True
