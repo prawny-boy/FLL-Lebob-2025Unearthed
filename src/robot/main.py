@@ -191,9 +191,11 @@ class Robot:
         k_i=0.01,
         k_d=0.2,
         delta_time=0.02,
+        heading_tolerance=1.0,
     ):
         if not distance:
             return
+        loop_delay_ms = max(1, int(delta_time * 1000))
         pid = PIDController(k_p, k_i, k_d, delta_time)
         target_heading = self.hub.imu.heading()
         self.drive_base.reset()
@@ -202,8 +204,20 @@ class Robot:
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
             correction = pid.calculate(error)
-            self.drive_base.drive(direction*speed, -correction)
-            sleep(delta_time)
+            self.drive_base.drive(direction * speed, -correction)
+            sleep(loop_delay_ms)
+        # Hold heading briefly while stopping so we do not finish with a swerve.
+        self.drive_base.stop()
+        pid.reset()
+        pid.previous_error = self.wrap_angle(target_heading - self.hub.imu.heading())
+        for _ in range(5):
+            current_heading = self.hub.imu.heading()
+            error = self.wrap_angle(target_heading - current_heading)
+            if abs(error) <= heading_tolerance:
+                break
+            correction = pid.calculate(error)
+            self.drive_base.drive(0, -correction)
+            sleep(loop_delay_ms)
         if then == Stop.BRAKE:
             self.drive_base.brake()
         else:
@@ -226,6 +240,7 @@ class Robot:
         delta_time=0.02,
         allowed_error=2.0
     ):
+        loop_delay_ms = max(1, int(delta_time * 1000))
         pid = PIDController(k_p, k_i, k_d, delta_time)
         target_heading = self.wrap_angle(self.hub.imu.heading() + target_angle)
         self.drive_base.stop()
@@ -236,7 +251,7 @@ class Robot:
                 break
             correction = pid.calculate(error)
             self.drive_base.drive(0, -correction)
-            sleep(delta_time)
+            sleep(loop_delay_ms)
         if then == Stop.BRAKE:
             self.drive_base.brake()
         else:
