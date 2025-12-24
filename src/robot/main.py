@@ -250,7 +250,7 @@ class Robot:
             turn_limit if turn_limit is not None else self.drive_profile.get("turn_rate", 300)
         )
         pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
-        target_heading = self.wrap_angle(self.hub.imu.heading() + degrees)
+        target_heading = self.wrap_angle(self.hub.imu.heading() - degrees)
         self.drive_base.stop()
         for _ in range(max_iterations):
             current_heading = self.hub.imu.heading()
