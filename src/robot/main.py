@@ -12,7 +12,7 @@ from pybricks.tools import wait as sleep
 # longer apply a hidden scale factor, so accurate values keep both turning and
 # distance consistent.
 DRIVEBASE_WHEEL_DIAMETER = 62.4  # Medium treaded wheel diameter (mm)
-DRIVEBASE_AXLE_TRACK = 145
+DRIVEBASE_AXLE_TRACK = 150
 # Optional open-loop turn scaling (leave at 1.0 when geometry is correct).
 TURN_CORRECTION = 1.0
 LOW_VOLTAGE = 7200
@@ -333,22 +333,26 @@ def mission(slot):
 @mission("1")
 def mission_function_one(robot:Robot):
     robot.change_drive_settings(speed=1000)
-    robot.drive_for_distance(740) # Go up to sweep
+    robot.drive_for_distance(700) # Go up to sweep
     robot.change_drive_settings(reset=True)
     robot.turn_in_place(90) # Turn to face the sweep
     robot.drive_for_distance(75) # Go forward a lot to align
+    robot.turn_in_place(10) # Face the sweep
+    robot.turn_in_place(-15) # Adjust alignment
     robot.drive_for_distance(-30) # Go back to give space for the arm
     robot.rotate_left_motor_until_stalled(100) # Align the arm to the frame
-    robot.rotate_left_motor(-39) # Move the arm up to the right height to pick up
-    robot.turn_in_place(35) # Sweep left
+    robot.rotate_left_motor(-80) # Move the arm up to the right height to pick up
+    #robot.turn_in_place(35) # Sweep left3
     robot.change_drive_settings(turn_rate=100)
     robot.turn_in_place(-60) # Sweep right
+    robot.turn_in_place(40) # Sweep left
     robot.change_drive_settings(reset=True)
     robot.turn_in_place(28) # Return to middle
-    robot.drive_for_distance(-95) # Go back
-    robot.turn_in_place(10)
+    robot.drive_for_distance(-50) # Go back
+    robot.turn_in_place(-40)
     sleep(400) # Wait for brush to stop swaying.
-    robot.drive_for_distance(100)
+    robot.rotate_left_motor(10) # Move brush over the map
+    robot.drive_for_distance(50)
     robot.rotate_left_motor(-115, speed=100) # Pick up brush
     # robot.drive_for_distance(-110)
     robot.turn_in_place(30) # Turn to map reveal
