@@ -7,10 +7,7 @@ from pybricks.robotics import DriveBase
 from pybricks.tools import Matrix, StopWatch, hub_menu
 from pybricks.tools import wait as sleep
 
-# Geometry for the current wheel/drivebase setup (in millimetres).
-# Set these to the *actual* wheel diameter and axle track; the helpers below no
-# longer apply a hidden scale factor, so accurate values keep both turning and
-# distance consistent.
+
 DRIVEBASE_WHEEL_DIAMETER = 62.4  # Medium treaded wheel diameter (mm)
 DRIVEBASE_AXLE_TRACK = 150
 # Optional open-loop turn scaling (leave at 1.0 when geometry is correct).
@@ -229,25 +226,30 @@ class Robot:
             sleep(settle_time)
 
     def turn_in_place(
-        self, degrees, then=Stop.BRAKE, wait=True
-    ):
-        self.hub.imu.reset_heading(0)
-        self.drive_base.turn(-degrees * TURN_CORRECTION, then, wait)
-        sleep(DEFAULT_SETTLE_DELAY)
-
-    def smart_turn_in_place(
         self,
-        target_angle,
+        degrees,
         then=Stop.BRAKE,
+        wait=True,
+        smart=False,
         k_p=3.5,
         k_i=0.02,
         k_d=0.3,
         delta_time=0.02,
-        allowed_error=2.0
+        allowed_error=2.0,
+        turn_limit=None,
     ):
+        if not smart:
+            self.hub.imu.reset_heading(0)
+            self.drive_base.turn(-degrees * TURN_CORRECTION, then, wait)
+            sleep(DEFAULT_SETTLE_DELAY)
+            return
+
         loop_delay_ms = max(1, int(delta_time * 1000))
-        pid = PIDController(k_p, k_i, k_d, delta_time)
-        target_heading = self.wrap_angle(self.hub.imu.heading() + target_angle)
+        resolved_turn_limit = (
+            turn_limit if turn_limit is not None else self.drive_profile.get("turn_rate", 300)
+        )
+        pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
+        target_heading = self.wrap_angle(self.hub.imu.heading() + degrees)
         self.drive_base.stop()
         while True:
             current_heading = self.hub.imu.heading()
@@ -261,6 +263,7 @@ class Robot:
             self.drive_base.brake()
         else:
             self.drive_base.stop()
+        sleep(DEFAULT_SETTLE_DELAY)
 
     def curve(self, radius, angle, then=Stop.COAST, wait=True):
         self.drive_base.curve(radius, -angle * TURN_CORRECTION, then, wait)
@@ -411,7 +414,7 @@ def mission_function_two(robot:Robot):
     robot.drive_for_distance(-180)
     robot.rotate_left_motor(80, wait=False)
     robot.rotate_right_motor(-90, wait=False)
-    robot.smart_turn_in_place(90)
+    robot.turn_in_place(90, smart=True)
     robot.drive_for_distance(850)
 
 
@@ -419,11 +422,11 @@ def mission_function_two(robot:Robot):
 def mission_function_three(robot:Robot):
     robot.rotate_right_motor_until_stalled(-100) # Reset arm
     robot.drive_for_distance(210) # Drive forward
-    robot.smart_turn_in_place(90) # Turn to face shipwreck
+    robot.turn_in_place(90, smart=True) # Turn to face shipwreck
     robot.change_drive_settings(speed=500)
     robot.drive_for_distance(600) # Drive to shipwreck
     robot.drive_for_distance(-40) # Move backwards make space
-    robot.smart_turn_in_place(-(robot.hub.imu.heading()-90))
+    robot.turn_in_place(-(robot.hub.imu.heading()-90), smart=True)
     robot.rotate_right_motor_until_stalled(50, duty_limit=75) # Move arm onto ground to pull the lever
     robot.rotate_right_motor(-45)
     robot.drive_for_distance(-200) # Move backwards to pull the lever
@@ -439,15 +442,15 @@ def mission_function_three(robot:Robot):
 def mission_function_four(robot:Robot):
     robot.rotate_left_motor_until_stalled(100) # Reset arm
     robot.drive_for_distance(30) # Move forward to give space for turning
-    robot.smart_turn_in_place(-15) # Turn to face the mission
+    robot.turn_in_place(-15, smart=True) # Turn to face the mission
     robot.drive_for_distance(680) # Drive to mission (flipping the platform)
     robot.change_drive_settings(turn_rate=50)
     robot.turn_in_place(45)
     robot.change_drive_settings(reset=True)
     robot.rotate_right_motor_until_stalled(200)
-    robot.smart_turn_in_place(45)
+    robot.turn_in_place(45, smart=True)
     robot.rotate_right_motor(-100)
-    robot.smart_turn_in_place(-38)
+    robot.turn_in_place(-38, smart=True)
     robot.drive_for_distance(70) # Move into the boulders
     robot.change_drive_settings(turn_rate=50)
     robot.turn_in_place(-75) # Rotate to flip the platform and push the boulders
@@ -473,15 +476,15 @@ def mission_function_four(robot:Robot):
 def mission_function_five(robot:Robot):
     # mission 4, will be combining 4 & 5
     robot.drive_for_distance(30) # Forward to give space
-    robot.smart_turn_in_place(-15)
+    robot.turn_in_place(-15, smart=True)
     robot.hub.imu.reset_heading(-15)
     robot.drive_for_distance(320)
     robot.curve(55, -120) # raise the goods
     robot.drive_for_distance(230)
-    robot.smart_turn_in_place((robot.hub.imu.heading()-182))
+    robot.turn_in_place((robot.hub.imu.heading()-182), smart=True)
     robot.hub.imu.reset_heading(-90)
     robot.drive_for_distance(210)
-    robot.smart_turn_in_place(90)
+    robot.turn_in_place(90, smart=True)
     robot.change_drive_settings(speed=200)
     robot.drive_for_distance(100)
     robot.drive_for_distance(-100)
@@ -489,7 +492,7 @@ def mission_function_five(robot:Robot):
     robot.turn_in_place(-90)
     robot.drive_for_distance(60) # Drive up to the statue
     robot.change_drive_settings(reset=True)
-    robot.smart_turn_in_place(45) # Face statue MANY INCONSISTENCIES WITH THIS ONE
+    robot.turn_in_place(45, smart=True) # Face statue MANY INCONSISTENCIES WITH THIS ONE
     robot.rotate_left_motor_until_stalled(-500) # Move arm to ground
     robot.drive_for_distance(300) # Drive up to the statue so the arm is under it
     robot.rotate_left_motor(0, then=Stop.COAST)
