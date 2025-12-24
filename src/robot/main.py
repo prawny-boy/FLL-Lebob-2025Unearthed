@@ -505,6 +505,15 @@ def mission_function_six(robot:Robot):
     robot.turn_in_place(180)
     robot.drive_for_distance(200)
 
+@mission("7")
+def mission_function_seven(robot:Robot):
+    robot.change_drive_settings(speed=500)
+    for i in range(4):
+        robot.drive_for_distance(200, smart=True)
+        if i < 3:
+            robot.smart_turn_in_place(90)
+    robot.change_drive_settings(reset=True)
+
 def rescale(value, in_min, in_max, out_min, out_max):
     if value < in_min:
         value = in_min
