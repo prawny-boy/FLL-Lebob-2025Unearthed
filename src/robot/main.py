@@ -235,7 +235,7 @@ class Robot:
         k_i=0.0,
         k_d=0.2,
         delta_time=0.02,
-        allowed_error=0.2,
+        allowed_error=0.15,
         turn_limit=None,
         max_iterations=200,
     ):
@@ -246,7 +246,7 @@ class Robot:
             return
 
         loop_delay_ms = max(1, int(delta_time * 1000))
-        resolved_turn_limit = turn_limit if turn_limit is not None else 40
+        resolved_turn_limit = turn_limit if turn_limit is not None else 35
         pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
         target_heading = self.wrap_angle(self.hub.imu.heading() - degrees)
         self.drive_base.stop()
@@ -262,12 +262,24 @@ class Robot:
             correction = pid.calculate(error)
             # Soften turn rate as we approach the target to reduce overshoot.
             if abs(error) < 10:
-                effective_limit = resolved_turn_limit * 0.5
+                effective_limit = resolved_turn_limit * 0.4
             else:
                 effective_limit = resolved_turn_limit
             correction = max(-effective_limit, min(correction, effective_limit))
             self.drive_base.drive(0, correction)
             prev_error = error
+            sleep(loop_delay_ms)
+        # Tiny settle to pull into the tighter window without creeping.
+        pid.reset()
+        hold_limit = min(resolved_turn_limit, 20)
+        for _ in range(2):
+            current_heading = self.hub.imu.heading()
+            error = self.wrap_angle(target_heading - current_heading)
+            if abs(error) <= allowed_error / 2:
+                break
+            correction = pid.calculate(error)
+            correction = max(-hold_limit, min(correction, hold_limit))
+            self.drive_base.drive(0, correction)
             sleep(loop_delay_ms)
         if then == Stop.BRAKE:
             self.drive_base.brake()
