@@ -231,9 +231,9 @@ class Robot:
         then=Stop.BRAKE,
         wait=True,
         smart=False,
-        k_p=2.0,
+        k_p=1.8,
         k_i=0.0,
-        k_d=0.25,
+        k_d=0.22,
         delta_time=0.02,
         allowed_error=0.3,
         turn_limit=None,
@@ -246,7 +246,7 @@ class Robot:
             return
 
         loop_delay_ms = max(1, int(delta_time * 1000))
-        resolved_turn_limit = turn_limit if turn_limit is not None else 80
+        resolved_turn_limit = turn_limit if turn_limit is not None else 60
         pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
         target_heading = self.wrap_angle(self.hub.imu.heading() - degrees)
         self.drive_base.stop()
@@ -258,9 +258,9 @@ class Robot:
             correction = pid.calculate(error)
             # Soften turn rate as we approach the target to reduce overshoot.
             if abs(error) < 10:
-                effective_limit = resolved_turn_limit * 0.3
+                effective_limit = resolved_turn_limit * 0.25
             elif abs(error) < 20:
-                effective_limit = resolved_turn_limit * 0.6
+                effective_limit = resolved_turn_limit * 0.5
             else:
                 effective_limit = resolved_turn_limit
             correction = max(-effective_limit, min(correction, effective_limit))
@@ -270,7 +270,7 @@ class Robot:
         hold_limit = min(resolved_turn_limit, 40)
         pid.reset()
         pid.output_limit = hold_limit
-        for _ in range(5):
+        for _ in range(3):
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
             if abs(error) <= allowed_error:
