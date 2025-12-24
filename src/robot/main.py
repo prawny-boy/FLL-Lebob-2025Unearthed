@@ -178,12 +178,13 @@ class Robot:
         wait=True,
         settle_time=DEFAULT_SETTLE_DELAY,
         smart=False,
-        speed=300,
-        k_p=2.25,
+        speed=None,
+        k_p=1.6,
         k_i=0.01,
         k_d=0.2,
         delta_time=0.02,
         heading_tolerance=1.0,
+        turn_limit=None,
     ):
         if not distance:
             return
@@ -194,7 +195,11 @@ class Robot:
             return
 
         loop_delay_ms = max(1, int(delta_time * 1000))
-        pid = PIDController(k_p, k_i, k_d, delta_time)
+        resolved_speed = speed if speed is not None else self.drive_profile["straight_speed"]
+        resolved_turn_limit = (
+            turn_limit if turn_limit is not None else self.drive_profile.get("turn_rate", 300)
+        )
+        pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
         target_heading = self.hub.imu.heading()
         self.drive_base.reset()
         direction = 1 if distance >= 0 else -1
@@ -202,7 +207,7 @@ class Robot:
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
             correction = pid.calculate(error)
-            self.drive_base.drive(direction * speed, -correction)
+            self.drive_base.drive(direction * resolved_speed, -correction)
             sleep(loop_delay_ms)
         # Hold heading briefly while stopping so we do not finish with a swerve.
         self.drive_base.stop()
@@ -508,13 +513,7 @@ def mission_function_six(robot:Robot):
 @mission("7")
 def mission_function_seven(robot:Robot):
     robot.change_drive_settings(speed=500)
-    robot.drive_for_distance(100, smart=True)
-    for i in range(4):
-        robot.drive_for_distance(200, smart=True)
-        if i < 3:
-            robot.turn_in_place(90)
-    robot.drive_for_distance(-100, smart=True)
-    robot.change_drive_settings(reset=True)
+    robot.drive_for_distance(1000, smart=True)
 
 def rescale(value, in_min, in_max, out_min, out_max):
     if value < in_min:
