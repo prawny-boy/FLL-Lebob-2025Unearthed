@@ -182,6 +182,11 @@ class Robot:
         delta_time=0.02,
         heading_tolerance=1.0,
         turn_limit=None,
+        distance_k_p=1.2,
+        distance_k_i=0.0,
+        distance_k_d=0.05,
+        distance_tolerance=5,
+        minimum_speed=60,
     ):
         if not distance:
             return
@@ -196,27 +201,42 @@ class Robot:
         resolved_turn_limit = (
             turn_limit if turn_limit is not None else self.drive_profile.get("turn_rate", 300)
         )
-        pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
+        heading_pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
+        distance_pid = PIDController(
+            distance_k_p,
+            distance_k_i,
+            distance_k_d,
+            delta_time,
+            output_limit=abs(resolved_speed),
+        )
         target_heading = self.hub.imu.heading()
         self.drive_base.reset()
-        direction = 1 if distance >= 0 else -1
-        while abs(self.drive_base.distance()) < abs(distance):
+        # Use a distance PID to taper speed as we approach the target to avoid overshoot.
+        while True:
+            traveled = self.drive_base.distance()
+            distance_error = distance - traveled
+            if abs(distance_error) <= distance_tolerance:
+                break
             current_heading = self.hub.imu.heading()
-            error = self.wrap_angle(target_heading - current_heading)
-            correction = pid.calculate(error)
-            self.drive_base.drive(direction * resolved_speed, correction)
+            heading_error = self.wrap_angle(target_heading - current_heading)
+            turn_correction = heading_pid.calculate(heading_error)
+            linear_speed = distance_pid.calculate(distance_error)
+            if abs(linear_speed) < minimum_speed:
+                linear_speed = minimum_speed if distance_error > 0 else -minimum_speed
+            linear_speed = max(-abs(resolved_speed), min(linear_speed, abs(resolved_speed)))
+            self.drive_base.drive(linear_speed, turn_correction)
             sleep(loop_delay_ms)
         # Hold heading briefly while stopping so we do not finish with a swerve.
         self.drive_base.stop()
-        pid.reset()
-        pid.previous_error = self.wrap_angle(target_heading - self.hub.imu.heading())
+        heading_pid.reset()
+        heading_pid.previous_error = self.wrap_angle(target_heading - self.hub.imu.heading())
         for _ in range(5):
             current_heading = self.hub.imu.heading()
-            error = self.wrap_angle(target_heading - current_heading)
-            if abs(error) <= heading_tolerance:
+            heading_error = self.wrap_angle(target_heading - current_heading)
+            if abs(heading_error) <= heading_tolerance:
                 break
-            correction = pid.calculate(error)
-            self.drive_base.drive(0, correction)
+            turn_correction = heading_pid.calculate(heading_error)
+            self.drive_base.drive(0, turn_correction)
             sleep(loop_delay_ms)
         if then == Stop.BRAKE:
             self.drive_base.brake()
@@ -526,7 +546,7 @@ def mission_function_five(robot:Robot):
 
 @mission("T")
 def test_mission_function(robot:Robot):
-    pass
+    robot.drive_for_distance(620)
 
 @mission("6")
 def mission_function_six(robot:Robot):
