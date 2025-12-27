@@ -388,7 +388,7 @@ def mission_function_one(robot:Robot):
     robot.turn_in_place(-15) # Adjust alignment
     robot.drive_for_distance(-30) # Go back to give space for the arm
     robot.rotate_left_motor_until_stalled(100) # Align the arm to the frame
-    robot.rotate_left_motor(-80) # Move the arm up to the right height to pick up
+    #robot.rotate_left_motor(-80) # Move the arm up to the right height to pick up
     #robot.turn_in_place(35) # Sweep left3
     robot.change_drive_settings(turn_rate=100)
     robot.turn_in_place(-60) # Sweep right
@@ -539,15 +539,8 @@ def mission_function_six(robot:Robot):
 
 @mission("7")
 def mission_function_seven(robot:Robot):
-    robot.change_drive_settings(speed=500)
-    side_lengths = (500, 200, 200, 200)
-    for idx, length in enumerate(side_lengths):
-        robot.drive_for_distance(length, smart=True)
-        if idx < len(side_lengths) - 1:
-            robot.turn_in_place(90, smart=True)
-    robot.turn_in_place(90, smart=True)
-    robot.drive_for_distance(-400, smart=True)
-    robot.change_drive_settings(reset=True)
+    robot.rotate_right_motor(-1000, speed=1000)
+    robot.rotate_right_motor(1000, speed=1000)
 
 def rescale(value, in_min, in_max, out_min, out_max):
     if value < in_min:
