@@ -186,7 +186,8 @@ class Robot:
         distance_k_i=0.0,
         distance_k_d=0.05,
         distance_tolerance=5,
-        minimum_speed=60,
+        minimum_speed=40,
+        slow_down_distance=150,
     ):
         if not distance:
             return
@@ -211,6 +212,7 @@ class Robot:
         )
         target_heading = self.hub.imu.heading()
         self.drive_base.reset()
+        direction = 1 if distance >= 0 else -1
         # Use a distance PID to taper speed as we approach the target to avoid overshoot.
         while True:
             traveled = self.drive_base.distance()
@@ -220,10 +222,13 @@ class Robot:
             current_heading = self.hub.imu.heading()
             heading_error = self.wrap_angle(target_heading - current_heading)
             turn_correction = heading_pid.calculate(heading_error)
-            linear_speed = distance_pid.calculate(distance_error)
-            if abs(linear_speed) < minimum_speed:
-                linear_speed = minimum_speed if distance_error > 0 else -minimum_speed
-            linear_speed = max(-abs(resolved_speed), min(linear_speed, abs(resolved_speed)))
+            if abs(distance_error) > slow_down_distance:
+                linear_speed = direction * abs(resolved_speed)
+            else:
+                linear_speed = distance_pid.calculate(distance_error)
+                if abs(linear_speed) < minimum_speed:
+                    linear_speed = direction * minimum_speed
+                linear_speed = max(-abs(resolved_speed), min(linear_speed, abs(resolved_speed)))
             self.drive_base.drive(linear_speed, turn_correction)
             sleep(loop_delay_ms)
         # Hold heading briefly while stopping so we do not finish with a swerve.
@@ -546,7 +551,7 @@ def mission_function_five(robot:Robot):
 
 @mission("T")
 def test_mission_function(robot:Robot):
-    robot.drive_for_distance(620)
+    robot.drive_for_distance(700, smart=True)
 
 @mission("6")
 def mission_function_six(robot:Robot):
