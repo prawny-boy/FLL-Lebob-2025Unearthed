@@ -6,7 +6,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "pybricksdev",
-            "args": ["run", "ble", "${file}"],
+            "args": ["run", "ble", "--name", "FatSean", "${file}"]
         }
     ]
 }
