@@ -553,6 +553,6 @@ def rescale(value, in_min, in_max, out_min, out_max):
 
 def main():
     MissionControl(Robot(use_gyro=False)).run()
-
+# I know the solution to all your problems. Add more PID.
 
 main()
