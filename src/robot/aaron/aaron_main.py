@@ -458,9 +458,3 @@ def spike():
     run_4(r)
     run_5(r)
     run_6(r)
-
-def ev3():
-    r = Robot()
-    r.drive_for_distance(1000)
-
-ev3()
