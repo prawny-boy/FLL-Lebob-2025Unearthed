@@ -450,10 +450,17 @@ def run_6(r:Robot):
     r.smart_turn_in_place(-75)
     r.drive_for_distance(-240)
 
-r = Robot()
-run_1(r)
-run_2(r)
-run_3(r)
-run_4(r)
-run_5(r)
-run_6(r)
+def spike():
+    r = Robot()
+    run_1(r)
+    run_2(r)
+    run_3(r)
+    run_4(r)
+    run_5(r)
+    run_6(r)
+
+def ev3():
+    r = Robot()
+    r.drive_for_distance(1000)
+
+ev3()
