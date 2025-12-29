@@ -7,14 +7,15 @@ from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
+class Robot:
+    def __init__(self):
+        # Initialize the motors.
+        left_motor = Motor(Port.B)
+        right_motor = Motor(Port.C)
 
-# This program requires LEGO EV3 MicroPython v2.0 or higher.
-# Click "Open user guide" on the EV3 extension tab for more information.
+        line_sensor = ColorSensor(Port.S3)
 
+        robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5 , axle_track=104)
 
-# Create your objects here.
-ev3 = EV3Brick()
-
-
-# Write your program here.
-ev3.speaker.beep()
+    def drive(self, speed=100, turn_rate=0):
+        self.robot.drive(speed, turn_rate)
