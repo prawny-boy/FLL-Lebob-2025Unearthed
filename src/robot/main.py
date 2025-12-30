@@ -212,8 +212,8 @@ class Robot:
         )
         target_heading = self.hub.imu.heading()
         self.drive_base.reset()
-        direction = 1 if distance >= 0 else -1
-        # Use a distance PID to taper speed as we approach the target to avoid overshoot.
+        direction = 1 if distance >= 0 else -1 # Goon Checkpoint
+
         while True:
             traveled = self.drive_base.distance()
             distance_error = distance - traveled
@@ -271,7 +271,9 @@ class Robot:
             return
 
         loop_delay_ms = max(1, int(delta_time * 1000))
-        resolved_turn_limit = turn_limit if turn_limit is not None else 60
+        base_turn_limit = turn_limit if turn_limit is not None else self.drive_profile.get("turn_rate", 300)
+        # Default to a brisk turn rate; larger requests get a higher floor.
+        resolved_turn_limit = max(base_turn_limit, 500 if abs(degrees) >= 45 else 360)
         pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
         target_heading = self.wrap_angle(self.hub.imu.heading() - degrees)
         self.drive_base.stop()
@@ -285,11 +287,14 @@ class Robot:
             if error * prev_error < 0 and abs(error) < 2 * allowed_error:
                 break
             correction = pid.calculate(error)
-            # Soften turn rate as we approach the target to reduce overshoot.
-            if abs(error) < 5:
-                effective_limit = resolved_turn_limit * 0.3
-            elif abs(error) < 10:
-                effective_limit = resolved_turn_limit * 0.6
+            # Stay fast for most of the move; ramp down only near the target to keep accuracy.
+            error_mag = abs(error)
+            if error_mag < 1.2:
+                effective_limit = max(resolved_turn_limit * 0.08, 12)
+            elif error_mag < 5:
+                effective_limit = max(resolved_turn_limit * 0.2, 80)
+            elif error_mag < 12:
+                effective_limit = max(resolved_turn_limit * 0.45, 140)
             else:
                 effective_limit = resolved_turn_limit
             correction = max(-effective_limit, min(correction, effective_limit))
@@ -299,7 +304,7 @@ class Robot:
         # Tiny settle to pull into the tighter window without creeping.
         pid.reset()
         hold_limit = min(resolved_turn_limit, 20)
-        for _ in range(2):
+        for _ in range(3):
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
             if abs(error) <= allowed_error / 2:
@@ -551,7 +556,11 @@ def mission_function_five(robot:Robot):
 
 @mission("T")
 def test_mission_function(robot:Robot):
-    robot.drive_for_distance(700, smart=True)
+    robot.drive_for_distance(300, smart=True)
+    for _ in range(3):
+        robot.drive_for_distance(300, smart=True)
+        robot.turn_in_place(90, smart=True)
+    robot.drive_for_distance(-300, smart=True)
 
 @mission("6")
 def mission_function_six(robot:Robot):
