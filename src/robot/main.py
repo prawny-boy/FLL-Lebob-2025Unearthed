@@ -22,6 +22,8 @@ DRIVE_PROFILE = {
 }
 DEFAULT_SETTLE_DELAY = 250
 ROBOT_MAX_TORQUE = 700
+ATTACHMENT_JOG_SPEED = 400
+ATTACHMENT_POLL_DELAY_MS = 50
 RUNNING_ANIMATION = tuple(
     Matrix(frame)
     for frame in (
@@ -591,6 +593,35 @@ def mission_function_six(robot:Robot):
 def mission_function_seven(robot:Robot):
     robot.rotate_right_motor(-1000, speed=1000)
     robot.rotate_right_motor(1000, speed=1000)
+
+
+@mission("M")
+def mission_function_manual_attachment(robot:Robot):
+    def wait_for_button_release():
+        while robot.hub.buttons.pressed():
+            sleep(ATTACHMENT_POLL_DELAY_MS)
+
+    def manual_motor_control(motor: Motor):
+        wait_for_button_release()
+        while True:
+            pressed = set(robot.hub.buttons.pressed())
+            if Button.LEFT in pressed and Button.RIGHT not in pressed:
+                motor.run(-ATTACHMENT_JOG_SPEED)
+            elif Button.RIGHT in pressed and Button.LEFT not in pressed:
+                motor.run(ATTACHMENT_JOG_SPEED)
+            else:
+                motor.stop()
+            if Button.CENTER in pressed:
+                motor.stop(Stop.HOLD)
+                wait_for_button_release()
+                break
+            sleep(ATTACHMENT_POLL_DELAY_MS)
+
+    selection = hub_menu("L", "R")
+    if selection == "L":
+        manual_motor_control(robot.left_big)
+    elif selection == "R":
+        manual_motor_control(robot.right_big)
 
 def rescale(value, in_min, in_max, out_min, out_max):
     if value < in_min:
