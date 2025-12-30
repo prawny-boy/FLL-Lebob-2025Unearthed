@@ -274,43 +274,59 @@ class Robot:
         base_turn_limit = turn_limit if turn_limit is not None else self.drive_profile.get("turn_rate", 300)
         # Default to a brisk turn rate; larger requests get a higher floor.
         resolved_turn_limit = max(base_turn_limit, 500 if abs(degrees) >= 45 else 360)
+        minimum_turn_rate = max(resolved_turn_limit * 0.06, 10)
+        fine_tune_turn_rate = max(resolved_turn_limit * 0.03, 6)
         pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
         target_heading = self.wrap_angle(self.hub.imu.heading() - degrees)
         self.drive_base.stop()
         prev_error = self.wrap_angle(target_heading - self.hub.imu.heading())
+        consecutive_hits = 0
         for _ in range(max_iterations):
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
             if abs(error) < allowed_error:
-                break
+                consecutive_hits += 1
+                if consecutive_hits >= 2:
+                    break
+            else:
+                consecutive_hits = 0
             # If we overshoot and are within a tight band, stop immediately.
             if error * prev_error < 0 and abs(error) < 2 * allowed_error:
                 break
             correction = pid.calculate(error)
             # Stay fast for most of the move; ramp down only near the target to keep accuracy.
             error_mag = abs(error)
-            if error_mag < 1.2:
-                effective_limit = max(resolved_turn_limit * 0.08, 12)
+            if error_mag < 1.0:
+                effective_limit = max(resolved_turn_limit * 0.12, 28)
+                min_rate = fine_tune_turn_rate
             elif error_mag < 5:
-                effective_limit = max(resolved_turn_limit * 0.2, 80)
+                effective_limit = max(resolved_turn_limit * 0.28, 110)
+                min_rate = minimum_turn_rate
             elif error_mag < 12:
-                effective_limit = max(resolved_turn_limit * 0.45, 140)
+                effective_limit = max(resolved_turn_limit * 0.5, 200)
+                min_rate = minimum_turn_rate
             else:
                 effective_limit = resolved_turn_limit
+                min_rate = minimum_turn_rate
             correction = max(-effective_limit, min(correction, effective_limit))
+            if error_mag < 12 and abs(correction) < min_rate:
+                correction = min_rate if error > 0 else -min_rate
             self.drive_base.drive(0, correction)
             prev_error = error
             sleep(loop_delay_ms)
         # Tiny settle to pull into the tighter window without creeping.
         pid.reset()
-        hold_limit = min(resolved_turn_limit, 20)
-        for _ in range(3):
+        hold_limit = min(resolved_turn_limit, 24)
+        settle_min_rate = max(hold_limit * 0.35, 6)
+        for _ in range(2):
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
             if abs(error) <= allowed_error / 2:
                 break
             correction = pid.calculate(error)
             correction = max(-hold_limit, min(correction, hold_limit))
+            if abs(correction) < settle_min_rate and abs(error) > allowed_error / 3:
+                correction = settle_min_rate if error > 0 else -settle_min_rate
             self.drive_base.drive(0, correction)
             sleep(loop_delay_ms)
         if then == Stop.BRAKE:
