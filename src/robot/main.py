@@ -7,8 +7,11 @@ from pybricks.robotics import DriveBase
 from pybricks.tools import Matrix, StopWatch, hub_menu
 from pybricks.tools import wait as sleep
 
-DRIVEBASE_WHEEL_DIAMETER = 88  # 56 is small, 88 is big
-DRIVEBASE_AXLE_TRACK = 115
+
+DRIVEBASE_WHEEL_DIAMETER = 62.4  # Medium treaded wheel diameter (mm)
+DRIVEBASE_AXLE_TRACK = 150
+# Optional open-loop turn scaling (leave at 1.0 when geometry is correct).
+TURN_CORRECTION = 1.0
 LOW_VOLTAGE = 7200
 HIGH_VOLTAGE = 8400
 DRIVE_PROFILE = {
@@ -19,12 +22,14 @@ DRIVE_PROFILE = {
 }
 DEFAULT_SETTLE_DELAY = 250
 ROBOT_MAX_TORQUE = 700
+ATTACHMENT_JOG_SPEED = 400
+ATTACHMENT_POLL_DELAY_MS = 50
 RUNNING_ANIMATION = tuple(
     Matrix(frame)
     for frame in (
         [
             [0, 0, 100, 100, 100],
-            [100, 0, 0, 0, 100],
+            [100, 100, 0, 0, 100],
             [100, 0, 0, 0, 100],
             [100, 0, 0, 0, 100],
             [100, 100, 100, 0, 0],
@@ -128,10 +133,10 @@ class Robot:
             profile.update(drive_profile)
         self.drive_profile = profile
 
-        self.left_drive = Motor(Port.C)
-        self.right_drive = Motor(Port.D, Direction.COUNTERCLOCKWISE)
-        self.right_big = Motor(Port.A)
-        self.left_big = Motor(Port.B)
+        self.left_drive = Motor(Port.D, Direction.COUNTERCLOCKWISE)
+        self.right_drive = Motor(Port.C)
+        self.right_big = Motor(Port.E)
+        self.left_big = Motor(Port.F)
 
         self.drive_base = DriveBase(
             self.left_drive,
@@ -171,74 +176,169 @@ class Robot:
         then=Stop.BRAKE,
         wait=True,
         settle_time=DEFAULT_SETTLE_DELAY,
-    ):
-        self.drive_base.straight(distance, then, wait)
-        if settle_time:
-            sleep(settle_time)
-
-    def smart_drive_for_distance(
-        self,
-        distance,
-        then=Stop.BRAKE,
-        speed=300,
-        k_p=2.25,
+        smart=False,
+        speed=None,
+        k_p=1.6,
         k_i=0.01,
         k_d=0.2,
         delta_time=0.02,
+        heading_tolerance=1.0,
+        turn_limit=None,
+        distance_k_p=1.2,
+        distance_k_i=0.0,
+        distance_k_d=0.05,
+        distance_tolerance=5,
+        minimum_speed=40,
+        slow_down_distance=150,
     ):
         if not distance:
             return
-        pid = PIDController(k_p, k_i, k_d, delta_time)
+        if not smart:
+            self.drive_base.straight(distance, then, wait)
+            if settle_time:
+                sleep(settle_time)
+            return
+
+        loop_delay_ms = max(1, int(delta_time * 1000))
+        resolved_speed = speed if speed is not None else self.drive_profile["straight_speed"]
+        resolved_turn_limit = (
+            turn_limit if turn_limit is not None else self.drive_profile.get("turn_rate", 300)
+        )
+        heading_pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
+        distance_pid = PIDController(
+            distance_k_p,
+            distance_k_i,
+            distance_k_d,
+            delta_time,
+            output_limit=abs(resolved_speed),
+        )
         target_heading = self.hub.imu.heading()
         self.drive_base.reset()
-        direction = 1 if distance >= 0 else -1
-        while abs(self.drive_base.distance()) < abs(distance):
+        direction = 1 if distance >= 0 else -1 # Goon Checkpoint
+
+        while True:
+            traveled = self.drive_base.distance()
+            distance_error = distance - traveled
+            if abs(distance_error) <= distance_tolerance:
+                break
             current_heading = self.hub.imu.heading()
-            error = self.wrap_angle(target_heading - current_heading)
-            correction = pid.calculate(error)
-            self.drive_base.drive(direction*speed, -correction)
-            sleep(delta_time)
+            heading_error = self.wrap_angle(target_heading - current_heading)
+            turn_correction = heading_pid.calculate(heading_error)
+            if abs(distance_error) > slow_down_distance:
+                linear_speed = direction * abs(resolved_speed)
+            else:
+                linear_speed = distance_pid.calculate(distance_error)
+                if abs(linear_speed) < minimum_speed:
+                    linear_speed = direction * minimum_speed
+                linear_speed = max(-abs(resolved_speed), min(linear_speed, abs(resolved_speed)))
+            self.drive_base.drive(linear_speed, turn_correction)
+            sleep(loop_delay_ms)
+        # Hold heading briefly while stopping so we do not finish with a swerve.
+        self.drive_base.stop()
+        heading_pid.reset()
+        heading_pid.previous_error = self.wrap_angle(target_heading - self.hub.imu.heading())
+        for _ in range(5):
+            current_heading = self.hub.imu.heading()
+            heading_error = self.wrap_angle(target_heading - current_heading)
+            if abs(heading_error) <= heading_tolerance:
+                break
+            turn_correction = heading_pid.calculate(heading_error)
+            self.drive_base.drive(0, turn_correction)
+            sleep(loop_delay_ms)
         if then == Stop.BRAKE:
             self.drive_base.brake()
         else:
             self.drive_base.stop()
+        if settle_time:
+            sleep(settle_time)
 
     def turn_in_place(
-        self, degrees, then=Stop.BRAKE, wait=True
-    ):
-        adjusted = degrees * 1.25
-        self.hub.imu.reset_heading(0)
-        self.drive_base.turn(-adjusted, then, wait)
-        sleep(DEFAULT_SETTLE_DELAY)
-
-    def smart_turn_in_place(
         self,
-        target_angle,
+        degrees,
         then=Stop.BRAKE,
-        k_p=3.5,
-        k_i=0.02,
-        k_d=0.3,
+        wait=True,
+        smart=False,
+        k_p=1.6,
+        k_i=0.0,
+        k_d=0.2,
         delta_time=0.02,
-        allowed_error=2.0
+        allowed_error=0.15,
+        turn_limit=None,
+        max_iterations=200,
     ):
-        pid = PIDController(k_p, k_i, k_d, delta_time)
-        target_heading = self.wrap_angle(self.hub.imu.heading() + target_angle)
+        if not smart:
+            self.hub.imu.reset_heading(0)
+            self.drive_base.turn(-degrees * TURN_CORRECTION, then, wait)
+            sleep(DEFAULT_SETTLE_DELAY)
+            return
+
+        loop_delay_ms = max(1, int(delta_time * 1000))
+        base_turn_limit = turn_limit if turn_limit is not None else self.drive_profile.get("turn_rate", 300)
+        # Default to a brisk turn rate; larger requests get a higher floor.
+        resolved_turn_limit = max(base_turn_limit, 500 if abs(degrees) >= 45 else 360)
+        minimum_turn_rate = max(resolved_turn_limit * 0.06, 10)
+        fine_tune_turn_rate = max(resolved_turn_limit * 0.03, 6)
+        pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
+        target_heading = self.wrap_angle(self.hub.imu.heading() - degrees)
         self.drive_base.stop()
-        while True:
+        prev_error = self.wrap_angle(target_heading - self.hub.imu.heading())
+        consecutive_hits = 0
+        for _ in range(max_iterations):
             current_heading = self.hub.imu.heading()
             error = self.wrap_angle(target_heading - current_heading)
             if abs(error) < allowed_error:
+                consecutive_hits += 1
+                if consecutive_hits >= 2:
+                    break
+            else:
+                consecutive_hits = 0
+            # If we overshoot and are within a tight band, stop immediately.
+            if error * prev_error < 0 and abs(error) < 2 * allowed_error:
                 break
             correction = pid.calculate(error)
-            self.drive_base.drive(0, -correction)
-            sleep(delta_time)
+            # Stay fast for most of the move; ramp down only near the target to keep accuracy.
+            error_mag = abs(error)
+            if error_mag < 1.0:
+                effective_limit = max(resolved_turn_limit * 0.12, 28)
+                min_rate = fine_tune_turn_rate
+            elif error_mag < 5:
+                effective_limit = max(resolved_turn_limit * 0.28, 110)
+                min_rate = minimum_turn_rate
+            elif error_mag < 12:
+                effective_limit = max(resolved_turn_limit * 0.5, 200)
+                min_rate = minimum_turn_rate
+            else:
+                effective_limit = resolved_turn_limit
+                min_rate = minimum_turn_rate
+            correction = max(-effective_limit, min(correction, effective_limit))
+            if error_mag < 12 and abs(correction) < min_rate:
+                correction = min_rate if error > 0 else -min_rate
+            self.drive_base.drive(0, correction)
+            prev_error = error
+            sleep(loop_delay_ms)
+        # Tiny settle to pull into the tighter window without creeping.
+        pid.reset()
+        hold_limit = min(resolved_turn_limit, 24)
+        settle_min_rate = max(hold_limit * 0.35, 6)
+        for _ in range(2):
+            current_heading = self.hub.imu.heading()
+            error = self.wrap_angle(target_heading - current_heading)
+            if abs(error) <= allowed_error / 2:
+                break
+            correction = pid.calculate(error)
+            correction = max(-hold_limit, min(correction, hold_limit))
+            if abs(correction) < settle_min_rate and abs(error) > allowed_error / 3:
+                correction = settle_min_rate if error > 0 else -settle_min_rate
+            self.drive_base.drive(0, correction)
+            sleep(loop_delay_ms)
         if then == Stop.BRAKE:
             self.drive_base.brake()
         else:
             self.drive_base.stop()
+        sleep(DEFAULT_SETTLE_DELAY)
 
     def curve(self, radius, angle, then=Stop.COAST, wait=True):
-        self.drive_base.curve(radius, -angle*1.25, then, wait)
+        self.drive_base.curve(radius, -angle * TURN_CORRECTION, then, wait)
 
     def change_drive_settings(self, reset=False, speed=None, acceleration=None, turn_rate=None, turn_acceleration=None):
         if reset:
@@ -328,22 +428,26 @@ def mission(slot):
 @mission("1")
 def mission_function_one(robot:Robot):
     robot.change_drive_settings(speed=1000)
-    robot.drive_for_distance(740) # Go up to sweep
+    robot.drive_for_distance(700) # Go up to sweep
     robot.change_drive_settings(reset=True)
-    robot.turn_in_place(-90) # Turn to face the sweep
+    robot.turn_in_place(90) # Turn to face the sweep
     robot.drive_for_distance(75) # Go forward a lot to align
+    robot.turn_in_place(10) # Face the sweep
+    robot.turn_in_place(-15) # Adjust alignment
     robot.drive_for_distance(-30) # Go back to give space for the arm
     robot.rotate_left_motor_until_stalled(100) # Align the arm to the frame
-    robot.rotate_left_motor(-39) # Move the arm up to the right height to pick up
-    robot.turn_in_place(35) # Sweep left
+    #robot.rotate_left_motor(-80) # Move the arm up to the right height to pick up
+    #robot.turn_in_place(35) # Sweep left3
     robot.change_drive_settings(turn_rate=100)
     robot.turn_in_place(-60) # Sweep right
+    robot.turn_in_place(40) # Sweep left
     robot.change_drive_settings(reset=True)
     robot.turn_in_place(28) # Return to middle
-    robot.drive_for_distance(-95) # Go back
-    robot.turn_in_place(10)
+    robot.drive_for_distance(-50) # Go back
+    robot.turn_in_place(-40)
     sleep(400) # Wait for brush to stop swaying.
-    robot.drive_for_distance(100)
+    robot.rotate_left_motor(10) # Move brush over the map
+    robot.drive_for_distance(50)
     robot.rotate_left_motor(-115, speed=100) # Pick up brush
     # robot.drive_for_distance(-110)
     robot.turn_in_place(30) # Turn to map reveal
@@ -382,7 +486,7 @@ def mission_function_two(robot:Robot):
     robot.drive_for_distance(-180)
     robot.rotate_left_motor(80, wait=False)
     robot.rotate_right_motor(-90, wait=False)
-    robot.smart_turn_in_place(90)
+    robot.turn_in_place(90, smart=True)
     robot.drive_for_distance(850)
 
 
@@ -390,11 +494,11 @@ def mission_function_two(robot:Robot):
 def mission_function_three(robot:Robot):
     robot.rotate_right_motor_until_stalled(-100) # Reset arm
     robot.drive_for_distance(210) # Drive forward
-    robot.smart_turn_in_place(90) # Turn to face shipwreck
+    robot.turn_in_place(90, smart=True) # Turn to face shipwreck
     robot.change_drive_settings(speed=500)
     robot.drive_for_distance(600) # Drive to shipwreck
     robot.drive_for_distance(-40) # Move backwards make space
-    robot.smart_turn_in_place(-(robot.hub.imu.heading()-90))
+    robot.turn_in_place(-(robot.hub.imu.heading()-90), smart=True)
     robot.rotate_right_motor_until_stalled(50, duty_limit=75) # Move arm onto ground to pull the lever
     robot.rotate_right_motor(-45)
     robot.drive_for_distance(-200) # Move backwards to pull the lever
@@ -410,15 +514,15 @@ def mission_function_three(robot:Robot):
 def mission_function_four(robot:Robot):
     robot.rotate_left_motor_until_stalled(100) # Reset arm
     robot.drive_for_distance(30) # Move forward to give space for turning
-    robot.smart_turn_in_place(-15) # Turn to face the mission
+    robot.turn_in_place(-15, smart=True) # Turn to face the mission
     robot.drive_for_distance(680) # Drive to mission (flipping the platform)
     robot.change_drive_settings(turn_rate=50)
     robot.turn_in_place(45)
     robot.change_drive_settings(reset=True)
     robot.rotate_right_motor_until_stalled(200)
-    robot.smart_turn_in_place(45)
+    robot.turn_in_place(45, smart=True)
     robot.rotate_right_motor(-100)
-    robot.smart_turn_in_place(-38)
+    robot.turn_in_place(-38, smart=True)
     robot.drive_for_distance(70) # Move into the boulders
     robot.change_drive_settings(turn_rate=50)
     robot.turn_in_place(-75) # Rotate to flip the platform and push the boulders
@@ -444,15 +548,15 @@ def mission_function_four(robot:Robot):
 def mission_function_five(robot:Robot):
     # mission 4, will be combining 4 & 5
     robot.drive_for_distance(30) # Forward to give space
-    robot.smart_turn_in_place(-15)
+    robot.turn_in_place(-15, smart=True)
     robot.hub.imu.reset_heading(-15)
     robot.drive_for_distance(320)
     robot.curve(55, -120) # raise the goods
     robot.drive_for_distance(230)
-    robot.smart_turn_in_place((robot.hub.imu.heading()-182))
+    robot.turn_in_place((robot.hub.imu.heading()-182), smart=True)
     robot.hub.imu.reset_heading(-90)
     robot.drive_for_distance(210)
-    robot.smart_turn_in_place(90)
+    robot.turn_in_place(90, smart=True)
     robot.change_drive_settings(speed=200)
     robot.drive_for_distance(100)
     robot.drive_for_distance(-100)
@@ -460,7 +564,7 @@ def mission_function_five(robot:Robot):
     robot.turn_in_place(-90)
     robot.drive_for_distance(60) # Drive up to the statue
     robot.change_drive_settings(reset=True)
-    robot.smart_turn_in_place(45) # Face statue MANY INCONSISTENCIES WITH THIS ONE
+    robot.turn_in_place(45, smart=True) # Face statue MANY INCONSISTENCIES WITH THIS ONE
     robot.rotate_left_motor_until_stalled(-500) # Move arm to ground
     robot.drive_for_distance(300) # Drive up to the statue so the arm is under it
     robot.rotate_left_motor(0, then=Stop.COAST)
@@ -470,7 +574,11 @@ def mission_function_five(robot:Robot):
 
 @mission("T")
 def test_mission_function(robot:Robot):
-    pass
+    robot.drive_for_distance(300, smart=True)
+    for _ in range(3):
+        robot.drive_for_distance(300, smart=True)
+        robot.turn_in_place(90, smart=True)
+    robot.drive_for_distance(-300, smart=True)
 
 @mission("6")
 def mission_function_six(robot:Robot):
@@ -480,6 +588,40 @@ def mission_function_six(robot:Robot):
     robot.drive_for_distance(-100)
     robot.turn_in_place(180)
     robot.drive_for_distance(200)
+
+@mission("7")
+def mission_function_seven(robot:Robot):
+    robot.rotate_right_motor(-1000, speed=1000)
+    robot.rotate_right_motor(1000, speed=1000)
+
+
+@mission("M")
+def mission_function_manual_attachment(robot:Robot):
+    def wait_for_button_release():
+        while robot.hub.buttons.pressed():
+            sleep(ATTACHMENT_POLL_DELAY_MS)
+
+    def manual_motor_control(motor: Motor):
+        wait_for_button_release()
+        while True:
+            pressed = set(robot.hub.buttons.pressed())
+            if Button.LEFT in pressed and Button.RIGHT not in pressed:
+                motor.run(-ATTACHMENT_JOG_SPEED)
+            elif Button.RIGHT in pressed and Button.LEFT not in pressed:
+                motor.run(ATTACHMENT_JOG_SPEED)
+            else:
+                motor.stop()
+            if Button.CENTER in pressed:
+                motor.stop(Stop.HOLD)
+                wait_for_button_release()
+                break
+            sleep(ATTACHMENT_POLL_DELAY_MS)
+
+    selection = hub_menu("L", "R")
+    if selection == "L":
+        manual_motor_control(robot.left_big)
+    elif selection == "R":
+        manual_motor_control(robot.right_big)
 
 def rescale(value, in_min, in_max, out_min, out_max):
     if value < in_min:
@@ -492,6 +634,6 @@ def rescale(value, in_min, in_max, out_min, out_max):
 
 def main():
     MissionControl(Robot(use_gyro=False)).run()
-
+# I know the solution to all your problems. Add more PID.
 
 main()
