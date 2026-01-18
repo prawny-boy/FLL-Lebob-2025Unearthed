@@ -132,21 +132,25 @@ class HubBridge:
 
 
 def _read_evdev_loop(device, state, stop_event, debug=False):
-    for event in device.read_loop():
-        if stop_event.is_set():
-            break
+    try:
+        for event in device.read_loop():
+            if stop_event.is_set():
+                break
 
-        if event.type == ecodes.EV_ABS:
-            if debug:
-                print(f"EV_ABS code={event.code} value={event.value}")
-            state.handle_abs_event(event.code, event.value)
+            if event.type == ecodes.EV_ABS:
+                if debug:
+                    print(f"EV_ABS code={event.code} value={event.value}")
+                state.handle_abs_event(event.code, event.value)
 
-        elif event.type == ecodes.EV_KEY:
-            # FIX: treat 1 (press) and 2 (hold) as pressed
-            pressed = event.value != 0
-            if debug and event.code in (BTN_LB, BTN_RB):
-                print(f"EV_KEY code={event.code} value={event.value}")
-            state.handle_key_event(event.code, pressed)
+            elif event.type == ecodes.EV_KEY:
+                # FIX: treat 1 (press) and 2 (hold) as pressed
+                pressed = event.value != 0
+                if debug and event.code in (BTN_LB, BTN_RB):
+                    print(f"EV_KEY code={event.code} value={event.value}")
+                state.handle_key_event(event.code, pressed)
+    except (OSError, ValueError):
+        # Device closed or unavailable; exit the reader loop.
+        return
 
 
 async def _send_loop(state, bridge, deadband, stop_event, debug=False):
@@ -205,6 +209,11 @@ async def main_async():
 
     def _request_stop(*_args):
         stop_event.set()
+        for d in devices:
+            try:
+                d.close()
+            except OSError:
+                pass
 
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
@@ -262,7 +271,15 @@ async def main_async():
         await hub.write_line("quit")
     finally:
         for d in grabbed:
-            d.ungrab()
+            try:
+                d.ungrab()
+            except OSError:
+                pass
+        for d in devices:
+            try:
+                d.close()
+            except OSError:
+                pass
 
 
 def main():
