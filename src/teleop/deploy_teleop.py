@@ -220,6 +220,9 @@ class HubBridge:
     async def send(self, ld, rd, la, ra):
         await self.hub.write_line(f"{ld:.3f},{rd:.3f},{la:.3f},{ra:.3f}")
 
+    async def send_mode(self, mode):
+        await self.hub.write_line(f"mode:{mode}")
+
 
 def _read_evdev_loop(device, state, stop_event, debug=False, control_queue=None, loop=None):
     try:
@@ -376,6 +379,7 @@ async def _replay_samples(samples, bridge, pause_event, debug=False):
     try:
         if not samples:
             return
+        await bridge.send_mode("replay")
         if debug:
             print("Replaying last recording...")
         last_t = None
@@ -390,6 +394,7 @@ async def _replay_samples(samples, bridge, pause_event, debug=False):
             last_t = t
         await bridge.send(0.0, 0.0, 0.0, 0.0)
     finally:
+        await bridge.send_mode("run")
         pause_event.clear()
 
 
@@ -598,11 +603,13 @@ async def main_async():
                             (time.monotonic() - record_state.start, 0.0, 0.0, 0.0, 0.0)
                         )
                         record_state.start = None
+                        await bridge.send_mode("run")
                         await _save_recording()
                     else:
                         record_state.samples = []
                         record_state.start = time.monotonic()
                         record_state.active = True
+                        await bridge.send_mode("record")
                         print("Recording started. Press B to stop.")
                 elif action == "play_last":
                     if record_state.active:
