@@ -636,4 +636,5 @@ def main():
     MissionControl(Robot(use_gyro=False)).run()
 # I know the solution to all your problems. Add more PID.
 
-main()
+if __name__ == "__main__":
+    main()
