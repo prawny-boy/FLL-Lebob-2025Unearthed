@@ -26,6 +26,8 @@ CODE_RT = ecodes.ABS_RZ
 
 BTN_LB = ecodes.BTN_TL
 BTN_RB = ecodes.BTN_TR
+BTN_A = ecodes.BTN_SOUTH
+BTN_B = ecodes.BTN_EAST
 
 
 def _clamp(x, lo=-1.0, hi=1.0):
@@ -131,7 +133,7 @@ class HubBridge:
         await self.hub.write_line(f"{ld:.3f},{rd:.3f},{la:.3f},{ra:.3f}")
 
 
-def _read_evdev_loop(device, state, stop_event, debug=False):
+def _read_evdev_loop(device, state, stop_event, debug=False, control_queue=None, loop=None):
     try:
         for event in device.read_loop():
             if stop_event.is_set():
@@ -145,19 +147,144 @@ def _read_evdev_loop(device, state, stop_event, debug=False):
             elif event.type == ecodes.EV_KEY:
                 # FIX: treat 1 (press) and 2 (hold) as pressed
                 pressed = event.value != 0
-                if debug and event.code in (BTN_LB, BTN_RB):
+                if debug and event.code in (BTN_LB, BTN_RB, BTN_A, BTN_B):
                     print(f"EV_KEY code={event.code} value={event.value}")
                 state.handle_key_event(event.code, pressed)
+                if control_queue is not None and loop is not None and event.value == 1:
+                    if event.code == BTN_B:
+                        loop.call_soon_threadsafe(control_queue.put_nowait, "toggle_record")
+                    elif event.code == BTN_A:
+                        loop.call_soon_threadsafe(control_queue.put_nowait, "play_last")
     except (OSError, ValueError):
         # Device closed or unavailable; exit the reader loop.
         return
 
 
-async def _send_loop(state, bridge, deadband, stop_event, debug=False):
+def _default_record_base(repo_root, timestamp):
+    return repo_root / "out" / f"teleop-recording-{timestamp}"
+
+
+def _timestamped_record_base(repo_root, record_out):
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    if not record_out:
+        return _default_record_base(repo_root, timestamp)
+    path = Path(record_out)
+    if not path.is_absolute():
+        path = repo_root / path
+    return path.with_name(f"{path.name}-{timestamp}")
+
+
+def _write_recording_csv(path, samples):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        handle.write("t,ld,rd,la,ra\n")
+        for t, ld, rd, la, ra in samples:
+            handle.write(f"{t:.3f},{ld:.3f},{rd:.3f},{la:.3f},{ra:.3f}\n")
+
+
+def _write_recording_py(path, samples):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        '"""Auto-generated teleop recording. Deploy this to replay the run."""',
+        "",
+        "from pybricks.hubs import PrimeHub",
+        "from pybricks.parameters import Axis, Button, Direction, Port",
+        "from pybricks.pupdevices import Motor",
+        "from pybricks.tools import wait",
+        "",
+        "# PORT MAPPING (confirmed)",
+        "DRIVE_LEFT_PORT = Port.D",
+        "DRIVE_RIGHT_PORT = Port.C",
+        "AUX_LEFT_PORT = Port.F",
+        "AUX_RIGHT_PORT = Port.E",
+        "",
+        "def _dc(motor, value):",
+        "    motor.dc(int(value * 100))",
+        "",
+        "def main():",
+        "    hub = PrimeHub(top_side=Axis.Z, front_side=-Axis.X)",
+        "    hub.system.set_stop_button(Button.BLUETOOTH)",
+        "",
+        "    left_drive = Motor(DRIVE_LEFT_PORT, Direction.COUNTERCLOCKWISE)",
+        "    right_drive = Motor(DRIVE_RIGHT_PORT)",
+        "    left_aux = Motor(AUX_LEFT_PORT)",
+        "    right_aux = Motor(AUX_RIGHT_PORT)",
+        "",
+        "    sequence = [",
+    ]
+
+    last_t = None
+    for t, ld, rd, la, ra in samples:
+        if last_t is None:
+            dt_ms = 0
+        else:
+            dt_ms = int(round((t - last_t) * 1000))
+            if dt_ms < 0:
+                dt_ms = 0
+        lines.append(f"        ({dt_ms}, {ld:.3f}, {rd:.3f}, {la:.3f}, {ra:.3f}),")
+        last_t = t
+
+    lines += [
+        "    ]",
+        "",
+        "    for dt_ms, ld, rd, la, ra in sequence:",
+        "        _dc(left_drive, ld)",
+        "        _dc(right_drive, rd)",
+        "        _dc(left_aux, la)",
+        "        _dc(right_aux, ra)",
+        "        wait(dt_ms)",
+        "",
+        "    _dc(left_drive, 0.0)",
+        "    _dc(right_drive, 0.0)",
+        "    _dc(left_aux, 0.0)",
+        "    _dc(right_aux, 0.0)",
+        "",
+        "if __name__ == '__main__':",
+        "    main()",
+        "",
+    ]
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+class RecordState:
+    def __init__(self):
+        self.active = False
+        self.samples = []
+        self.start = None
+        self.last_recording_base = None
+
+
+async def _play_last_recording(hub, teleop_file, record_path, bridge, pause_event, debug=False):
+    pause_event.set()
+    try:
+        if bridge is not None:
+            try:
+                await asyncio.wait_for(bridge.send(0.0, 0.0, 0.0, 0.0), timeout=1.0)
+            except Exception:
+                pass
+        try:
+            await asyncio.wait_for(hub.write_line("quit"), timeout=1.0)
+        except Exception:
+            pass
+        if debug:
+            print(f"Replaying {record_path}...")
+        await hub.run(str(record_path), wait=True, print_output=debug)
+        if debug:
+            print("Re-deploying teleop_hub.py...")
+        await hub.run(str(teleop_file), wait=False, print_output=debug)
+    finally:
+        pause_event.clear()
+
+
+async def _send_loop(state, bridge, deadband, stop_event, pause_event, debug=False, record_state=None):
     last_send = 0.0
     last = None
 
     while not stop_event.is_set():
+        if pause_event.is_set():
+            await asyncio.sleep(POLL_INTERVAL)
+            continue
+
         now = time.monotonic()
         if now - last_send >= POLL_INTERVAL:
             ld = state.left_drive
@@ -171,6 +298,12 @@ async def _send_loop(state, bridge, deadband, stop_event, debug=False):
                 rd = 0.0
 
             await bridge.send(ld, rd, la, ra)
+            if (
+                record_state is not None
+                and record_state.active
+                and record_state.start is not None
+            ):
+                record_state.samples.append((now - record_state.start, ld, rd, la, ra))
             last_send = now
 
             if debug:
@@ -190,6 +323,15 @@ async def main_async():
     parser.add_argument("--ble-timeout", type=float, default=DEFAULT_BLE_TIMEOUT)
     parser.add_argument("--no-grab", action="store_true", help="Do not grab exclusive access")
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument(
+        "--no-record",
+        action="store_true",
+        help="Disable recording and hub replay generation",
+    )
+    parser.add_argument(
+        "--record-out",
+        help="Base path (no extension) for recordings, default: out/teleop-recording-<timestamp>",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
@@ -206,6 +348,8 @@ async def main_async():
         state.update_absinfo(d)
 
     stop_event = asyncio.Event()
+    pause_event = asyncio.Event()
+    control_queue = asyncio.Queue()
 
     def _request_stop(*_args):
         stop_event.set()
@@ -221,6 +365,10 @@ async def main_async():
             loop.add_signal_handler(sig, _request_stop)
         except NotImplementedError:
             pass
+        try:
+            signal.signal(sig, _request_stop)
+        except (ValueError, OSError):
+            pass
 
     grabbed = []
     if not args.no_grab:
@@ -230,6 +378,11 @@ async def main_async():
                 grabbed.append(d)
             except OSError:
                 pass
+
+    record_enabled = not args.no_record
+    record_state = RecordState()
+    hub = None
+    bridge = None
 
     try:
         if args.debug:
@@ -252,24 +405,123 @@ async def main_async():
 
         readers = [
             asyncio.create_task(
-                asyncio.to_thread(_read_evdev_loop, d, state, stop_event, args.debug)
+                asyncio.to_thread(
+                    _read_evdev_loop,
+                    d,
+                    state,
+                    stop_event,
+                    args.debug,
+                    control_queue,
+                    loop,
+                )
             )
             for d in devices
         ]
         sender = asyncio.create_task(
-            _send_loop(state, bridge, args.deadband, stop_event, debug=args.debug)
+            _send_loop(
+                state,
+                bridge,
+                args.deadband,
+                stop_event,
+                pause_event,
+                debug=args.debug,
+                record_state=record_state if record_enabled else None,
+            )
         )
+        async def _save_recording():
+            if not record_state.samples:
+                print("Recording stopped (no samples captured).")
+                return
+            record_base = _timestamped_record_base(repo_root, args.record_out)
+            _write_recording_csv(record_base.with_suffix(".csv"), record_state.samples)
+            _write_recording_py(record_base.with_suffix(".py"), record_state.samples)
+            record_state.last_recording_base = record_base
+            print(f"Saved recording to {record_base.with_suffix('.csv')}")
+            print(f"Saved hub replay to {record_base.with_suffix('.py')}")
+
+        async def _control_loop():
+            while not stop_event.is_set():
+                try:
+                    action = await asyncio.wait_for(control_queue.get(), timeout=0.1)
+                except asyncio.TimeoutError:
+                    continue
+                if action == "toggle_record":
+                    if not record_enabled:
+                        print("Recording disabled; ignoring B toggle.")
+                        continue
+                    if record_state.active:
+                        record_state.active = False
+                        record_state.samples.append(
+                            (time.monotonic() - record_state.start, 0.0, 0.0, 0.0, 0.0)
+                        )
+                        record_state.start = None
+                        await _save_recording()
+                    else:
+                        record_state.samples = []
+                        record_state.start = time.monotonic()
+                        record_state.active = True
+                        print("Recording started. Press B to stop.")
+                elif action == "play_last":
+                    if record_state.active:
+                        print("Stop recording before replaying.")
+                        continue
+                    if record_state.last_recording_base is None:
+                        print("No recordings saved yet.")
+                        continue
+                    await _play_last_recording(
+                        hub,
+                        teleop_file,
+                        record_state.last_recording_base.with_suffix(".py"),
+                        bridge,
+                        pause_event,
+                        debug=args.debug,
+                    )
+
+        controller = asyncio.create_task(_control_loop())
 
         await stop_event.wait()
 
         for r in readers:
             r.cancel()
         sender.cancel()
+        controller.cancel()
 
-        await asyncio.gather(*readers, sender, return_exceptions=True)
-        await bridge.send(0.0, 0.0, 0.0, 0.0)
-        await hub.write_line("quit")
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(*readers, sender, controller, return_exceptions=True),
+                timeout=2.0,
+            )
+        except asyncio.TimeoutError:
+            pass
+        if bridge is not None:
+            try:
+                await asyncio.wait_for(bridge.send(0.0, 0.0, 0.0, 0.0), timeout=1.0)
+            except Exception:
+                pass
+        if hub is not None:
+            try:
+                await asyncio.wait_for(hub.write_line("quit"), timeout=1.0)
+            except Exception:
+                pass
     finally:
+        if record_enabled and record_state.active:
+            record_state.active = False
+            record_state.samples.append(
+                (time.monotonic() - record_state.start, 0.0, 0.0, 0.0, 0.0)
+            )
+            record_state.start = None
+            if record_state.samples:
+                record_base = _timestamped_record_base(repo_root, args.record_out)
+                _write_recording_csv(record_base.with_suffix(".csv"), record_state.samples)
+                _write_recording_py(record_base.with_suffix(".py"), record_state.samples)
+                record_state.last_recording_base = record_base
+                print(f"Saved recording to {record_base.with_suffix('.csv')}")
+                print(f"Saved hub replay to {record_base.with_suffix('.py')}")
+        if hub is not None:
+            try:
+                await asyncio.wait_for(hub.disconnect(), timeout=2.0)
+            except Exception:
+                pass
         for d in grabbed:
             try:
                 d.ungrab()
