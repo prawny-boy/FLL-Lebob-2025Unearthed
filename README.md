@@ -40,7 +40,7 @@ Both systems are designed for the LEGO SPIKE Prime hub running PyBricks firmware
    - Robot backs up slightly and resets gyro before each run
 
 3. **Mission slots**:
-   - `1-7` - Competition missions (check AGENTS.md for attachment requirements)
+   - `1-7` - Competition missions (see mission code in src/robot/main.py for attachment requirements)
    - `T` - Test mission (drive square pattern)
    - `M` - Manual attachment mode (left/right buttons jog motors)
 
@@ -165,7 +165,7 @@ pybricksdev run ble --name "FatSean" out/teleop-recording-TIMESTAMP.py
 
 ### Hardware Configuration
 
-- **Drive base**: 2 motors, 62.4mm diameter wheels, 150mm axle track
+- **Drive base**: 2 motors (left: Port D, right: Port C), 62.4mm diameter wheels, 150mm axle track
 - **Left aux motor**: Port F (attachment arm)
 - **Right aux motor**: Port E (attachment arm)
 - **Gyro/IMU**: Built-in hub IMU for heading control
