@@ -162,7 +162,7 @@ def main():
             if mode == "record":
                 hub.display.animate((RECORD_ON, RECORD_OFF), 300)
             elif mode == "replay":
-                hub.display.animate((REPLAY_ICON,), 1000)
+                hub.display.icon(REPLAY_ICON)
             else:
                 hub.display.animate(RUNNING_ANIMATION, 30)
             continue

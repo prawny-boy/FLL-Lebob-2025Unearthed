@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Deploy the teleop hub program and stream Xbox controller input (tank + aux)."""
 
-import argparse
+from argparse import ArgumentParser
 import asyncio
 import signal
 import sys
@@ -165,11 +165,11 @@ class InputState:
         self._raw[code] = value
 
         if code == INPUTS_CODE_LY:
-            self.left_drive = -_normalize_stick(value, INPUTS_ABSINFO.get(code))
+            self.left_drive = _normalize_stick(value, INPUTS_ABSINFO.get(code))
             return
 
         if code == INPUTS_CODE_RY:
-            self.right_drive = -_normalize_stick(value, INPUTS_ABSINFO.get(code))
+            self.right_drive = _normalize_stick(value, INPUTS_ABSINFO.get(code))
             return
 
         if code == INPUTS_CODE_LT:
@@ -433,7 +433,7 @@ async def _send_loop(state, bridge, deadband, stop_event, pause_event, debug=Fal
 
 
 async def main_async():
-    parser = argparse.ArgumentParser(description="Deploy teleop and stream Xbox input")
+    parser = ArgumentParser(description="Deploy teleop and stream Xbox input")
     parser.add_argument("--hub", default=DEFAULT_HUB_NAME, help="Hub name or BLE address")
     parser.add_argument("--device", help="Input device path, e.g. /dev/input/event18")
     parser.add_argument("--deadband", type=float, default=DEFAULT_DEADBAND)
