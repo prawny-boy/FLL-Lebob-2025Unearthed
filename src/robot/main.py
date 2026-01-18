@@ -176,7 +176,7 @@ class Robot:
         then=Stop.BRAKE,
         wait=True,
         settle_time=DEFAULT_SETTLE_DELAY,
-        smart=False,
+        smart=True,
         speed=None,
         k_p=1.6,
         k_i=0.01,
@@ -257,7 +257,7 @@ class Robot:
         degrees,
         then=Stop.BRAKE,
         wait=True,
-        smart=False,
+        smart=True,
         k_p=1.6,
         k_i=0.0,
         k_d=0.2,
@@ -275,11 +275,11 @@ class Robot:
         loop_delay_ms = max(1, int(delta_time * 1000))
         base_turn_limit = turn_limit if turn_limit is not None else self.drive_profile.get("turn_rate", 300)
         # Default to a brisk turn rate; larger requests get a higher floor.
-        resolved_turn_limit = max(base_turn_limit, 500 if abs(degrees) >= 45 else 360)
+        resolved_turn_limit = max(base_turn_limit, 500 if abs(-degrees) >= 45 else 360)
         minimum_turn_rate = max(resolved_turn_limit * 0.06, 10)
         fine_tune_turn_rate = max(resolved_turn_limit * 0.03, 6)
         pid = PIDController(k_p, k_i, k_d, delta_time, output_limit=resolved_turn_limit)
-        target_heading = self.wrap_angle(self.hub.imu.heading() - degrees)
+        target_heading = self.wrap_angle(self.hub.imu.heading() + degrees)
         self.drive_base.stop()
         prev_error = self.wrap_angle(target_heading - self.hub.imu.heading())
         consecutive_hits = 0
@@ -428,41 +428,18 @@ def mission(slot):
 @mission("1")
 def mission_function_one(robot:Robot):
     robot.change_drive_settings(speed=1000)
-    robot.drive_for_distance(700) # Go up to sweep
+    robot.drive_for_distance(535)
     robot.change_drive_settings(reset=True)
-    robot.turn_in_place(90) # Turn to face the sweep
-    robot.drive_for_distance(75) # Go forward a lot to align
-    robot.turn_in_place(10) # Face the sweep
-    robot.turn_in_place(-15) # Adjust alignment
-    robot.drive_for_distance(-30) # Go back to give space for the arm
-    robot.rotate_left_motor_until_stalled(100) # Align the arm to the frame
-    #robot.rotate_left_motor(-80) # Move the arm up to the right height to pick up
-    #robot.turn_in_place(35) # Sweep left3
-    robot.change_drive_settings(turn_rate=100)
-    robot.turn_in_place(-60) # Sweep right
-    robot.turn_in_place(40) # Sweep left
-    robot.change_drive_settings(reset=True)
-    robot.turn_in_place(28) # Return to middle
-    robot.drive_for_distance(-50) # Go back
-    robot.turn_in_place(-40)
-    sleep(400) # Wait for brush to stop swaying.
-    robot.rotate_left_motor(10) # Move brush over the map
-    robot.drive_for_distance(50)
-    robot.rotate_left_motor(-115, speed=100) # Pick up brush
-    # robot.drive_for_distance(-110)
-    robot.turn_in_place(30) # Turn to map reveal
-    robot.drive_for_distance(-30)
-    robot.rotate_right_motor_until_stalled(100, then=Stop.HOLD)
-    robot.change_drive_settings(speed=100)
-    robot.drive_for_distance(75) # Push map
-    robot.change_drive_settings(reset=True)
-    robot.rotate_right_motor(-110)
-    robot.drive_for_distance(100)
-    robot.change_drive_settings(speed=1000, turn_rate=1000)
+    robot.rotate_left_motor(-145)
+    robot.drive_for_distance(-50)
+    robot.rotate_left_motor(145)
+    robot.drive_for_distance(200)
+    robot.turn_in_place(-45)
+    robot.drive_for_distance(200)
+    robot.rotate_right_motor(360)
     robot.drive_for_distance(-200)
-    robot.turn_in_place(60) # Turn to face the other start area
-    robot.drive_for_distance(-800) # Drive to other start area
-    robot.change_drive_settings(reset=True)
+    robot.turn_in_place(55)
+    robot.drive_for_distance(-1100)
 
 @mission("2")
 def mission_function_two(robot:Robot):
