@@ -274,6 +274,13 @@ async def _replay_samples(samples, bridge, pause_event, debug=False):
         pause_event.clear()
 
 
+async def _set_hub_mode(hub, mode):
+    try:
+        await asyncio.wait_for(hub.write_line(f"mode:{mode}"), timeout=1.0)
+    except Exception:
+        pass
+
+
 async def _send_loop(state, bridge, deadband, stop_event, pause_event, debug=False, record_state=None):
     last_send = 0.0
     last = None
@@ -454,11 +461,13 @@ async def main_async():
                             (time.monotonic() - record_state.start, 0.0, 0.0, 0.0, 0.0)
                         )
                         record_state.start = None
+                        await _set_hub_mode(hub, "idle")
                         await _save_recording()
                     else:
                         record_state.samples = []
                         record_state.start = time.monotonic()
                         record_state.active = True
+                        await _set_hub_mode(hub, "record")
                         print("Recording started. Press B to stop.")
                 elif action == "play_last":
                     if record_state.active:
@@ -467,12 +476,14 @@ async def main_async():
                     if not record_state.last_recording_samples:
                         print("No recordings saved yet.")
                         continue
+                    await _set_hub_mode(hub, "replay")
                     await _replay_samples(
                         record_state.last_recording_samples,
                         bridge,
                         pause_event,
                         debug=args.debug,
                     )
+                    await _set_hub_mode(hub, "idle")
 
         controller = asyncio.create_task(_control_loop())
 
