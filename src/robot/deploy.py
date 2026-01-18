@@ -6,7 +6,7 @@ from pathlib import Path
 
 def main() -> None:
     repo_root = Path(__file__).resolve().parents[1]
-    main_file = repo_root / "src" / "robot" / "main.py"
+    main_file = repo_root / "robot" / "main.py"
     subprocess.run(
         [
             sys.executable,
