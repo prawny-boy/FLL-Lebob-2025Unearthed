@@ -428,9 +428,10 @@ def mission(slot):
 @mission("1")
 def mission_function_one(robot:Robot):
     robot.change_drive_settings(speed=1000)
-    robot.drive_for_distance(535)
+    robot.drive_for_distance(530)
     robot.change_drive_settings(reset=True)
     robot.rotate_left_motor(-145)
+    sleep(200)
     robot.drive_for_distance(-50)
     robot.rotate_left_motor(145)
     robot.drive_for_distance(200)
