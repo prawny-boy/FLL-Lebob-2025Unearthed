@@ -252,26 +252,27 @@ class RecordState:
         self.samples = []
         self.start = None
         self.last_recording_base = None
+        self.last_recording_samples = None
 
 
-async def _play_last_recording(hub, teleop_file, record_path, bridge, pause_event, debug=False):
+async def _replay_samples(samples, bridge, pause_event, debug=False):
     pause_event.set()
     try:
-        if bridge is not None:
-            try:
-                await asyncio.wait_for(bridge.send(0.0, 0.0, 0.0, 0.0), timeout=1.0)
-            except Exception:
-                pass
-        try:
-            await asyncio.wait_for(hub.write_line("quit"), timeout=1.0)
-        except Exception:
-            pass
+        if not samples:
+            return
         if debug:
-            print(f"Replaying {record_path}...")
-        await hub.run(str(record_path), wait=True, print_output=debug)
-        if debug:
-            print("Re-deploying teleop_hub.py...")
-        await hub.run(str(teleop_file), wait=False, print_output=debug)
+            print("Replaying last recording...")
+        last_t = None
+        for t, ld, rd, la, ra in samples:
+            if last_t is None:
+                dt = 0.0
+            else:
+                dt = t - last_t
+            if dt > 0:
+                await asyncio.sleep(dt)
+            await bridge.send(ld, rd, la, ra)
+            last_t = t
+        await bridge.send(0.0, 0.0, 0.0, 0.0)
     finally:
         pause_event.clear()
 
@@ -436,6 +437,7 @@ async def main_async():
             _write_recording_csv(record_base.with_suffix(".csv"), record_state.samples)
             _write_recording_py(record_base.with_suffix(".py"), record_state.samples)
             record_state.last_recording_base = record_base
+            record_state.last_recording_samples = list(record_state.samples)
             print(f"Saved recording to {record_base.with_suffix('.csv')}")
             print(f"Saved hub replay to {record_base.with_suffix('.py')}")
 
@@ -465,13 +467,11 @@ async def main_async():
                     if record_state.active:
                         print("Stop recording before replaying.")
                         continue
-                    if record_state.last_recording_base is None:
+                    if not record_state.last_recording_samples:
                         print("No recordings saved yet.")
                         continue
-                    await _play_last_recording(
-                        hub,
-                        teleop_file,
-                        record_state.last_recording_base.with_suffix(".py"),
+                    await _replay_samples(
+                        record_state.last_recording_samples,
                         bridge,
                         pause_event,
                         debug=args.debug,
@@ -515,6 +515,7 @@ async def main_async():
                 _write_recording_csv(record_base.with_suffix(".csv"), record_state.samples)
                 _write_recording_py(record_base.with_suffix(".py"), record_state.samples)
                 record_state.last_recording_base = record_base
+                record_state.last_recording_samples = list(record_state.samples)
                 print(f"Saved recording to {record_base.with_suffix('.csv')}")
                 print(f"Saved hub replay to {record_base.with_suffix('.py')}")
         if hub is not None:
