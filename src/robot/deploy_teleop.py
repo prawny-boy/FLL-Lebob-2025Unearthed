@@ -26,7 +26,7 @@ CODE_RT = ecodes.ABS_RZ
 
 BTN_LB = ecodes.BTN_TL
 BTN_RB = ecodes.BTN_TR
-BTN_A = ecodes.BTN_SOUTHz
+BTN_A = ecodes.BTN_SOUTH
 BTN_B = ecodes.BTN_EAST
 
 
