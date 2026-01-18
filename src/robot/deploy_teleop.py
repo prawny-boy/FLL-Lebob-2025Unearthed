@@ -26,7 +26,7 @@ CODE_RT = ecodes.ABS_RZ
 
 BTN_LB = ecodes.BTN_TL
 BTN_RB = ecodes.BTN_TR
-BTN_A = ecodes.BTN_SOUTH
+BTN_A = ecodes.BTN_SOUTHz
 BTN_B = ecodes.BTN_EAST
 
 
@@ -262,23 +262,19 @@ async def _replay_samples(samples, bridge, pause_event, debug=False):
             return
         if debug:
             print("Replaying last recording...")
-        start_time = time.monotonic()
+        last_t = None
         for t, ld, rd, la, ra in samples:
-            target = start_time + t
-            now = time.monotonic()
-            if target > now:
-                await asyncio.sleep(target - now)
+            if last_t is None:
+                dt = 0.0
+            else:
+                dt = t - last_t
+            if dt > 0:
+                await asyncio.sleep(dt)
             await bridge.send(ld, rd, la, ra)
+            last_t = t
         await bridge.send(0.0, 0.0, 0.0, 0.0)
     finally:
         pause_event.clear()
-
-
-async def _set_hub_mode(hub, mode):
-    try:
-        await asyncio.wait_for(hub.write_line(f"mode:{mode}"), timeout=1.0)
-    except Exception:
-        pass
 
 
 async def _send_loop(state, bridge, deadband, stop_event, pause_event, debug=False, record_state=None):
@@ -461,13 +457,11 @@ async def main_async():
                             (time.monotonic() - record_state.start, 0.0, 0.0, 0.0, 0.0)
                         )
                         record_state.start = None
-                        await _set_hub_mode(hub, "idle")
                         await _save_recording()
                     else:
                         record_state.samples = []
                         record_state.start = time.monotonic()
                         record_state.active = True
-                        await _set_hub_mode(hub, "record")
                         print("Recording started. Press B to stop.")
                 elif action == "play_last":
                     if record_state.active:
@@ -476,14 +470,12 @@ async def main_async():
                     if not record_state.last_recording_samples:
                         print("No recordings saved yet.")
                         continue
-                    await _set_hub_mode(hub, "replay")
                     await _replay_samples(
                         record_state.last_recording_samples,
                         bridge,
                         pause_event,
                         debug=args.debug,
                     )
-                    await _set_hub_mode(hub, "idle")
 
         controller = asyncio.create_task(_control_loop())
 
