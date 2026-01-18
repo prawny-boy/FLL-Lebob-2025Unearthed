@@ -39,6 +39,10 @@ def _parse_line(line):
     )
 
 
+def _dc(motor, value):
+    motor.dc(int(value * 100))
+
+
 def main():
     hub = PrimeHub(top_side=Axis.Z, front_side=-Axis.X)
     hub.system.set_stop_button(Button.BLUETOOTH)
@@ -55,10 +59,10 @@ def main():
     while True:
         line = sys.stdin.readline()
         if not line:
-            left_drive.stop()
-            right_drive.stop()
-            left_aux.stop()
-            right_aux.stop()
+            _dc(left_drive, 0.0)
+            _dc(right_drive, 0.0)
+            _dc(left_aux, 0.0)
+            _dc(right_aux, 0.0)
             continue
 
         parsed = _parse_line(line)
@@ -69,19 +73,19 @@ def main():
 
         ld, rd, la, ra = parsed
 
-        left_drive.dc(int(ld * 100))
-        right_drive.dc(int(rd * 100))
-        left_aux.dc(int(la * 100))
-        right_aux.dc(int(ra * 100))
+        _dc(left_drive, ld)
+        _dc(right_drive, rd)
+        _dc(left_aux, la)
+        _dc(right_aux, ra)
 
         count += 1
         if count % 25 == 0:
             print(f"RX ld={ld:.2f} rd={rd:.2f} la={la:.2f} ra={ra:.2f}")
 
-    left_drive.stop()
-    right_drive.stop()
-    left_aux.stop()
-    right_aux.stop()
+    _dc(left_drive, 0.0)
+    _dc(right_drive, 0.0)
+    _dc(left_aux, 0.0)
+    _dc(right_aux, 0.0)
 
 
 if __name__ == "__main__":

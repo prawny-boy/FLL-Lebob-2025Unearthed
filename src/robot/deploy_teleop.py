@@ -74,22 +74,15 @@ class InputState:
         self._absinfo = {}
         self._raw = {}
 
-        self.last_input = time.monotonic()
-
-    def mark_input(self):
-        self.last_input = time.monotonic()
-
     def update_absinfo(self, device):
         caps = device.capabilities(absinfo=True).get(ecodes.EV_ABS, [])
         for code, absinfo in caps:
             self._absinfo[code] = absinfo
 
     def handle_abs_event(self, code, value):
-        self.mark_input()
         self._raw[code] = value
 
         if code == CODE_LY:
-            # up is negative on xbox
             self.left_drive = -_normalize_stick(value, self._absinfo.get(code))
             return
 
@@ -108,7 +101,6 @@ class InputState:
             return
 
     def handle_key_event(self, code, pressed):
-        self.mark_input()
         if code == BTN_LB:
             self._raw["lb"] = 1.0 if pressed else 0.0
             self._recompute_aux()
@@ -117,14 +109,18 @@ class InputState:
             self._recompute_aux()
 
     def _recompute_aux(self):
-        lb = float(self._raw.get("lb", 0.0))
-        rb = float(self._raw.get("rb", 0.0))
         lt = float(self._raw.get("lt", 0.0))
         rt = float(self._raw.get("rt", 0.0))
 
-        # bumper = + direction, trigger = - direction
-        self.left_aux = _clamp(lb - lt, -1.0, 1.0)
-        self.right_aux = _clamp(rb - rt, -1.0, 1.0)
+        lb = float(self._raw.get("lb", 0.0))
+        rb = float(self._raw.get("rb", 0.0))
+
+        # Hold bumper to reverse direction.
+        left_dir = -1.0 if lb > 0.5 else 1.0
+        right_dir = -1.0 if rb > 0.5 else 1.0
+
+        self.left_aux = _clamp(lt * left_dir, -1.0, 1.0)
+        self.right_aux = _clamp(rt * right_dir, -1.0, 1.0)
 
 
 class HubBridge:
@@ -146,14 +142,14 @@ def _read_evdev_loop(device, state, stop_event, debug=False):
             state.handle_abs_event(event.code, event.value)
 
         elif event.type == ecodes.EV_KEY:
-            # buttons come in as 1 (press), 0 (release), 2 (hold/repeat)
-            pressed = event.value == 1
+            # FIX: treat 1 (press) and 2 (hold) as pressed
+            pressed = event.value != 0
             if debug and event.code in (BTN_LB, BTN_RB):
                 print(f"EV_KEY code={event.code} value={event.value}")
             state.handle_key_event(event.code, pressed)
 
 
-async def _send_loop(state, bridge, deadband, stop_event, debug=False, idle_timeout=0.25):
+async def _send_loop(state, bridge, deadband, stop_event, debug=False):
     last_send = 0.0
     last = None
 
@@ -165,10 +161,6 @@ async def _send_loop(state, bridge, deadband, stop_event, debug=False, idle_time
             la = state.left_aux
             ra = state.right_aux
 
-            if now - state.last_input > idle_timeout:
-                ld = rd = la = ra = 0.0
-
-            # deadband only on sticks, keep aux responsive
             if abs(ld) < deadband:
                 ld = 0.0
             if abs(rd) < deadband:
@@ -255,7 +247,9 @@ async def main_async():
             )
             for d in devices
         ]
-        sender = asyncio.create_task(_send_loop(state, bridge, args.deadband, stop_event, debug=args.debug))
+        sender = asyncio.create_task(
+            _send_loop(state, bridge, args.deadband, stop_event, debug=args.debug)
+        )
 
         await stop_event.wait()
 
