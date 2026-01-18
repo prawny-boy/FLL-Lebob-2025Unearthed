@@ -4,11 +4,29 @@
 import argparse
 import asyncio
 import signal
+import sys
 import time
 from pathlib import Path
 
-import evdev
-from evdev import ecodes
+try:
+    import evdev
+    from evdev import ecodes
+
+    HAVE_EVDEV = True
+except ImportError:
+    evdev = None
+    ecodes = None
+    HAVE_EVDEV = False
+
+try:
+    from inputs import devices as inputs_devices
+    from inputs import get_gamepad
+
+    HAVE_INPUTS = True
+except ImportError:
+    inputs_devices = None
+    get_gamepad = None
+    HAVE_INPUTS = False
 
 from pybricksdev.ble import find_device
 from pybricksdev.connections.pybricks import PybricksHubBLE
@@ -18,16 +36,41 @@ DEFAULT_DEADBAND = 0.05
 DEFAULT_BLE_TIMEOUT = 10.0
 DEFAULT_HUB_NAME = "FatSean"
 
-# Xbox (from your evtest)
-CODE_LY = ecodes.ABS_Y
-CODE_RY = ecodes.ABS_RY
-CODE_LT = ecodes.ABS_Z
-CODE_RT = ecodes.ABS_RZ
+# Xbox (Linux evdev)
+EVDEV_CODE_LY = ecodes.ABS_Y if HAVE_EVDEV else None
+EVDEV_CODE_RY = ecodes.ABS_RY if HAVE_EVDEV else None
+EVDEV_CODE_LT = ecodes.ABS_Z if HAVE_EVDEV else None
+EVDEV_CODE_RT = ecodes.ABS_RZ if HAVE_EVDEV else None
 
-BTN_LB = ecodes.BTN_TL
-BTN_RB = ecodes.BTN_TR
-BTN_A = ecodes.BTN_SOUTH
-BTN_B = ecodes.BTN_EAST
+EVDEV_BTN_LB = ecodes.BTN_TL if HAVE_EVDEV else None
+EVDEV_BTN_RB = ecodes.BTN_TR if HAVE_EVDEV else None
+EVDEV_BTN_A = ecodes.BTN_SOUTH if HAVE_EVDEV else None
+EVDEV_BTN_B = ecodes.BTN_EAST if HAVE_EVDEV else None
+
+# Xbox (python-inputs)
+INPUTS_CODE_LY = "ABS_Y"
+INPUTS_CODE_RY = "ABS_RY"
+INPUTS_CODE_LT = "ABS_Z"
+INPUTS_CODE_RT = "ABS_RZ"
+
+INPUTS_BTN_LB = "BTN_TL"
+INPUTS_BTN_RB = "BTN_TR"
+INPUTS_BTN_A = "BTN_SOUTH"
+INPUTS_BTN_B = "BTN_EAST"
+
+
+class AbsInfo:
+    def __init__(self, min_val, max_val):
+        self.min = min_val
+        self.max = max_val
+
+
+INPUTS_ABSINFO = {
+    INPUTS_CODE_LY: AbsInfo(-32768, 32767),
+    INPUTS_CODE_RY: AbsInfo(-32768, 32767),
+    INPUTS_CODE_LT: AbsInfo(0, 255),
+    INPUTS_CODE_RT: AbsInfo(0, 255),
+}
 
 
 def _clamp(x, lo=-1.0, hi=1.0):
@@ -53,7 +96,23 @@ def _normalize_stick(value, absinfo):
     return _clamp(value / span, -1.0, 1.0)
 
 
-def _select_devices(device_path=None):
+def _select_backend():
+    if HAVE_EVDEV and sys.platform.startswith("linux"):
+        return "evdev"
+    if HAVE_INPUTS:
+        return "inputs"
+    if HAVE_EVDEV:
+        return "evdev"
+    raise SystemExit("No controller backend available. Install evdev (Linux) or inputs.")
+
+
+def _select_devices(backend, device_path=None):
+    if backend == "inputs":
+        gamepads = inputs_devices.gamepads if HAVE_INPUTS else []
+        if not gamepads:
+            raise SystemExit("No gamepads detected via inputs.")
+        return list(gamepads)
+
     if device_path:
         return [evdev.InputDevice(device_path)]
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -81,32 +140,61 @@ class InputState:
         for code, absinfo in caps:
             self._absinfo[code] = absinfo
 
-    def handle_abs_event(self, code, value):
+    def handle_abs_event_evdev(self, code, value):
         self._raw[code] = value
 
-        if code == CODE_LY:
+        if code == EVDEV_CODE_LY:
             self.left_drive = -_normalize_stick(value, self._absinfo.get(code))
             return
 
-        if code == CODE_RY:
+        if code == EVDEV_CODE_RY:
             self.right_drive = -_normalize_stick(value, self._absinfo.get(code))
             return
 
-        if code == CODE_LT:
+        if code == EVDEV_CODE_LT:
             self._raw["lt"] = _normalize_trigger(value, self._absinfo.get(code))
             self._recompute_aux()
             return
 
-        if code == CODE_RT:
+        if code == EVDEV_CODE_RT:
             self._raw["rt"] = _normalize_trigger(value, self._absinfo.get(code))
             self._recompute_aux()
             return
 
-    def handle_key_event(self, code, pressed):
-        if code == BTN_LB:
+    def handle_abs_event_inputs(self, code, value):
+        self._raw[code] = value
+
+        if code == INPUTS_CODE_LY:
+            self.left_drive = -_normalize_stick(value, INPUTS_ABSINFO.get(code))
+            return
+
+        if code == INPUTS_CODE_RY:
+            self.right_drive = -_normalize_stick(value, INPUTS_ABSINFO.get(code))
+            return
+
+        if code == INPUTS_CODE_LT:
+            self._raw["lt"] = _normalize_trigger(value, INPUTS_ABSINFO.get(code))
+            self._recompute_aux()
+            return
+
+        if code == INPUTS_CODE_RT:
+            self._raw["rt"] = _normalize_trigger(value, INPUTS_ABSINFO.get(code))
+            self._recompute_aux()
+            return
+
+    def handle_key_event_evdev(self, code, pressed):
+        if code == EVDEV_BTN_LB:
             self._raw["lb"] = 1.0 if pressed else 0.0
             self._recompute_aux()
-        elif code == BTN_RB:
+        elif code == EVDEV_BTN_RB:
+            self._raw["rb"] = 1.0 if pressed else 0.0
+            self._recompute_aux()
+
+    def handle_key_event_inputs(self, code, pressed):
+        if code == INPUTS_BTN_LB:
+            self._raw["lb"] = 1.0 if pressed else 0.0
+            self._recompute_aux()
+        elif code == INPUTS_BTN_RB:
             self._raw["rb"] = 1.0 if pressed else 0.0
             self._recompute_aux()
 
@@ -142,22 +230,50 @@ def _read_evdev_loop(device, state, stop_event, debug=False, control_queue=None,
             if event.type == ecodes.EV_ABS:
                 if debug:
                     print(f"EV_ABS code={event.code} value={event.value}")
-                state.handle_abs_event(event.code, event.value)
+                state.handle_abs_event_evdev(event.code, event.value)
 
             elif event.type == ecodes.EV_KEY:
                 # FIX: treat 1 (press) and 2 (hold) as pressed
                 pressed = event.value != 0
-                if debug and event.code in (BTN_LB, BTN_RB, BTN_A, BTN_B):
+                if debug and event.code in (EVDEV_BTN_LB, EVDEV_BTN_RB, EVDEV_BTN_A, EVDEV_BTN_B):
                     print(f"EV_KEY code={event.code} value={event.value}")
-                state.handle_key_event(event.code, pressed)
+                state.handle_key_event_evdev(event.code, pressed)
                 if control_queue is not None and loop is not None and event.value == 1:
-                    if event.code == BTN_B:
+                    if event.code == EVDEV_BTN_B:
                         loop.call_soon_threadsafe(control_queue.put_nowait, "toggle_record")
-                    elif event.code == BTN_A:
+                    elif event.code == EVDEV_BTN_A:
                         loop.call_soon_threadsafe(control_queue.put_nowait, "play_last")
     except (OSError, ValueError):
         # Device closed or unavailable; exit the reader loop.
         return
+
+
+def _read_inputs_loop(state, stop_event, debug=False, control_queue=None, loop=None):
+    while not stop_event.is_set():
+        try:
+            events = get_gamepad()
+        except (OSError, ValueError):
+            if stop_event.is_set():
+                break
+            continue
+
+        for event in events:
+            if stop_event.is_set():
+                break
+            if event.ev_type == "Absolute":
+                if debug:
+                    print(f"ABS code={event.code} value={event.state}")
+                state.handle_abs_event_inputs(event.code, event.state)
+            elif event.ev_type == "Key":
+                pressed = event.state != 0
+                if debug and event.code in (INPUTS_BTN_LB, INPUTS_BTN_RB, INPUTS_BTN_A, INPUTS_BTN_B):
+                    print(f"KEY code={event.code} value={event.state}")
+                state.handle_key_event_inputs(event.code, pressed)
+                if control_queue is not None and loop is not None and event.state == 1:
+                    if event.code == INPUTS_BTN_B:
+                        loop.call_soon_threadsafe(control_queue.put_nowait, "toggle_record")
+                    elif event.code == INPUTS_BTN_A:
+                        loop.call_soon_threadsafe(control_queue.put_nowait, "play_last")
 
 
 def _default_record_base(repo_root, timestamp):
@@ -336,17 +452,27 @@ async def main_async():
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
-    teleop_file = repo_root / "src" / "robot" / "teleop_hub.py"
+    teleop_file = repo_root / "src" / "teleop" / "teleop_hub.py"
 
-    devices = _select_devices(args.device)
+    backend = _select_backend()
+    devices = _select_devices(backend, args.device)
 
     if args.debug:
+        print(f"Input backend: {backend}")
         for d in devices:
-            print(f"Using input device: {d.path} ({d.name})")
+            if backend == "evdev":
+                print(f"Using input device: {d.path} ({d.name})")
+            else:
+                name = getattr(d, "name", "gamepad")
+                print(f"Using input device: {name}")
+
+    if backend == "inputs" and args.device:
+        print("Warning: --device is ignored when using the inputs backend.")
 
     state = InputState()
-    for d in devices:
-        state.update_absinfo(d)
+    if backend == "evdev":
+        for d in devices:
+            state.update_absinfo(d)
 
     stop_event = asyncio.Event()
     pause_event = asyncio.Event()
@@ -354,11 +480,12 @@ async def main_async():
 
     def _request_stop(*_args):
         stop_event.set()
-        for d in devices:
-            try:
-                d.close()
-            except OSError:
-                pass
+        if backend == "evdev":
+            for d in devices:
+                try:
+                    d.close()
+                except OSError:
+                    pass
 
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
@@ -372,7 +499,7 @@ async def main_async():
             pass
 
     grabbed = []
-    if not args.no_grab:
+    if backend == "evdev" and not args.no_grab:
         for d in devices:
             try:
                 d.grab()
@@ -404,20 +531,34 @@ async def main_async():
 
         bridge = HubBridge(hub)
 
-        readers = [
-            asyncio.create_task(
-                asyncio.to_thread(
-                    _read_evdev_loop,
-                    d,
-                    state,
-                    stop_event,
-                    args.debug,
-                    control_queue,
-                    loop,
+        if backend == "evdev":
+            readers = [
+                asyncio.create_task(
+                    asyncio.to_thread(
+                        _read_evdev_loop,
+                        d,
+                        state,
+                        stop_event,
+                        args.debug,
+                        control_queue,
+                        loop,
+                    )
                 )
-            )
-            for d in devices
-        ]
+                for d in devices
+            ]
+        else:
+            readers = [
+                asyncio.create_task(
+                    asyncio.to_thread(
+                        _read_inputs_loop,
+                        state,
+                        stop_event,
+                        args.debug,
+                        control_queue,
+                        loop,
+                    )
+                )
+            ]
         sender = asyncio.create_task(
             _send_loop(
                 state,
@@ -528,11 +669,12 @@ async def main_async():
                 d.ungrab()
             except OSError:
                 pass
-        for d in devices:
-            try:
-                d.close()
-            except OSError:
-                pass
+        if backend == "evdev":
+            for d in devices:
+                try:
+                    d.close()
+                except OSError:
+                    pass
 
 
 def main():
