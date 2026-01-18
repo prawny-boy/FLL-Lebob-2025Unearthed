@@ -262,16 +262,13 @@ async def _replay_samples(samples, bridge, pause_event, debug=False):
             return
         if debug:
             print("Replaying last recording...")
-        last_t = None
+        start_time = time.monotonic()
         for t, ld, rd, la, ra in samples:
-            if last_t is None:
-                dt = 0.0
-            else:
-                dt = t - last_t
-            if dt > 0:
-                await asyncio.sleep(dt)
+            target = start_time + t
+            now = time.monotonic()
+            if target > now:
+                await asyncio.sleep(target - now)
             await bridge.send(ld, rd, la, ra)
-            last_t = t
         await bridge.send(0.0, 0.0, 0.0, 0.0)
     finally:
         pause_event.clear()
