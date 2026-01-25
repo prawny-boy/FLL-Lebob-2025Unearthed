@@ -176,7 +176,7 @@ class Robot:
         then=Stop.BRAKE,
         wait=True,
         settle_time=DEFAULT_SETTLE_DELAY,
-        smart=True,
+        smart=False,
         speed=None,
         k_p=1.6,
         k_i=0.01,
@@ -257,7 +257,7 @@ class Robot:
         degrees,
         then=Stop.BRAKE,
         wait=True,
-        smart=True,
+        smart=False,
         k_p=1.6,
         k_i=0.0,
         k_d=0.2,
@@ -268,7 +268,7 @@ class Robot:
     ):
         if not smart:
             self.hub.imu.reset_heading(0)
-            self.drive_base.turn(-degrees * TURN_CORRECTION, then, wait)
+            self.drive_base.turn(degrees * TURN_CORRECTION, then, wait)
             sleep(DEFAULT_SETTLE_DELAY)
             return
 
@@ -424,23 +424,25 @@ def mission(slot):
 
     return decorator
 
-
+# i shat
 @mission("1")
 def mission_function_one(robot:Robot):
+    robot.rotate_right_motor(-180, wait=False)
     robot.change_drive_settings(speed=1000)
-    robot.drive_for_distance(530)
-    robot.change_drive_settings(reset=True)
+    robot.drive_for_distance(480)
     robot.rotate_left_motor(-145)
-    sleep(200)
-    robot.drive_for_distance(-50)
-    robot.rotate_left_motor(145)
-    robot.drive_for_distance(200)
-    robot.turn_in_place(-45)
-    robot.drive_for_distance(200)
-    robot.rotate_right_motor(360)
+    robot.turn_in_place(30)
+    robot.drive_for_distance(245)
+    robot.turn_in_place(-75)
+    robot.change_drive_settings(speed=200)
+    robot.drive_for_distance(250)
+    robot.change_drive_settings(speed=1000)
+    robot.rotate_right_motor(180)
     robot.drive_for_distance(-200)
-    robot.turn_in_place(55)
-    robot.drive_for_distance(-1100)
+    robot.turn_in_place(90)
+    robot.change_drive_settings(speed=1000)
+    robot.drive_for_distance(-950)
+    robot.change_drive_settings(reset=True)
 
 @mission("2")
 def mission_function_two(robot:Robot):
