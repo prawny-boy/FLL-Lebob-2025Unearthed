@@ -203,6 +203,31 @@ class Robot:
 
     def wrap_angle(self, angle):
         return (angle + 180) % 360 - 180
+    
+    def better_brake(self,
+                     left_brake_pid=[0,0,0],
+                     right_brake_pid=[0,0,0]):
+        left_brake_pid = PIDController(*left_brake_pid)
+        right_brake_pid = PIDController(*right_brake_pid)
+        self.left_drive.reset_angle()
+        self.right_drive.reset_angle()
+        sw = StopWatch()
+        last_ms = sw.time()
+        while True:
+            now = sw.time()
+            dt = (now - last_ms) / 1000.0
+            last_ms = now
+            left_error = self.left_drive.angle()
+            right_error = self.right_drive.angle()
+            
+            if left_error == 0 and right_error == 0:
+                break
+
+            self.left_drive.run(left_brake_pid.calculate(left_error, dt))
+            self.left_drive.run(right_brake_pid.calculate(right_error, dt))
+
+            sleep(10)
+        self.drive_base.brake()
 
     def drive_for_distance(
         self,
@@ -211,25 +236,21 @@ class Robot:
         wait=True,
         settle_time=DEFAULT_SETTLE_DELAY,
         smart=False,
+        better_brake=True,
         speed=None,
-        k_p=1.6,
-        k_i=0.01,
-        k_d=0.2,
+        angle_pid=[1.6,0.01,0.2],
         heading_tolerance=1.0,
         turn_limit=None,
-        distance_k_p=1.2,
-        distance_k_i=0.0,
-        distance_k_d=0.05,
+        distance_pid=[1.2,0.0,0.05],
         distance_tolerance=5,
         minimum_speed=40,
         slow_down_distance=150,
         timeout_ms=7000,
     ):
-        if not distance:
-            return
-
         if not smart:
             self.drive_base.straight(distance, then, wait)
+            if better_brake:
+                self.better_brake()
             if settle_time:
                 sleep(settle_time)
             return
@@ -240,12 +261,10 @@ class Robot:
         )
 
         heading_pid = PIDController(
-            k_p, k_i, k_d, integral_limit=40, output_limit=resolved_turn_limit
+            *angle_pid, integral_limit=40, output_limit=resolved_turn_limit
         )
         distance_pid = PIDController(
-            distance_k_p,
-            distance_k_i,
-            distance_k_d,
+            *distance_pid,
             output_limit=abs(resolved_speed),
         )
 
@@ -286,31 +305,34 @@ class Robot:
                 break
 
             sleep(10)
-
-        # Hold heading briefly while stopping so we do not finish with a swerve.
-        self.drive_base.stop()
-
-        hold_sw = StopWatch()
-        hold_last = hold_sw.time()
-        while hold_sw.time() < 150:
-            now = hold_sw.time()
-            dt = (now - hold_last) / 1000.0
-            hold_last = now
-
-            current_heading = self.hub.imu.heading()
-            heading_error = self.wrap_angle(target_heading - current_heading)
-
-            if abs(heading_error) <= heading_tolerance:
-                break
-
-            turn_correction = heading_pid.calculate(heading_error, dt)
-            self.drive_base.drive(0, turn_correction)
-            sleep(10)
-
-        if then == Stop.BRAKE:
-            self.drive_base.brake()
+        
+        if better_brake:
+            self.better_brake()
         else:
+            # Hold heading briefly while stopping so we do not finish with a swerve.
             self.drive_base.stop()
+
+            hold_sw = StopWatch()
+            hold_last = hold_sw.time()
+            while hold_sw.time() < 150:
+                now = hold_sw.time()
+                dt = (now - hold_last) / 1000.0
+                hold_last = now
+
+                current_heading = self.hub.imu.heading()
+                heading_error = self.wrap_angle(target_heading - current_heading)
+
+                if abs(heading_error) <= heading_tolerance:
+                    break
+
+                turn_correction = heading_pid.calculate(heading_error, dt)
+                self.drive_base.drive(0, turn_correction)
+                sleep(10)
+
+            if then == Stop.BRAKE:
+                self.drive_base.brake()
+            else:
+                self.drive_base.stop()
 
         if settle_time:
             sleep(settle_time)
@@ -320,20 +342,24 @@ class Robot:
         degrees,
         then=Stop.BRAKE,
         wait=True,
+        settle_time=DEFAULT_SETTLE_DELAY,
         smart=False,
+        better_brake=True,
         k_p=1.6,
         k_i=0.0,
         k_d=0.2,
         allowed_error=0.15,
         turn_limit=None,
-        max_iterations=250,
         timeout_ms=4000,
     ):
         if not smart:
             # Important change:
             # do NOT reset heading here. It makes turns inconsistent.
             self.drive_base.turn(degrees * TURN_CORRECTION, then, wait)
-            sleep(DEFAULT_SETTLE_DELAY)
+            if better_brake:
+                self.better_brake()
+            if settle_time:
+                sleep(DEFAULT_SETTLE_DELAY)
             return
 
         base_turn_limit = (
@@ -427,13 +453,16 @@ class Robot:
 
             self.drive_base.drive(0, correction)
             sleep(10)
-
-        if then == Stop.BRAKE:
-            self.drive_base.brake()
+        
+        if better_brake:
+            self.better_brake()
         else:
-            self.drive_base.stop()
-
-        sleep(DEFAULT_SETTLE_DELAY)
+            if then == Stop.BRAKE:
+                self.drive_base.brake()
+            else:
+                self.drive_base.stop()
+        if settle_time:
+            sleep(DEFAULT_SETTLE_DELAY)
 
     def curve(self, radius, angle, then=Stop.COAST, wait=True):
         self.drive_base.curve(radius, -angle * TURN_CORRECTION, then, wait)
@@ -538,8 +567,7 @@ def mission(slot):
     return decorator
 
 
-# i shat
-@mission("1") #hurro
+@mission("1")
 def mission_function_one(robot: Robot):
     robot.rotate_right_motor(-180, wait=False)
     robot.change_drive_settings(speed=1000)
