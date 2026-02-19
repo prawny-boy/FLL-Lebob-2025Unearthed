@@ -539,7 +539,7 @@ def mission(slot):
 
 
 # i shat
-@mission("1")
+@mission("1") #hurro
 def mission_function_one(robot: Robot):
     robot.rotate_right_motor(-180, wait=False)
     robot.change_drive_settings(speed=1000)
