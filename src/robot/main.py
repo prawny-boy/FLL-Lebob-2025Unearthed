@@ -204,30 +204,43 @@ class Robot:
     def wrap_angle(self, angle):
         return (angle + 180) % 360 - 180
     
-    def better_brake(self,
-                     left_brake_pid=[0,0,0],
-                     right_brake_pid=[0,0,0]):
-        left_brake_pid = PIDController(*left_brake_pid)
-        right_brake_pid = PIDController(*right_brake_pid)
+    def better_brake(
+        self,
+        left_brake_pid=(0.55, 0.0, 0.05),
+        right_brake_pid=(0.55, 0.0, 0.05),
+        angle_tolerance=1.0,
+        timeout_ms=350,
+    ):
+        left_brake_pid = PIDController(
+            *left_brake_pid, integral_limit=20, output_limit=160
+        )
+        right_brake_pid = PIDController(
+            *right_brake_pid, integral_limit=20, output_limit=160
+        )
         self.left_drive.reset_angle()
         self.right_drive.reset_angle()
         sw = StopWatch()
         last_ms = sw.time()
-        while True:
+        while sw.time() <= timeout_ms:
             now = sw.time()
             dt = (now - last_ms) / 1000.0
             last_ms = now
             left_error = self.left_drive.angle()
             right_error = self.right_drive.angle()
-            
-            if left_error == 0 and right_error == 0:
+
+            if (
+                abs(left_error) <= angle_tolerance
+                and abs(right_error) <= angle_tolerance
+            ):
                 break
 
-            self.left_drive.run(left_brake_pid.calculate(left_error, dt))
-            self.left_drive.run(right_brake_pid.calculate(right_error, dt))
+            # Drive each side back toward zero independently.
+            self.left_drive.run(-left_brake_pid.calculate(left_error, dt))
+            self.right_drive.run(-right_brake_pid.calculate(right_error, dt))
 
             sleep(10)
-        self.drive_base.brake()
+        self.left_drive.brake()
+        self.right_drive.brake()
 
     def drive_for_distance(
         self,
@@ -744,7 +757,7 @@ def mission_function_manual_attachment(robot: Robot):
                 motor.stop()
 
             if Button.CENTER in pressed:
-                motor.stop(Stop.HOLD)
+                motor.hold()
                 wait_for_button_release()
                 break
 
