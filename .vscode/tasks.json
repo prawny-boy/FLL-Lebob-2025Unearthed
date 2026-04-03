@@ -1,0 +1,28 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Deploy to Robot",
+            "type": "process",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-m",
+                "pybricksdev",
+                "run",
+                "ble",
+                "--name",
+                "FatSean",
+                "${workspaceFolder}/src/robot/main.py"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "focus": true
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

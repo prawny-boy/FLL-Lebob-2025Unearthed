@@ -1,13 +1,13 @@
 #!/usr/bin/env pybricks-micropython
 
 from pybricks.hubs import PrimeHub
-from pybricks.parameters import Button, Color, Direction, Port
+from pybricks.parameters import Button, Color, Direction, Port, Stop
 from pybricks.pupdevices import Motor
 from pybricks.robotics import DriveBase
-from pybricks.tools import hub_menu, wait
+from pybricks.tools import wait
 
 DRIVEBASE_WHEEL_DIAMETER = 62.4  # Medium treaded wheel diameter (mm)
-DRIVEBASE_AXLE_TRACK = 150
+DRIVEBASE_AXLE_TRACK = 130
 
 # Hub
 hub = PrimeHub()
@@ -28,6 +28,9 @@ drive_base = DriveBase(
     axle_track=DRIVEBASE_AXLE_TRACK,
 )
 
+drive_base.use_gyro(True)
+
+
 MISSIONS = []
 
 
@@ -39,17 +42,77 @@ def mission(func):
 
 def reset_robot_state():
     drive_base.stop()
-    left_big_motor.hold()
-    right_big_motor.hold()
+    left_big_motor.stop()
+    right_big_motor.stop()
 
 
 @mission
-def mission_1():
+def mission_1(easy_mode:bool = True, scale:float = 1):
     """Example mission. Replace this with your own code."""
-    drive_base.straight(200)
-    drive_base.turn(90)
-    drive_base.straight(-200)
+    if easy_mode:
+        drive_base.straight(400)
+        drive_base.turn(10)
+        left_big_motor.run_target(500, 90)
+        for _ in range(3):
+            left_big_motor.dc(100)
+            wait(500)
+            left_big_motor.run_target(500, 135)
 
+    else:
+        drive_base.straight(100*scale)
+        drive_base.turn(113)
+        drive_base.straight(-250*scale)
+        drive_base.turn(-106)
+        drive_base.straight(168*scale)
+        drive_base.turn(80)
+        drive_base.straight(220*scale)
+        drive_base.straight(200*scale)
+        drive_base.straight(240*scale)
+        drive_base.turn(136.2056)
+        drive_base.straight(10*scale)
+        drive_base.straight(277*scale)
+        drive_base.turn(-19.5244)
+        drive_base.straight(-310*scale)
+        drive_base.straight(-10*scale)
+        drive_base.turn(401.2188)
+        drive_base.straight(300*scale)
+        drive_base.turn(-180)
+        drive_base.straight(-375*scale)
+        drive_base.turn(48)
+        drive_base.straight(250*scale)
+        drive_base.turn(-113)
+        drive_base.straight(-100*scale)
+
+@mission
+def mission_2():
+    left_big_motor.run_time(200, 1000, then=Stop.COAST, wait=False)
+    drive_base.straight(690)
+    drive_base.turn(-30)
+    drive_base.straight(130)
+    right_big_motor.run_time(1000, 500, wait=True)
+    left_big_motor.run_time(-1000, 1000, wait=False)
+    drive_base.straight(-200)
+    drive_base.turn(60)
+    drive_base.straight(-800)
+
+@mission
+def mission_3():
+    drive_base.straight(890)
+    drive_base.turn(90) # Face minecart
+    left_big_motor.run_time(200, 750, then=Stop.COAST, wait=False) # Arms back
+    right_big_motor.run_time(-200, 800, then=Stop.COAST, wait=False)
+    drive_base.straight(-100) # Give space for arms
+    drive_base.settings(straight_speed=100)
+    drive_base.straight(150)
+    left_big_motor.run_angle(200, 90, then=Stop.HOLD) # Pick up thing
+    right_big_motor.run_angle(400, 90) # Push up minecart track
+    drive_base.straight(-50)
+    drive_base.settings(straight_speed=200)
+    drive_base.settings(straight_speed=500)
+    drive_base.straight(-180) # Return
+    drive_base.turn(90)
+    left_big_motor.run_time(200, 80, then=Stop.COAST, wait=False) # Arms back
+    drive_base.straight(810)
 
 def mission_selector():
     if not MISSIONS:
@@ -57,24 +120,48 @@ def mission_selector():
             hub.display.number(0)
             wait(200)
 
-    while True:
-        options = [str(index + 1) for index in range(len(MISSIONS))]
-        selected = hub_menu(*options)
-        mission_index = int(selected) - 1
+    mission_index = 0
 
+    while True:
         hub.display.number(mission_index + 1)
-        hub.light.on(Color.GREEN)
-        try:
-            MISSIONS[mission_index]()
-        finally:
-            reset_robot_state()
-            hub.light.on(Color.BLUE)
-        wait(250)
+        pressed = hub.buttons.pressed()
+
+        if Button.LEFT in pressed:
+            mission_index = (mission_index - 1) % len(MISSIONS)
+            while hub.buttons.pressed():
+                wait(20)
+            wait(120)
+            continue
+
+        if Button.RIGHT in pressed:
+            mission_index = (mission_index + 1) % len(MISSIONS)
+            while hub.buttons.pressed():
+                wait(20)
+                
+            wait(120)
+            continue
+
+        if Button.CENTER in pressed:
+            while hub.buttons.pressed():
+                wait(20)
+            hub.light.on(Color.GREEN)
+            try:
+                MISSIONS[mission_index]()
+            finally:
+                reset_robot_state()
+                hub.light.on(Color.BLUE)
+            mission_index = (mission_index + 1) % len(MISSIONS)
+            wait(250)
+
+        wait(20)
 
 
 def main():
     hub.system.set_stop_button(Button.BLUETOOTH)
     reset_robot_state()
+    voltage = hub.battery.voltage()
+    percentage = max(0, min(100, (voltage - 6000) * 100 // (8400 - 6000)))
+    print("Battery: " + str(percentage) + "% (" + str(voltage) + " mV)")
     hub.light.on(Color.BLUE)
     mission_selector()
 
