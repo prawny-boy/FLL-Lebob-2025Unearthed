@@ -41,6 +41,13 @@ def mission(func):
     return func
 
 
+def reset_headings():
+    db.reset()
+    hub.imu.reset_heading(0)
+    lbm.reset_angle(0)
+    rbm.reset_angle(0)
+
+
 def reset_robot_state():
     db.stop()
     lbm.stop()
@@ -50,6 +57,7 @@ def reset_robot_state():
 @mission
 def mission_1(easy_mode: bool = True, scale: float = 1):
     """Movement test."""
+    reset_headings()
     if easy_mode:
         db.straight(400)
         db.turn(10)
@@ -88,6 +96,7 @@ def mission_1(easy_mode: bool = True, scale: float = 1):
 @mission
 def mission_2():
     """Do brush and map."""
+    reset_headings()
     db.settings(straight_speed=500)
     #  rbm.run_time(200, 3000, then=Stop.COAST, wait=False)
     lbm.run_time(-200, 2000, then=Stop.COAST, wait=False)
@@ -110,18 +119,23 @@ def mission_2():
 @mission
 def mission_3():
     """Do your minecart and artefact."""
+    reset_headings()
     global hub
     hub.speaker.play_notes(["C4/4", "D4/4", "E4/4"], 500)
     db.settings(straight_speed=350)
-    db.straight(898)
+    db.straight(905)
     db.turn(88)  # Face minecart
-    lbm.run_time(200, 870, then=Stop.COAST, wait=False)  # Arms back
+    #lbm.dc(100)  # Arms back
     rbm.run_time(-200, 800, then=Stop.COAST, wait=False)
+    #lbm.dc(100)
     db.straight(-100)  # Give space for arms
+    lbm.dc(100)  # Arms back
     db.settings(straight_speed=100)
     db.straight(180)
-    lbm.run_angle(200, -67, then=Stop.HOLD)  # Pick up thing
-    rbm.dc(75)  # Push up minecart track
+    lbm.stop()
+    lbm.reset_angle(0)
+    lbm.run_angle(200, -97, then=Stop.HOLD, wait=True)  # Pick up thing
+    rbm.dc(100)  # Push up minecart track
     wait(1000)
     db.straight(-50)
     db.settings(straight_speed=500)
@@ -132,6 +146,7 @@ def mission_3():
 
 @mission
 def mission_4():
+    reset_headings()
     rbm.dc(-100)
     wait(1000)
 
