@@ -120,8 +120,8 @@ def mission_3():
     db.straight(-100)  # Give space for arms
     db.settings(straight_speed=100)
     db.straight(180)
-    lbm.run_angle(200, -10, then=Stop.HOLD)  # Pick up thing
-    rbm.dc(80)  # Push up minecart track
+    lbm.run_angle(200, -67, then=Stop.HOLD)  # Pick up thing
+    rbm.dc(75)  # Push up minecart track
     wait(1000)
     db.straight(-50)
     db.settings(straight_speed=500)
