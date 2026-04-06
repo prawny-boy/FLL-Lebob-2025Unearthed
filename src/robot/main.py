@@ -48,7 +48,7 @@ def reset_robot_state():
 
 @mission
 def mission_1(easy_mode: bool = True, scale: float = 1):
-    """Example mission. Replace this with your own code."""
+    """Movement test."""
     if easy_mode:
         drive_base.straight(400)
         drive_base.turn(10)
@@ -86,19 +86,27 @@ def mission_1(easy_mode: bool = True, scale: float = 1):
 
 @mission
 def mission_2():
+    """Do brush and map."""
+    drive_base.settings(straight_speed=500)
     left_big_motor.run_time(200, 1000, then=Stop.COAST, wait=False)
-    drive_base.straight(690)
-    drive_base.turn(-30)
+    #right_big_motor.run_time(200, 2000, then=Stop.COAST, wait=False)
+    drive_base.straight(710)
+    drive_base.turn(-45)
     drive_base.straight(130)
-    right_big_motor.run_time(1000, 500, wait=True)
+    right_big_motor.run_time(-1000, 1000, wait=True)
     left_big_motor.run_time(-1000, 1000, wait=False)
+    drive_base.straight(-130)
+    drive_base.turn(45)
     drive_base.straight(-200)
-    drive_base.turn(60)
-    drive_base.straight(-800)
+    drive_base.turn(-15)
+    drive_base.straight(-200)
+    #drive_base.turn(-60)
+    #drive_base.straight(-300)
 
 
 @mission
 def mission_3():
+    """Do your minecart and artefact."""
     global hub
     hub.speaker.play_notes(["C4/4", "D4/4", "E4/4"], 500)
     drive_base.settings(straight_speed=350)
@@ -118,6 +126,10 @@ def mission_3():
     left_big_motor.run_time(200, -80, then=Stop.COAST, wait=False)  # Arms back
     drive_base.straight(810)
 
+@mission
+def mission_4():
+    right_big_motor.dc(-100)
+    wait(1000)
 
 def mission_selector():
     if not MISSIONS:
