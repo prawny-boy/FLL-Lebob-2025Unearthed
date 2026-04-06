@@ -47,7 +47,7 @@ def reset_robot_state():
 
 
 @mission
-def mission_1(easy_mode:bool = True, scale:float = 1):
+def mission_1(easy_mode: bool = True, scale: float = 1):
     """Example mission. Replace this with your own code."""
     if easy_mode:
         drive_base.straight(400)
@@ -59,29 +59,30 @@ def mission_1(easy_mode:bool = True, scale:float = 1):
             left_big_motor.run_target(500, 135)
 
     else:
-        drive_base.straight(100*scale)
+        drive_base.straight(100 * scale)
         drive_base.turn(113)
-        drive_base.straight(-250*scale)
+        drive_base.straight(-250 * scale)
         drive_base.turn(-106)
-        drive_base.straight(168*scale)
+        drive_base.straight(168 * scale)
         drive_base.turn(80)
-        drive_base.straight(220*scale)
-        drive_base.straight(200*scale)
-        drive_base.straight(240*scale)
+        drive_base.straight(220 * scale)
+        drive_base.straight(200 * scale)
+        drive_base.straight(240 * scale)
         drive_base.turn(136.2056)
-        drive_base.straight(10*scale)
-        drive_base.straight(277*scale)
+        drive_base.straight(10 * scale)
+        drive_base.straight(277 * scale)
         drive_base.turn(-19.5244)
-        drive_base.straight(-310*scale)
-        drive_base.straight(-10*scale)
+        drive_base.straight(-310 * scale)
+        drive_base.straight(-10 * scale)
         drive_base.turn(401.2188)
-        drive_base.straight(300*scale)
+        drive_base.straight(300 * scale)
         drive_base.turn(-180)
-        drive_base.straight(-375*scale)
+        drive_base.straight(-375 * scale)
         drive_base.turn(48)
-        drive_base.straight(250*scale)
+        drive_base.straight(250 * scale)
         drive_base.turn(-113)
-        drive_base.straight(-100*scale)
+        drive_base.straight(-100 * scale)
+
 
 @mission
 def mission_2():
@@ -95,24 +96,28 @@ def mission_2():
     drive_base.turn(60)
     drive_base.straight(-800)
 
+
 @mission
 def mission_3():
-    drive_base.straight(890)
-    drive_base.turn(90) # Face minecart
-    left_big_motor.run_time(200, 750, then=Stop.COAST, wait=False) # Arms back
+    global hub
+    hub.speaker.play_notes(["C4/4", "D4/4", "E4/4"], 500)
+    drive_base.settings(straight_speed=350)
+    drive_base.straight(898)
+    drive_base.turn(88)  # Face minecart
+    left_big_motor.run_time(200, 870, then=Stop.COAST, wait=False)  # Arms back
     right_big_motor.run_time(-200, 800, then=Stop.COAST, wait=False)
-    drive_base.straight(-100) # Give space for arms
+    drive_base.straight(-100)  # Give space for arms
     drive_base.settings(straight_speed=100)
-    drive_base.straight(150)
-    left_big_motor.run_angle(200, 90, then=Stop.HOLD) # Pick up thing
-    right_big_motor.run_angle(400, 90) # Push up minecart track
+    drive_base.straight(180)
+    left_big_motor.run_angle(200, -10, then=Stop.HOLD)  # Pick up thing
+    right_big_motor.run_angle(550, 110)  # Push up minecart track
     drive_base.straight(-50)
-    drive_base.settings(straight_speed=200)
     drive_base.settings(straight_speed=500)
-    drive_base.straight(-180) # Return
+    drive_base.straight(-160)  # Return
     drive_base.turn(90)
-    left_big_motor.run_time(200, 80, then=Stop.COAST, wait=False) # Arms back
+    left_big_motor.run_time(200, -80, then=Stop.COAST, wait=False)  # Arms back
     drive_base.straight(810)
+
 
 def mission_selector():
     if not MISSIONS:
@@ -137,7 +142,7 @@ def mission_selector():
             mission_index = (mission_index + 1) % len(MISSIONS)
             while hub.buttons.pressed():
                 wait(20)
-                
+
             wait(120)
             continue
 
