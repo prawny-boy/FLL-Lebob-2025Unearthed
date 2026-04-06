@@ -91,18 +91,21 @@ def mission_2():
     db.settings(straight_speed=500)
     #  rbm.run_time(200, 3000, then=Stop.COAST, wait=False)
     lbm.run_time(-200, 2000, then=Stop.COAST, wait=False)
-    db.straight(680)
+    rbm.run_time(-200, 500, then=Stop.COAST, wait=False)
+    db.straight(675)
     db.turn(-25)
+    lbm.run_time(100, 1000, then=Stop.COAST, wait=True)
     db.straight(130)
     rbm.run_angle(400, 90, wait=True)
-    db.turn(-5)
-    db.straight(-140)
-    db.turn(35)
-    db.straight(-120)
-    lbm.run_angle(150, 70)
-    db.straight(-90)
+    db.use_gyro(False)
     db.turn(10)
-    db.straight(-PID) # The solution to all our [problems] is PID!!!!!!!!!!!!!!!!!!!!!!!
+    #db.turn(-5)
+    db.use_gyro(True)
+    db.settings(straight_speed=250)
+    db.straight(-130)
+    db.settings(straight_speed=500)
+    db.straight(-200)
+
 
 @mission
 def mission_3():
@@ -118,7 +121,8 @@ def mission_3():
     db.settings(straight_speed=100)
     db.straight(180)
     lbm.run_angle(200, -10, then=Stop.HOLD)  # Pick up thing
-    rbm.run_angle(550, 110)  # Push up minecart track
+    rbm.dc(80)  # Push up minecart track
+    wait(1000)
     db.straight(-50)
     db.settings(straight_speed=500)
     db.straight(-160)  # Return
