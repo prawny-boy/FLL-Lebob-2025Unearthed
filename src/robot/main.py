@@ -14,37 +14,25 @@ PID = 550
 hub = PrimeHub()
 
 # Drive motors
-left_drive = Motor(Port.D, positive_direction=Direction.COUNTERCLOCKWISE)
-right_drive = Motor(Port.C, positive_direction=Direction.CLOCKWISE)
+ld = Motor(Port.D, positive_direction=Direction.COUNTERCLOCKWISE)
+rd = Motor(Port.C, positive_direction=Direction.CLOCKWISE)
 
 # FLL attachment motors
-left_big_motor = Motor(Port.F)
-right_big_motor = Motor(Port.E)
+lbm = Motor(Port.F)
+rbm = Motor(Port.E)
 
 # DriveBase
-drive_base = DriveBase(
-    left_drive,
-    right_drive,
+db = DriveBase(
+    ld,
+    rd,
     wheel_diameter=DRIVEBASE_WHEEL_DIAMETER,
     axle_track=DRIVEBASE_AXLE_TRACK,
 )
 
-drive_base.use_gyro(True)
+db.use_gyro(True)
 
 
 MISSIONS = []
-
-# Spinning dot around the border of the 5x5 display (clockwise)
-_BORDER = [
-    (0,0),(0,1),(0,2),(0,3),(0,4),
-    (1,4),(2,4),(3,4),(4,4),
-    (4,3),(4,2),(4,1),(4,0),
-    (3,0),(2,0),(1,0),
-]
-_RUNNING_ANIMATION = [
-    [[100 if (row == r and col == c) else 0 for col in range(5)] for row in range(5)]
-    for r, c in _BORDER
-]
 
 
 def mission(func):
@@ -54,93 +42,93 @@ def mission(func):
 
 
 def reset_robot_state():
-    drive_base.stop()
-    left_big_motor.stop()
-    right_big_motor.stop()
+    db.stop()
+    lbm.stop()
+    rbm.stop()
 
 
 @mission
 def mission_1(easy_mode: bool = True, scale: float = 1):
     """Movement test."""
     if easy_mode:
-        drive_base.straight(400)
-        drive_base.turn(10)
-        left_big_motor.run_target(500, 90)
+        db.straight(400)
+        db.turn(10)
+        lbm.run_target(500, 90)
         for _ in range(3):
-            left_big_motor.dc(100)
+            lbm.dc(100)
             wait(500)
-            left_big_motor.run_target(500, 135)
+            lbm.run_target(500, 135)
 
     else:
-        drive_base.straight(100 * scale)
-        drive_base.turn(113)
-        drive_base.straight(-250 * scale)
-        drive_base.turn(-106)
-        drive_base.straight(168 * scale)
-        drive_base.turn(80)
-        drive_base.straight(220 * scale)
-        drive_base.straight(200 * scale)
-        drive_base.straight(240 * scale)
-        drive_base.turn(136.2056)
-        drive_base.straight(10 * scale)
-        drive_base.straight(277 * scale)
-        drive_base.turn(-19.5244)
-        drive_base.straight(-310 * scale)
-        drive_base.straight(-10 * scale)
-        drive_base.turn(401.2188)
-        drive_base.straight(300 * scale)
-        drive_base.turn(-180)
-        drive_base.straight(-375 * scale)
-        drive_base.turn(48)
-        drive_base.straight(250 * scale)
-        drive_base.turn(-113)
-        drive_base.straight(-100 * scale)
+        db.straight(100 * scale)
+        db.turn(113)
+        db.straight(-250 * scale)
+        db.turn(-106)
+        db.straight(168 * scale)
+        db.turn(80)
+        db.straight(220 * scale)
+        db.straight(200 * scale)
+        db.straight(240 * scale)
+        db.turn(136.2056)
+        db.straight(10 * scale)
+        db.straight(277 * scale)
+        db.turn(-19.5244)
+        db.straight(-310 * scale)
+        db.straight(-10 * scale)
+        db.turn(401.2188)
+        db.straight(300 * scale)
+        db.turn(-180)
+        db.straight(-375 * scale)
+        db.turn(48)
+        db.straight(250 * scale)
+        db.turn(-113)
+        db.straight(-100 * scale)
 
 
 @mission
 def mission_2():
     """Do brush and map."""
-    drive_base.settings(straight_speed=500)
-    left_big_motor.run_time(200, 1000, then=Stop.COAST, wait=False)
-    #  right_big_motor.run_time(200, 2000, then=Stop.COAST, wait=False)
-    drive_base.straight(690)
-    drive_base.turn(-25)
-    drive_base.straight(130)
-    right_big_motor.run_time(-1000, 1000, wait=True)
-    #  left_big_motor.run_time(-1000, 1000, wait=False)
-    drive_base.straight(-130)
-    drive_base.turn(35)
-    drive_base.straight(-200)
-    drive_base.turn(15)
-    drive_base.straight(-PID)
-    #  drive_base.turn(-60)
-    #  drive_base.straight(-300)
+    db.settings(straight_speed=500)
+    #  rbm.run_time(200, 3000, then=Stop.COAST, wait=False)
+    lbm.run_time(-200, 2000, then=Stop.COAST, wait=False)
+    db.straight(680)
+    db.turn(-25)
+    db.straight(130)
+    rbm.run_angle(400, 90, wait=True)
+    db.turn(-5)
+    db.straight(-140)
+    db.turn(35)
+    db.straight(-120)
+    lbm.run_angle(150, 70)
+    db.straight(-90)
+    db.turn(10)
+    db.straight(-PID) # The solution to all our [problems] is PID!!!!!!!!!!!!!!!!!!!!!!!
 
 @mission
 def mission_3():
     """Do your minecart and artefact."""
     global hub
     hub.speaker.play_notes(["C4/4", "D4/4", "E4/4"], 500)
-    drive_base.settings(straight_speed=350)
-    drive_base.straight(898)
-    drive_base.turn(88)  # Face minecart
-    left_big_motor.run_time(200, 870, then=Stop.COAST, wait=False)  # Arms back
-    right_big_motor.run_time(-200, 800, then=Stop.COAST, wait=False)
-    drive_base.straight(-100)  # Give space for arms
-    drive_base.settings(straight_speed=100)
-    drive_base.straight(180)
-    left_big_motor.run_angle(200, -10, then=Stop.HOLD)  # Pick up thing
-    right_big_motor.run_angle(550, 110)  # Push up minecart track
-    drive_base.straight(-50)
-    drive_base.settings(straight_speed=500)
-    drive_base.straight(-160)  # Return
-    drive_base.turn(90)
-    left_big_motor.run_time(200, -80, then=Stop.COAST, wait=False)  # Arms back
-    drive_base.straight(810)
+    db.settings(straight_speed=350)
+    db.straight(898)
+    db.turn(88)  # Face minecart
+    lbm.run_time(200, 870, then=Stop.COAST, wait=False)  # Arms back
+    rbm.run_time(-200, 800, then=Stop.COAST, wait=False)
+    db.straight(-100)  # Give space for arms
+    db.settings(straight_speed=100)
+    db.straight(180)
+    lbm.run_angle(200, -10, then=Stop.HOLD)  # Pick up thing
+    rbm.run_angle(550, 110)  # Push up minecart track
+    db.straight(-50)
+    db.settings(straight_speed=500)
+    db.straight(-160)  # Return
+    db.turn(90)
+    lbm.run_time(200, -80, then=Stop.COAST, wait=False)  # Arms back
+    db.straight(810)
 
 @mission
 def mission_4():
-    right_big_motor.dc(-100)
+    rbm.dc(-100)
     wait(1000)
 
 def mission_selector():
@@ -174,7 +162,6 @@ def mission_selector():
             while hub.buttons.pressed():
                 wait(20)
             hub.light.on(Color.GREEN)
-            hub.display.animate(_RUNNING_ANIMATION, interval=80)
             try:
                 MISSIONS[mission_index]()
             finally:
