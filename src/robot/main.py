@@ -204,7 +204,6 @@ def mission_3():
     db.settings(straight_speed=100)
     db.straight(170)  # Drive into the minecart area
     lbm.run_angle(200, -12)  # Pick up artefact
-    #  rbm.run_angle(500, 50)  # Push up minecart THIS IS DGONIGNG TO WRONG WAY
     rbm.dc(100)  # Push up minecart track
     wait(500)
     lbm.run_angle(150, -25, then=Stop.COAST, wait=False)
@@ -219,10 +218,46 @@ def mission_3():
 
 @mission
 def mission_4():
+    """Silo, flip, boulders, heavy."""
+    db.straight(170)  # Drive up to silo
+
+    smash_silo_times = 10
+    for _ in range(smash_silo_times):
+        rbm.run_angle(500, -90, then=Stop.COAST)  # Smash silo
+        wait(200)
+        rbm.run_angle(500, 90)  # Arm back up
+        wait(200)
+
+    db.turn(-45)  # Start doing to flip and boulders.
+    db.straight(90)
+    db.turn(45)
+    db.straight(450)
+
+    db.turn(27)  # Face heavy
+    rbm.run_angle(500, 90, then=Stop.COAST)  # Arm to hit heavy
+    db.turn(28)  # Turn and push heavy off
+    rbm.run_angle(500, -90)  # Arm back up
+    db.turn(-45)
+    lbm.run_angle(400, -30)
+
+    db.straight(-500)  # Drive back to the start
+    db.turn(-25)
+    db.straight(-300)
+
+@mission
+def mission_5(): # ship
     reset_headings()
-    rbm.dc(-100)
+    db.settings(straight_speed=500)
+    db.straight(340)
+    db.settings(straight_speed=250)
+    db.straight(200)
+    lbm.dc(100)
+    wait(500) #  Slam arm down
+    rbm.dc(100)
     wait(1000)
 
+@mission
+def mission_6(): 
 
 def mission_selector():
     mission_index = 0
