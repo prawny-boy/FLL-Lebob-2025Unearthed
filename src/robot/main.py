@@ -4,7 +4,7 @@ from pybricks.hubs import PrimeHub
 from pybricks.parameters import Button, Color, Direction, Port, Side, Stop
 from pybricks.pupdevices import Motor
 from pybricks.robotics import DriveBase
-from pybricks.tools import wait
+from pybricks.tools import wait, Matrix
 
 DRIVEBASE_WHEEL_DIAMETER = 62.4  # Medium treaded wheel diameter (mm)
 DRIVEBASE_AXLE_TRACK = 130
@@ -31,7 +31,83 @@ db = DriveBase(
 
 db.use_gyro(True)
 
+# Numbers
+NUMBERS_MATRIX = {
+    1: Matrix(
+        [
+            [0, 1, 1, 1, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 1, 1, 1, 0],
+        ]
+    )
+    * 100,
+    3: Matrix(
+        [
+            [1, 1, 1, 1, 1],
+            [0, 0, 0, 0, 0],
+            [0, 1, 1, 1, 0],
+            [0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 1],
+        ]
+    )
+    * 100,
+    4: Matrix(
+        [
+            [1, 1, 0, 1, 1],
+            [1, 1, 0, 1, 1],
+            [0, 0, 0, 0, 0],
+            [1, 1, 0, 1, 1],
+            [1, 1, 0, 1, 1],
+        ]
+    )
+    * 100,
+    6: Matrix(
+        [
+            [0, 1, 0, 1, 0],
+            [0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0],
+            [0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0],
+        ]
+    )
+    * 100,
+    7: Matrix(
+        [
+            [1, 0, 1, 1, 1],
+            [1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 1],
+            [1, 1, 1, 0, 1],
+        ]
+    )
+    * 100,
+    9: Matrix(
+        [
+            [1, 0, 1, 0, 1],
+            [0, 0, 0, 0, 0],
+            [1, 0, 1, 0, 1],
+            [0, 0, 0, 0, 0],
+            [1, 0, 1, 0, 1],
+        ]
+    )
+    * 100,
+    10: Matrix(
+        [
+            [0, 1, 0, 1, 0],
+            [0, 1, 0, 1, 0],
+            [0, 0, 1, 0, 0],
+            [0, 1, 0, 1, 0],
+            [0, 1, 0, 1, 0],
+        ]
+    )
+    * 100,
+}
 
+USE_DEFAULT_NUMBERS = [2, 5, 8]
+
+# Missions
 MISSIONS = []
 
 
@@ -96,7 +172,6 @@ def mission_1(easy_mode: bool = True, scale: float = 1):
 @mission
 def mission_2():
     """Do brush and map."""
-    reset_headings()
     db.settings(straight_speed=500)
     #  rbm.run_time(200, 3000, then=Stop.COAST, wait=False)
     lbm.run_time(-200, 2000, then=Stop.COAST, wait=False)
@@ -108,7 +183,7 @@ def mission_2():
     rbm.run_angle(400, 90, wait=True)
     db.use_gyro(False)
     db.turn(10)
-    #db.turn(-5)
+    # db.turn(-5)
     db.use_gyro(True)
     db.settings(straight_speed=250)
     db.straight(-130)
@@ -119,30 +194,28 @@ def mission_2():
 @mission
 def mission_3():
     """Do your minecart and artefact."""
-    reset_headings()
-    global hub
-    hub.speaker.play_notes(["C4/4", "D4/4", "E4/4"], 500)
     db.settings(straight_speed=350)
     db.straight(905)
-    db.turn(88)  # Face minecart
-    #lbm.dc(100)  # Arms back
+    db.turn(90.1)  # Face minecart
     rbm.run_time(-200, 800, then=Stop.COAST, wait=False)
-    #lbm.dc(100)
-    db.straight(-100)  # Give space for arms
-    lbm.dc(100)  # Arms back
-    db.settings(straight_speed=100)
-    db.straight(180)
     lbm.stop()
-    lbm.reset_angle(0)
-    lbm.run_angle(200, -97, then=Stop.HOLD, wait=True)  # Pick up thing
+    db.straight(-90)  # Give space for arms
+    lbm.run_time(200, 870, then=Stop.COAST)  # Left arm down
+    db.settings(straight_speed=100)
+    db.straight(170)  # Drive into the minecart area
+    lbm.run_angle(200, -12)  # Pick up artefact
+    #  rbm.run_angle(500, 50)  # Push up minecart THIS IS DGONIGNG TO WRONG WAY
     rbm.dc(100)  # Push up minecart track
-    wait(1000)
+    wait(500)
+    lbm.run_angle(150, -25, then=Stop.COAST, wait=False)
     db.straight(-50)
+    rbm.stop()
     db.settings(straight_speed=500)
     db.straight(-160)  # Return
     db.turn(90)
     lbm.run_time(200, -80, then=Stop.COAST, wait=False)  # Arms back
     db.straight(810)
+
 
 @mission
 def mission_4():
@@ -150,16 +223,18 @@ def mission_4():
     rbm.dc(-100)
     wait(1000)
 
-def mission_selector():
-    if not MISSIONS:
-        while True:
-            hub.display.char("0")
-            wait(200)
 
+def mission_selector():
     mission_index = 0
 
+    if not MISSIONS:
+        raise ValueError("MISSIONS is empty.")
+
     while True:
-        hub.display.char(str(mission_index + 1))
+        if (mission_index + 1) in USE_DEFAULT_NUMBERS:
+            hub.display.char(str(mission_index + 1))
+        else:
+            hub.display.icon(NUMBERS_MATRIX[mission_index + 1])
         pressed = hub.buttons.pressed()
 
         if Button.LEFT in pressed:
