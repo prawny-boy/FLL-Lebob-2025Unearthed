@@ -221,9 +221,10 @@ def mission_4():
     """Silo, flip, boulders, heavy."""
     db.settings(straight_speed=400)
     db.straight(310)  # Drive up to silo
+    lbm.hold() # Hold arm up to prevent wobbling
 
-    #smash_silo_times = 3
-    #for _ in range(smash_silo_times):
+    # smash_silo_times = 3
+    # for _ in range(smash_silo_times):
     #    rbm.dc(-40) # Smash siloun_angle(400, 90)
     #    wait(500)
     #    rbm.stop()
@@ -233,35 +234,55 @@ def mission_4():
     #    wait(800) # Stop wobbling
 
     db.turn(-45)  # Start doing to flip and boulders.
-    db.straight(150)
+    db.straight(180)
     db.turn(45)
-    db.straight(220)
-    db.settings(straight_speed=200)
-    db.turn(20)  # Face heavy
-    db.straight(74)
-    lbm.run_angle(400, 90)
-    rbm.run_angle(500, -90, then=Stop.COAST)  # Arm to hit heavy
-    db.turn(28)  # Turn and push heavy off
-    rbm.run_angle(500, 90)  # Arm back up
-    db.turn(-45)
+    db.straight(177)
 
-    db.settings(straight_speed=400)
-    db.straight(-100)  # Drive back to the 
-    db.turn(-18)
-    db.straight(-400)
+    db.settings(straight_speed=150, turn_rate=150)
+    db.turn(22)  # Face heavy
+    db.straight(84)
+    #lbm.run_angle(400, 100)
+    lbm.run_until_stalled(400, then=Stop.COAST)
+    #rbm.run_angle(500, -45, then=Stop.COAST)  # Arm to hit heavy
+    rbm.dc(-100)
+    wait(200)
+    db.settings(turn_rate=500)
+    db.turn(30)  # Turn and push heavy off
+    db.settings(straight_speed=400, turn_rate=200)
+    #rbm.run_angle(700, 90)  # Arm back up
+    rbm.dc(100)
+    wait(500)
+    rbm.hold()
+
+    hub.speaker.beep(440, 400)
+    db.turn(-25)
+    db.arc(500, -80)
+    #db.straight(-800)
+
+    # db.straight(-80)  # Drive back to the
+    # db.settings(turn_rate=40)
+    # db.turn(-55)
+    # db.straight(-130)
+    # db.turn(-35)
+    # db.settings(straight_speed=400, turn_rate=200)
+    # db.straight(-600)
+
 
 @mission
-def mission_5(): # ship
+def mission_5():  # ship
     reset_headings()
     rbm.hold()
     db.settings(straight_speed=500)
     db.straight(450)
     db.settings(straight_speed=250)
     db.straight(200)
-   # lbm.dc(-100)
-   # wait(500) #  Slam arm down
-   # rbm.dc(100)
-   # wait(1000)
+
+
+# lbm.dc(-100)
+# wait(500) #  Slam arm down
+# rbm.dc(100)
+# wait(1000)
+
 
 @mission
 def mission_6():
