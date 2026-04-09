@@ -244,11 +244,12 @@ def mission_4():
     #lbm.run_angle(400, 100)
     lbm.run_until_stalled(400, then=Stop.COAST)
     #rbm.run_angle(500, -45, then=Stop.COAST)  # Arm to hit heavy
-    rbm.dc(-100)
+    rbm.dc(-40)
+    hub.speaker.beep(44
     wait(200)
     db.settings(turn_rate=500)
     db.turn(30)  # Turn and push heavy off
-    db.settings(straight_speed=400, turn_rate=200)
+    db.settings(straight_speed=600, turn_rate=200)
     #rbm.run_angle(700, 90)  # Arm back up
     rbm.dc(100)
     wait(500)
@@ -256,7 +257,7 @@ def mission_4():
 
     hub.speaker.beep(440, 400)
     db.turn(-25)
-    db.arc(500, -80)
+    db.arc(500, -90)
     #db.straight(-800)
 
     # db.straight(-80)  # Drive back to the
