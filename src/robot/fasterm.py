@@ -221,10 +221,9 @@ def mission_4():
     """Silo, flip, boulders, heavy."""
     db.settings(straight_speed=400)
     db.straight(310)  # Drive up to silo
-    lbm.hold() # Hold arm up to prevent wobbling
 
-    # smash_silo_times = 3
-    # for _ in range(smash_silo_times):
+    #smash_silo_times = 3
+    #for _ in range(smash_silo_times):
     #    rbm.dc(-40) # Smash siloun_angle(400, 90)
     #    wait(500)
     #    rbm.stop()
@@ -233,42 +232,36 @@ def mission_4():
     #    rbm.hold()
     #    wait(800) # Stop wobbling
 
-    db.turn(-55.1195)
-    db.arc(300, 85) # THIS ARC IS MAGIC, DO NOT TOUCH
-    db.turn(-10)
+    db.turn(-45)  # Start doing to flip and boulders.
+    db.straight(150)
+    db.turn(45)
+    db.straight(220)
+    db.settings(straight_speed=200)
+    db.turn(20)  # Face heavy
+    db.straight(74)
+    lbm.run_angle(400, 90)
+    rbm.run_angle(500, -90, then=Stop.COAST)  # Arm to hit heavy
+    db.turn(28)  # Turn and push heavy off
+    rbm.run_angle(500, 90)  # Arm back up
+    db.turn(-45)
 
-    db.settings(straight_speed=150, turn_rate=150)
-    # lbm.run_angle(400, 100, wait=False)
-    lbm.run_until_stalled(600)
-    rbm.run_angle(500, -60, then=Stop.COAST)  # Arm to hit heavy
-    db.settings(turn_rate=750, turn_acceleration=750)
-    wait(600)
-    db.turn(40)  # Turn and push heavy off
-    db.settings(straight_speed=600, turn_rate=200, turn_acceleration=150)
-    rbm.run_angle(700, 100, wait=False)  # Arm back up
-    # rbm.dc(100)
-    # wait(600)
-    # rbm.hold()
-    
-    db.turn(-10)
-    db.arc(320, -135)
-
+    db.settings(straight_speed=400)
+    db.straight(-100)  # Drive back to the 
+    db.turn(-18)
+    db.straight(-400)
 
 @mission
-def mission_5():  # ship
+def mission_5(): # ship
     reset_headings()
     rbm.hold()
     db.settings(straight_speed=500)
     db.straight(450)
     db.settings(straight_speed=250)
     db.straight(200)
-
-
-# lbm.dc(-100)
-# wait(500) #  Slam arm down
-# rbm.dc(100)
-# wait(1000)
-
+   # lbm.dc(-100)
+   # wait(500) #  Slam arm down
+   # rbm.dc(100)
+   # wait(1000)
 
 @mission
 def mission_6():
@@ -276,7 +269,7 @@ def mission_6():
 
 
 def mission_selector():
-    mission_index = 3
+    mission_index = 0
 
     if not MISSIONS:
         raise ValueError("MISSIONS is empty.")
@@ -319,19 +312,13 @@ def mission_selector():
 
 
 def main():
-    # Buttons
     hub.system.set_stop_button(Button.BLUETOOTH)
     hub.display.orientation(Side.BOTTOM)
-    reset_robot_state() # Stop motors
-    hub.light.on(Color.BLUE) # Ready
-
-    # Battery
+    reset_robot_state()
     voltage = hub.battery.voltage()
     percentage = max(0, min(100, (voltage - 6000) * 100 // (8400 - 6000)))
     print("Battery: " + str(percentage) + "% (" + str(voltage) + " mV)")
-    print(f"Settings: {tuple(db.settings())}")
-    
-    # Start mission selector
+    hub.light.on(Color.BLUE)
     mission_selector()
 
 
