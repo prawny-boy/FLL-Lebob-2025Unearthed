@@ -173,22 +173,43 @@ def mission_1(easy_mode: bool = True, scale: float = 1):
 def mission_2():
     """Do brush and map."""
     db.settings(straight_speed=500)
-    #  rbm.run_time(200, 3000, then=Stop.COAST, wait=False)
-    lbm.run_time(-200, 2000, then=Stop.COAST, wait=False)
-    rbm.run_time(-200, 500, then=Stop.COAST, wait=False)
-    db.straight(675)
-    db.turn(-25)
-    lbm.run_time(100, 1000, then=Stop.COAST, wait=True)
-    db.straight(130)
-    rbm.run_angle(400, 90, wait=True)
-    db.use_gyro(False)
-    db.turn(10)
-    # db.turn(-5)
-    db.use_gyro(True)
-    db.settings(straight_speed=250)
-    db.straight(-130)
-    db.settings(straight_speed=500)
-    db.straight(-200)
+    # Brush
+    db.straight(650) # Drive forward and push brush forward
+    lbm.run_angle(200, -90)
+    db.straight(-120)
+    lbm.run_angle(200, 90)
+    db.straight(100)
+
+    # Move to map
+    db.turn(45)
+    db.straight(145)
+    db.turn(-90) # Face map
+    db.straight(280)
+
+    rbm.run_angle(200, 90) # Pick up liftable map
+
+
+
+
+
+
+
+    # #  rbm.run_time(200, 3000, then=Stop.COAST, wait=False)
+    # lbm.run_time(-200, 2000, then=Stop.COAST, wait=False)
+    # rbm.run_time(-200, 500, then=Stop.COAST, wait=False)
+    # db.straight(675)
+    # db.turn(-25)
+    # lbm.run_time(100, 1000, then=Stop.COAST, wait=True)
+    # db.straight(130)
+    # rbm.run_angle(400, 90, wait=True)
+    # db.use_gyro(False)
+    # db.turn(10)
+    # # db.turn(-5)
+    # db.use_gyro(True)
+    # db.settings(straight_speed=250)
+    # db.straight(-130)
+    # db.settings(straight_speed=500)
+    # db.straight(-200)
 
 
 @mission
@@ -282,7 +303,7 @@ def mission_6():
 
 
 def mission_selector():
-    mission_index = 3
+    mission_index = 1
 
     if not MISSIONS:
         raise ValueError("MISSIONS is empty.")
