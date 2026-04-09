@@ -175,19 +175,21 @@ def mission_2():
     db.settings(straight_speed=500)
     # Brush
     db.straight(650) # Drive forward and push brush forward
-    lbm.run_angle(200, -90)
-    db.straight(-120)
+    lbm.run_angle(200, -95)
+    db.straight(-95)
     lbm.run_angle(200, 90)
-    db.straight(100)
+    db.straight(70)
 
     # Move to map
     db.turn(45)
-    db.straight(145)
-    db.turn(-90) # Face map
-    db.straight(280)
+    db.straight(134)
+    db.turn(-88) # Face map
+    db.straight(150)
 
     rbm.run_angle(200, 90) # Pick up liftable map
-
+    db.straight(-140)
+    db.turn(55)
+    db.straight(-750)
 
 
 
