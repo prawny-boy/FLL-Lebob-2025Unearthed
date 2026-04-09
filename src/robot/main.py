@@ -192,28 +192,6 @@ def mission_2():
     db.straight(-750)
 
 
-
-
-
-
-    # #  rbm.run_time(200, 3000, then=Stop.COAST, wait=False)
-    # lbm.run_time(-200, 2000, then=Stop.COAST, wait=False)
-    # rbm.run_time(-200, 500, then=Stop.COAST, wait=False)
-    # db.straight(675)
-    # db.turn(-25)
-    # lbm.run_time(100, 1000, then=Stop.COAST, wait=True)
-    # db.straight(130)
-    # rbm.run_angle(400, 90, wait=True)
-    # db.use_gyro(False)
-    # db.turn(10)
-    # # db.turn(-5)
-    # db.use_gyro(True)
-    # db.settings(straight_speed=250)
-    # db.straight(-130)
-    # db.settings(straight_speed=500)
-    # db.straight(-200)
-
-
 @mission
 def mission_3():
     """Do your minecart and artefact."""
