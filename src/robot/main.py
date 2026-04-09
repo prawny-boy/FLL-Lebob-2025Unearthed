@@ -233,30 +233,32 @@ def mission_4():
     #    rbm.hold()
     #    wait(800) # Stop wobbling
 
-    db.turn(-45)  # Start doing to flip and boulders.
-    db.straight(180)
-    db.turn(45)
-    db.straight(177)
+    # db.turn(-45)  # Start doing to flip and boulders.
+    # db.straight(180)
+    # db.turn(45)
+    # db.straight(177)
+
+    # db.turn(22)  # Face heavy
+    # db.straight(84)
+
+    db.turn(-55.1195)
+    db.arc(300, 85) # THIS ARC IS MAGIC, DO NOT TOUCH
+    db.turn(-10)
 
     db.settings(straight_speed=150, turn_rate=150)
-    db.turn(22)  # Face heavy
-    db.straight(84)
-    #lbm.run_angle(400, 100)
-    lbm.run_until_stalled(400, then=Stop.COAST)
-    #rbm.run_angle(500, -45, then=Stop.COAST)  # Arm to hit heavy
-    rbm.dc(-40)
-    wait(400)
-    db.settings(turn_rate=700)
-    db.turn(30)  # Turn and push heavy off
-    db.settings(straight_speed=600, turn_rate=200)
-    #rbm.run_angle(700, 90)  # Arm back up
+    # lbm.run_angle(400, 100, wait=False)
+    lbm.run_until_stalled(600)
+    rbm.run_angle(500, -60, then=Stop.COAST)  # Arm to hit heavy
+    db.settings(turn_rate=750, turn_acceleration=750)
+    wait(600)
+    db.turn(40)  # Turn and push heavy off
+    db.settings(straight_speed=600, turn_rate=200, turn_acceleration=150)
+    # rbm.run_angle(700, 80)  # Arm back up
     rbm.dc(100)
-    wait(500)
+    wait(600)
     rbm.hold()
-
-    hub.speaker.beep(440, 400)
-    db.turn(-25)
-    db.arc(430, -110)
+    
+    db.arc(320, -135)
     #db.straight(-800)
 
     # db.straight(-80)  # Drive back to the
@@ -290,7 +292,7 @@ def mission_6():
 
 
 def mission_selector():
-    mission_index = 0
+    mission_index = 3
 
     if not MISSIONS:
         raise ValueError("MISSIONS is empty.")
@@ -333,13 +335,19 @@ def mission_selector():
 
 
 def main():
+    # Buttons
     hub.system.set_stop_button(Button.BLUETOOTH)
     hub.display.orientation(Side.BOTTOM)
-    reset_robot_state()
+    reset_robot_state() # Stop motors
+    hub.light.on(Color.BLUE) # Ready
+
+    # Battery
     voltage = hub.battery.voltage()
     percentage = max(0, min(100, (voltage - 6000) * 100 // (8400 - 6000)))
     print("Battery: " + str(percentage) + "% (" + str(voltage) + " mV)")
-    hub.light.on(Color.BLUE)
+    print(f"Settings: {tuple(db.settings())}")
+    
+    # Start mission selector
     mission_selector()
 
 
