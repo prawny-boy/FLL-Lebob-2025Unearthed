@@ -221,7 +221,7 @@ def mission_4():
     """Silo, flip, boulders, heavy."""
     db.settings(straight_speed=400)
     db.straight(310)  # Drive up to silo
-    lbm.hold() # Hold arm up to prevent wobbling
+    lbm.hold()  # Hold arm up to prevent wobbling
 
     # smash_silo_times = 3
     # for _ in range(smash_silo_times):
@@ -234,24 +234,30 @@ def mission_4():
     #    wait(800) # Stop wobbling
 
     db.turn(-55.1195)
-    db.arc(300, 85) # THIS ARC IS MAGIC, DO NOT TOUCH
+    db.arc(300, 85)  # THIS ARC IS MAGIC, DO NOT TOUCH
     db.turn(-10)
 
-    db.settings(straight_speed=150, turn_rate=150)
+    db.settings(straight_speed=150, turn_rate=130)
     # lbm.run_angle(400, 100, wait=False)
-    lbm.run_until_stalled(600)
-    rbm.run_angle(500, -60, then=Stop.COAST)  # Arm to hit heavy
-    db.settings(turn_rate=750, turn_acceleration=750)
-    wait(600)
+    lbm.run_until_stalled(400)
+    rbm.run_angle(600, -90, then=Stop.COAST)  # Arm to hit heavy
+    wait(400)
     db.turn(40)  # Turn and push heavy off
-    db.settings(straight_speed=600, turn_rate=200, turn_acceleration=150)
-    rbm.run_angle(700, 100, wait=False)  # Arm back up
-    # rbm.dc(100)
-    # wait(600)
-    # rbm.hold()
-    
-    db.turn(-10)
-    db.arc(320, -135)
+
+    # Arm back up
+    rbm.dc(85)
+    wait(410)
+    rbm.stop()
+
+    # Return
+    # TODO: Make into an arc
+    db.settings(straight_speed=400, turn_rate=90, turn_acceleration=180)
+    db.straight(-80)
+    db.turn(-80)
+    rbm.run_angle(
+        300, -25, wait=False
+    )  # Raise arm so it fits TODO: Check if this works
+    db.straight(-700)
 
 
 @mission
@@ -322,15 +328,15 @@ def main():
     # Buttons
     hub.system.set_stop_button(Button.BLUETOOTH)
     hub.display.orientation(Side.BOTTOM)
-    reset_robot_state() # Stop motors
-    hub.light.on(Color.BLUE) # Ready
+    reset_robot_state()  # Stop motors
+    hub.light.on(Color.BLUE)  # Ready
 
     # Battery
     voltage = hub.battery.voltage()
     percentage = max(0, min(100, (voltage - 6000) * 100 // (8400 - 6000)))
     print("Battery: " + str(percentage) + "% (" + str(voltage) + " mV)")
     print(f"Settings: {tuple(db.settings())}")
-    
+
     # Start mission selector
     mission_selector()
 
