@@ -174,7 +174,7 @@ def mission_2():
     """Do brush and map."""
     db.settings(straight_speed=500)
     # Brush
-    db.straight(650) # Drive forward and push brush forward
+    db.straight(650)  # Drive forward and push brush forward
     lbm.run_angle(200, -95)
     db.straight(-95)
     lbm.run_angle(200, 90)
@@ -183,10 +183,10 @@ def mission_2():
     # Move to map
     db.turn(45)
     db.straight(134)
-    db.turn(-88) # Face map
+    db.turn(-88)  # Face map
     db.straight(150)
 
-    rbm.run_angle(200, 90) # Pick up liftable map
+    rbm.run_angle(200, 90)  # Pick up liftable map
     db.straight(-140)
     db.turn(55)
     db.straight(-750)
@@ -270,21 +270,20 @@ def mission_5():  # ship
     db.settings(straight_speed=250)
     db.straight(200)
 
+
 @mission
 def mission_6():
     reset_headings()
     db.straight(320)
     db.turn(-45)
-    db.straight(
-                120
-                )
+    db.straight(120)
     rbm.run_angle(400, -100, then=Stop.BRAKE)
     wait(600)
     db.straight(-85)
     rbm.run_angle(200, 100, wait=False)
     db.straight(-150)
     db.straight(220)
-    rd.run_time(400, 1000, then=Stop.COAST) # Turn left by only moving the right wheel
+    rd.run_time(400, 1000, then=Stop.COAST)  # Turn left by only moving the right wheel
     db.straight(340)
     db.right(130)
     db.straight(130)
@@ -292,8 +291,6 @@ def mission_6():
     rbm.run_angle(200, 90)
     db.straight(-170)
     hub.speaker.beep(440, 1000)
-
-
 
 
 @mission
