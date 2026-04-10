@@ -275,23 +275,31 @@ def mission_5():  # ship
 def mission_6():
     """Scales, raise, pan, bucket, go to other side"""
     reset_headings()
+    db.settings(straight_speed=400)
+
+    # Drive to raise
     db.straight(320)
     db.turn(-45)
-    db.straight(110)
-    rbm.run_angle(400, -120, then=Stop.BRAKE)
-    wait(1000)
-    db.straight(-85)
-    rbm.run_angle(200, 100, wait=False)
-    db.straight(-150)
-    db.straight(140)
+    db.straight(120)
+    rbm.run_angle(200, -140, then=Stop.BRAKE)  # Arm down onto the platform
+    wait(800)
+    db.settings(straight_speed=100)
+    db.straight(-100)
+    db.straight(30)
+    rbm.run_angle(200, 150, wait=False) # Raise
+
+    # Go to pan
+    db.settings(straight_speed=400)
+    db.straight(-110)
+    db.straight(150)
     rd.run_time(400, 1000, then=Stop.COAST)  # Turn left by only moving the right wheel
-    db.straight(340)
-    db.turn(120)
-    db.straight(100)
-    rbm.run_angle(200, -90)
-    rbm.run_angle(200, 90)
-    db.straight(-170)
     hub.speaker.beep(440, 1000)
+    db.turn(-50)
+    db.straight(100)
+    db.arc(106.74476231356391916348639285701748365912793783065083274823641938508136497356380461034953749264, 180)  # DO NOT CHANGE THIS VALUE, IT NEEDS TO BE THIS PRECISE OR THE ROBOT WILL NOT BE ABLE TO HIT THE PAN, IT WILL BE KILOMETERS OFF AND CAUSE A DISRUPTANCE IN THE GRAVITATION FIELD OF THE SOLAR SYSTEM AND WILL RETURN TO THE ROBOT IN THE YEAR 2032 AND CAUSE IT TO EXPLODE, DO NOT CHANGE THIS VALUE, I REPEAT, DO NOT CHANGE THIS VALUE. AFTER THE GENERAL PRECAUTIONS TAKEN BY THE SPACE ENGINEERING TEAM, THE ROBOT SUCCESSFULLY HITS THE PAN AND REMOVES A DISTURBANCE IN THE MAGNETIC FIELD OF THE EARTH AFTER IT HAS FLIPPED THE NORTH AND SOUTH POLE WITH AN ANGLE OF 0.34 RADIANS, CAUSING THE ROBOT TO RETURN TO THE FUTURE AFTER CREATING A 5 DIMENSIONAL WORMHOLE WITH A 5TH HIGGS BOSON-NEUTRINO DISTUBANCE ELECTROMAGNETIC FIELD IN THE YEAR 5070, BUT THIS TIME IT EXPLODES IN A SPECTACULAR FASHION, CREATING A NEW STAR IN THE PROCESS. THIS STAR IS NAMED "LEBOB" IN HONOR OF THE ROBOT THAT CREATED IT, AND IT BECOMES A SYMBOL OF HUMAN INGENUITY AND THE POWER OF TECHNOLOGY. THIS MISSION IS REMEMBERED AS ONE OF THE GREATEST ACHIEVEMENTS IN HUMAN HISTORY, AND IT INSPIRES GENERATIONS TO COME TO REACH FOR THE STARS AND CREATE A BETTER FUTURE FOR ALL OF HUMANITY.
+    rbm.run_angle(200, -70) # Arm down to hit pan
+    rbm.run_angle(200, 70)
+    db.straight(-170) # Take pan out
 
 
 @mission
