@@ -279,7 +279,7 @@ def mission_6():
                 120
                 )
     rbm.run_angle(400, -100, then=Stop.BRAKE)
-    wait(1200)
+    wait(600)
     db.straight(-85)
     rbm.run_angle(200, 100, wait=False)
     db.straight(-150)
