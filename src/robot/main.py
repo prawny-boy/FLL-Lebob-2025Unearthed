@@ -273,20 +273,21 @@ def mission_5():  # ship
 
 @mission
 def mission_6():
+    """Scales, raise, pan, bucket, go to other side"""
     reset_headings()
     db.straight(320)
     db.turn(-45)
-    db.straight(120)
-    rbm.run_angle(400, -100, then=Stop.BRAKE)
-    wait(600)
+    db.straight(110)
+    rbm.run_angle(400, -120, then=Stop.BRAKE)
+    wait(1000)
     db.straight(-85)
     rbm.run_angle(200, 100, wait=False)
     db.straight(-150)
-    db.straight(220)
+    db.straight(140)
     rd.run_time(400, 1000, then=Stop.COAST)  # Turn left by only moving the right wheel
     db.straight(340)
-    db.right(130)
-    db.straight(130)
+    db.turn(120)
+    db.straight(100)
     rbm.run_angle(200, -90)
     rbm.run_angle(200, 90)
     db.straight(-170)
@@ -294,7 +295,7 @@ def mission_6():
 
 
 @mission
-def mission_6():
+def mission_7():
     pass
 
 
