@@ -306,7 +306,7 @@ def mission_6():
     rbm.run_angle(400, 120)
     db.straight(-100)  # Take pan out
     db.turn(-68)
-    db.straight(135)
+    db.straight(205)
     db.turn(-64)
 
 
