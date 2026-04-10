@@ -20,6 +20,7 @@ DRIVE_PROFILE = {
 DEFAULT_SETTLE_DELAY = 250
 ROBOT_MAX_TORQUE = 700
 
+
 class PIDController:
     """Basic PID helper reused by the smart drive and turn helpers."""
 
@@ -47,7 +48,9 @@ class PIDController:
     def calculate(self, error):
         self.integral += error * self.loop_delay_time
         if self.integral_limit is not None:
-            self.integral = max(-self.integral_limit, min(self.integral, self.integral_limit))
+            self.integral = max(
+                -self.integral_limit, min(self.integral, self.integral_limit)
+            )
         derivative = (error - self.previous_error) / self.loop_delay_time
         output = self.k_p * error + self.k_i * self.integral + self.k_d * derivative
         if self.output_limit is not None:
@@ -159,9 +162,7 @@ class Robot:
             return
         overrides_applied = False
         if speed is not None:
-            overrides_applied = self._override_drive_settings(
-                straight_speed=speed
-            )
+            overrides_applied = self._override_drive_settings(straight_speed=speed)
         try:
             self.drive_base.straight(-distance, then, wait)
             # distance because backwards
@@ -251,9 +252,7 @@ class Robot:
     def curve(self, radius, angle, then=Stop.COAST, wait=True, speed=None):
         overrides_applied = False
         if speed is not None:
-            overrides_applied = self._override_drive_settings(
-                straight_speed=speed
-            )
+            overrides_applied = self._override_drive_settings(straight_speed=speed)
         try:
             self.drive_base.curve(radius, angle, then, wait)
         finally:
@@ -280,7 +279,8 @@ class Robot:
         # does not start another mission mid-cleaning.
         self.right_big.run_angle(999, 1000)
 
-def run_1(r:Robot):
+
+def run_1(r: Robot):
     "Sweep and map"
     # Position arms
     r.rotate_right_motor(-90, then=Stop.COAST)
@@ -291,74 +291,78 @@ def run_1(r:Robot):
     r.drive_for_distance(-20, then=Stop.COAST, wait=False)
     sleep(500)
 
-    # ALIGN THE 
+    # ALIGN THE
     # Sweep
     r.hub.imu.reset_heading(0)
-    r.drive_for_distance(644) # Drive up to the sweep box
-    r.smart_turn_in_place(-90) # Face thing
+    r.drive_for_distance(644)  # Drive up to the sweep box
+    r.smart_turn_in_place(-90)  # Face thing
     r.drive_for_distance(20)
-    r.smart_turn_in_place(-30) # Sweep left
-    r.smart_turn_in_place(60, speed=200) # Right
-    r.smart_turn_in_place(-30) # Back to middle
+    r.smart_turn_in_place(-30)  # Sweep left
+    r.smart_turn_in_place(60, speed=200)  # Right
+    r.smart_turn_in_place(-30)  # Back to middle
 
     # Brush
-    sleep(200) # Wait for robot to stop moving
-    r.drive_for_distance(-70, speed=200) # Drive back
-    r.smart_turn_in_place(-r.hub.imu.heading() - 90) # Face brush
-    r.rotate_left_motor(90) # Arm down
-    sleep(2000) # Wait for brush to stop moving
-    r.drive_for_distance(75, speed=200, then=Stop.COAST, wait=False) # Drive forward to pick up the brush
-    sleep(800) # Wait for align
-    r.rotate_left_motor(-45, wait=False) # Pick up brush, hold it
+    sleep(200)  # Wait for robot to stop moving
+    r.drive_for_distance(-70, speed=200)  # Drive back
+    r.smart_turn_in_place(-r.hub.imu.heading() - 90)  # Face brush
+    r.rotate_left_motor(90)  # Arm down
+    sleep(2000)  # Wait for brush to stop moving
+    r.drive_for_distance(
+        75, speed=200, then=Stop.COAST, wait=False
+    )  # Drive forward to pick up the brush
+    sleep(800)  # Wait for align
+    r.rotate_left_motor(-45, wait=False)  # Pick up brush, hold it
     sleep(500)
     r.drive_for_distance(-30)
     r.smart_turn_in_place(16)
-    r.rotate_left_motor(-45, speed=600) # Throw into oval
+    r.rotate_left_motor(-45, speed=600)  # Throw into oval
     r.smart_turn_in_place(-16)
 
     # Map
-    r.smart_turn_in_place(48) # Turn to face map
-    r.rotate_left_motor(88, then=Stop.COAST, wait=False) # Arm down
-    r.drive_for_distance(187) # Push map section
+    r.smart_turn_in_place(48)  # Turn to face map
+    r.rotate_left_motor(88, then=Stop.COAST, wait=False)  # Arm down
+    r.drive_for_distance(187)  # Push map section
     sleep(300)
     r.drive_for_distance(-45)
-    r.rotate_left_motor(-90, wait=False) # Arm up
-    r.drive_for_distance(57) # Move to position for sliding the map
+    r.rotate_left_motor(-90, wait=False)  # Arm up
+    r.drive_for_distance(57)  # Move to position for sliding the map
     r.smart_turn_in_place(8)
-    r.rotate_left_motor(85, then=Stop.COAST, wait=False) # Arm down onto the slide map
+    r.rotate_left_motor(85, then=Stop.COAST, wait=False)  # Arm down onto the slide map
     sleep(500)
-    r.drive_for_distance(64) # Slide the map
+    r.drive_for_distance(64)  # Slide the map
 
     # Post map alignment
-    r.rotate_left_motor(-140, then=Stop.COAST, wait=False) # Move long arm out the way
+    r.rotate_left_motor(-140, then=Stop.COAST, wait=False)  # Move long arm out the way
     r.drive_for_distance(-227)
     r.smart_turn_in_place(33)
-    r.drive_for_distance(500, then=Stop.COAST, speed=250) # Go to wall to align
+    r.drive_for_distance(500, then=Stop.COAST, speed=250)  # Go to wall to align
 
-def run_2(r:Robot):
+
+def run_2(r: Robot):
     "Statue and minecart"
     # Minecart
-    r.drive_for_distance(-220) # Drive back from wall
-    r.smart_turn_in_place(90) # Get in position for minecart
+    r.drive_for_distance(-220)  # Drive back from wall
+    r.smart_turn_in_place(90)  # Get in position for minecart
     r.drive_for_distance(150)
 
     # Detour for the statue
-    r.rotate_right_motor(-40, then=Stop.COAST, wait=False) # Move short arm onto ground
-    r.drive_for_distance(204) # Arrive at statue
+    r.rotate_right_motor(-40, then=Stop.COAST, wait=False)  # Move short arm onto ground
+    r.drive_for_distance(204)  # Arrive at statue
     r.drive_for_distance(-10)
     sleep(1000)
-    r.rotate_right_motor(90, speed=500) # Push statue up
+    r.rotate_right_motor(90, speed=500)  # Push statue up
     r.drive_for_distance(-215)
 
     # Back to the minecart
     r.rotate_right_motor(-93, then=Stop.COAST)
-    r.smart_turn_in_place(-90) # Face minecart
-    r.drive_for_distance(50) # Arrive at minecart
-    r.rotate_right_motor(56, speed=50) # Push up minecart
-    sleep(1000) # Wait for minecart to roll down
+    r.smart_turn_in_place(-90)  # Face minecart
+    r.drive_for_distance(50)  # Arrive at minecart
+    r.rotate_right_motor(56, speed=50)  # Push up minecart
+    sleep(1000)  # Wait for minecart to roll down
     r.drive_for_distance(-120)
 
-def run_3(r:Robot):
+
+def run_3(r: Robot):
     "Align"
     # Post minecart alignment
     r.smart_turn_in_place(90)
@@ -381,28 +385,32 @@ def run_3(r:Robot):
     r.drive_for_distance(250, then=Stop.COAST, wait=False)
     sleep(400)
 
-def run_4(r:Robot):
+
+def run_4(r: Robot):
     "Raise the platform and bucket"
     # Platform
-    r.drive_for_distance(-10) # Back up to give space
-    r.smart_turn_in_place(90) # Move left a little
-    r.drive_for_distance(40) # Drive left
-    r.smart_turn_in_place(45) # Turn to face platform
-    r.rotate_right_motor(90) # Put shovel on ground (short right arm)
-    r.drive_for_distance(450, then=Stop.COAST, wait=False) # Push up the statue
+    r.drive_for_distance(-10)  # Back up to give space
+    r.smart_turn_in_place(90)  # Move left a little
+    r.drive_for_distance(40)  # Drive left
+    r.smart_turn_in_place(45)  # Turn to face platform
+    r.rotate_right_motor(90)  # Put shovel on ground (short right arm)
+    r.drive_for_distance(450, then=Stop.COAST, wait=False)  # Push up the statue
     sleep(1400)
-    r.drive_for_distance(-150) # Go back out
-    r.rotate_right_motor(-90) # Flatten right motor
+    r.drive_for_distance(-150)  # Go back out
+    r.rotate_right_motor(-90)  # Flatten right motor
 
     # Bucket
-    r.smart_turn_in_place(7) # Face bucket
-    r.rotate_left_motor(130, then=Stop.COAST, wait=False) # Push down the bucket
+    r.smart_turn_in_place(7)  # Face bucket
+    r.rotate_left_motor(130, then=Stop.COAST, wait=False)  # Push down the bucket
     sleep(1500)
-    r.rotate_left_motor(-135) # Arm up again
+    r.rotate_left_motor(-135)  # Arm up again
     r.smart_turn_in_place(38)
-    r.drive_for_distance(-300, then=Stop.COAST, speed=200, wait=False) # Align against wall
+    r.drive_for_distance(
+        -300, then=Stop.COAST, speed=200, wait=False
+    )  # Align against wall
 
-def run_5(r:Robot):
+
+def run_5(r: Robot):
     "Post bucket alignment, no points, important"
     # Post bucket alignment
     r.rotate_right_motor(40)
@@ -417,7 +425,8 @@ def run_5(r:Robot):
     r.drive_for_distance(-120, then=Stop.COAST, wait=False)
     sleep(1600)
 
-def run_6(r:Robot):
+
+def run_6(r: Robot):
     "Flip platform, boulders and silo"
     # Platform and boulders
     r.rotate_right_motor(-75, then=Stop.COAST, wait=False)
@@ -449,6 +458,7 @@ def run_6(r:Robot):
     r.drive_for_distance(-180)
     r.smart_turn_in_place(-75)
     r.drive_for_distance(-240)
+
 
 r = Robot()
 run_1(r)

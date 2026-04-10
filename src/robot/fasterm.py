@@ -222,8 +222,8 @@ def mission_4():
     db.settings(straight_speed=400)
     db.straight(310)  # Drive up to silo
 
-    #smash_silo_times = 3
-    #for _ in range(smash_silo_times):
+    # smash_silo_times = 3
+    # for _ in range(smash_silo_times):
     #    rbm.dc(-40) # Smash siloun_angle(400, 90)
     #    wait(500)
     #    rbm.stop()
@@ -246,22 +246,26 @@ def mission_4():
     db.turn(-45)
 
     db.settings(straight_speed=400)
-    db.straight(-100)  # Drive back to the 
+    db.straight(-100)  # Drive back to the
     db.turn(-18)
     db.straight(-400)
 
+
 @mission
-def mission_5(): # ship
+def mission_5():  # ship
     reset_headings()
     rbm.hold()
     db.settings(straight_speed=500)
     db.straight(450)
     db.settings(straight_speed=250)
     db.straight(200)
-   # lbm.dc(-100)
-   # wait(500) #  Slam arm down
-   # rbm.dc(100)
-   # wait(1000)
+
+
+# lbm.dc(-100)
+# wait(500) #  Slam arm down
+# rbm.dc(100)
+# wait(1000)
+
 
 @mission
 def mission_6():

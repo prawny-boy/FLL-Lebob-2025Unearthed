@@ -7,7 +7,6 @@ from pybricks.robotics import DriveBase
 from pybricks.tools import StopWatch
 from pybricks.tools import wait as sleep
 
-
 DRIVEBASE_WHEEL_DIAMETER = 62.4
 DRIVEBASE_AXLE_TRACK = 150
 
@@ -41,13 +40,17 @@ class PIDController:
             dt = 0.001
         self.integral += error * dt
         if self.integral_limit is not None:
-            self.integral = clamp(self.integral, -self.integral_limit, self.integral_limit)
+            self.integral = clamp(
+                self.integral, -self.integral_limit, self.integral_limit
+            )
         if self.has_previous:
             derivative = (error - self.previous_error) / dt
         else:
             derivative = 0.0
             self.has_previous = True
-        output = (self.k_p * error) + (self.k_i * self.integral) + (self.k_d * derivative)
+        output = (
+            (self.k_p * error) + (self.k_i * self.integral) + (self.k_d * derivative)
+        )
         if self.output_limit is not None:
             output = clamp(output, -self.output_limit, self.output_limit)
         self.previous_error = error
@@ -271,7 +274,11 @@ def main():
         sleep(100)
         print("After drive {}: {}".format(i + 1, hub.imu.heading()))
         turn_in_place(hub, drive_base, left_drive, right_drive, 90)
-        print("After turn {}: {} (expected {})".format(i + 1, hub.imu.heading(), (i + 1) * 90))
+        print(
+            "After turn {}: {} (expected {})".format(
+                i + 1, hub.imu.heading(), (i + 1) * 90
+            )
+        )
 
     # Drive backward to starting position
     drive_base.straight(-SIDE_LENGTH)
