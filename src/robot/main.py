@@ -270,11 +270,30 @@ def mission_5():  # ship
     db.settings(straight_speed=250)
     db.straight(200)
 
+@mission
+def mission_6():
+    reset_headings()
+    db.straight(320)
+    db.turn(-45)
+    db.straight(
+                120
+                )
+    rbm.run_angle(400, -100, then=Stop.BRAKE)
+    wait(1200)
+    db.straight(-85)
+    rbm.run_angle(200, 100, wait=False)
+    db.straight(-150)
+    db.straight(220)
+    rd.run_time(400, 1000, then=Stop.COAST) # Turn left by only moving the right wheel
+    db.straight(340)
+    db.right(130)
+    db.straight(130)
+    rbm.run_angle(200, -90)
+    rbm.run_angle(200, 90)
+    db.straight(-170)
+    hub.speaker.beep(440, 1000)
 
-# lbm.dc(-100)
-# wait(500) #  Slam arm down
-# rbm.dc(100)
-# wait(1000)
+
 
 
 @mission
@@ -283,7 +302,7 @@ def mission_6():
 
 
 def mission_selector():
-    mission_index = 1
+    mission_index = 5
 
     if not MISSIONS:
         raise ValueError("MISSIONS is empty.")
