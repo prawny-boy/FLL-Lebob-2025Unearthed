@@ -344,8 +344,9 @@ def mission_6():
 
 @mission
 def mission_7():
-    db.settings(straight_speed=100)
-    db.straight_until_stalled()
+    db.settings(straight_speed=200)
+    db.straight_until_stalled(tolerance=40)
+    db.settings(straight_speed=1000) 
     db.straight(-700)
 
 
