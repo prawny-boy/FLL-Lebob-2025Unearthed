@@ -268,11 +268,10 @@ def mission_3():
 @mission
 def mission_4():  # ship
     reset_headings()
-    rbm.hold()
-    db.settings(straight_speed=500)
-    db.straight(450)
-    db.settings(straight_speed=250)
-    db.straight(200)
+    db.settings(straight_speed=200)
+    db.straight_until_stalled(tolerance=40)
+    db.settings(straight_speed=1000)
+    db.straight(-700)
 
 
 @mission
@@ -325,15 +324,7 @@ def mission_6():
 
 @mission
 def mission_7():
-    db.settings(straight_speed=200)
-    db.straight_until_stalled(tolerance=40)
-    db.settings(straight_speed=1000)
-    db.straight(-700)
-
-
-@mission
-def mission_8():
-    reset_headings
+    reset_headings()
 
 
 def mission_selector():
