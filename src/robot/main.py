@@ -325,6 +325,24 @@ def mission_6():
 @mission
 def mission_7():
     reset_headings()
+    db.straight(150)
+    db.arc(250, 45)
+    db.straight(150)
+    db.settings(straight_speed=200)
+    db.straight(-170)
+    lbm.run_angle(300, -90)
+    db.settings(straight_speed=400)
+    db.turn(50)
+    db.straight(300)
+    lbm.run_until_stalled(300, then=Stop.COAST, duty_limit=25)
+    db.arc(-150, 50)
+    db.straight(20)
+    lbm.run_angle(300, -90, then=Stop.COAST)
+    wait(500)
+    db.turn(10)
+    db.straight(150)
+    db.turn(-35)
+    db.straight(550)
 
 
 def mission_selector():
