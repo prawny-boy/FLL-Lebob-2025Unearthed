@@ -44,7 +44,9 @@ class LebobDriveBase(DriveBase):
                 wait(10)
         self._stop_with(then)
 
-    def straight_until_stalled(self, speed: int = None, tolerance: int = 0, then=Stop.COAST):
+    def straight_until_stalled(
+        self, speed: int = None, tolerance: int = 0, then=Stop.COAST
+    ):
         """Drive straight until the robot stalls.
 
         Args:
@@ -151,95 +153,8 @@ def reset_robot_state():
 
 
 @mission
-def mission_1(easy_mode: bool = True, scale: float = 1):
-    """Movement test."""
-    reset_headings()
-    if easy_mode:
-        db.straight(400)
-        db.turn(10)
-        lbm.run_target(500, 90)
-        for _ in range(3):
-            lbm.dc(100)
-            wait(500)
-            lbm.run_target(500, 135)
-
-    else:
-        db.straight(100 * scale)
-        db.turn(113)
-        db.straight(-250 * scale)
-        db.turn(-106)
-        db.straight(168 * scale)
-        db.turn(80)
-        db.straight(220 * scale)
-        db.straight(200 * scale)
-        db.straight(240 * scale)
-        db.turn(136.2056)
-        db.straight(10 * scale)
-        db.straight(277 * scale)
-        db.turn(-19.5244)
-        db.straight(-310 * scale)
-        db.straight(-10 * scale)
-        db.turn(401.2188)
-        db.straight(300 * scale)
-        db.turn(-180)
-        db.straight(-375 * scale)
-        db.turn(48)
-        db.straight(250 * scale)
-        db.turn(-113)
-        db.straight(-100 * scale)
-
-
-@mission
-def mission_2():
-    """Do brush and map."""
-    db.settings(straight_speed=500)
-    # Brush
-    db.straight(650)  # Drive forward and push brush forward
-    lbm.run_angle(200, -95)
-    db.straight(-95)
-    lbm.run_angle(200, 90)
-    db.straight(70)
-
-    # Move to map
-    db.turn(45)
-    db.straight(134)
-    db.turn(-88)  # Face map
-    db.straight(150)
-
-    rbm.run_angle(200, 90)  # Pick up liftable map
-    db.straight(-140)
-    db.turn(55)
-    db.straight(-750)
-
-
-@mission
-def mission_3():
-    """Do your minecart and artefact."""
-    db.settings(straight_speed=350)
-    db.straight(905)
-    db.turn(90.1)  # Face minecart
-    rbm.run_time(-200, 800, then=Stop.COAST, wait=False)
-    lbm.stop()
-    db.straight(-90)  # Give space for arms
-    lbm.run_time(200, 870, then=Stop.COAST)  # Left arm down
-    db.settings(straight_speed=100)
-    db.straight(170)  # Drive into the minecart area
-    lbm.run_angle(200, -12)  # Pick up artefact
-    rbm.dc(100)  # Push up minecart track
-    wait(500)
-    lbm.run_angle(150, -25, then=Stop.COAST, wait=False)
-    db.straight(-50)
-    rbm.stop()
-    db.settings(straight_speed=500)
-    db.straight(-160)  # Return
-    db.turn(90)
-    lbm.run_time(200, -80, then=Stop.COAST, wait=False)  # Arms back
-    db.straight(810)
-
-
-@mission
-def mission_4():
-    """Silo, flip, boulders, heavy."""
+def mission_1():
+    """Flip boulders and heavy."""
     db.settings(straight_speed=400)
     db.straight(310)  # Drive up to silo
     lbm.hold()  # Hold arm up to prevent wobbling
@@ -282,18 +197,21 @@ def mission_4():
 
 
 @mission
-def mission_5():  # ship
+def mission_2():
+    """Silo."""
     reset_headings()
-    rbm.hold()
-    db.settings(straight_speed=500)
-    db.straight(450)
-    db.settings(straight_speed=250)
-    db.straight(200)
+    db.straight(400)
+    db.turn(10)
+    lbm.run_target(500, 90)
+    for _ in range(3):
+        lbm.dc(100)
+        wait(500)
+        lbm.run_target(500, 135)
 
 
 @mission
-def mission_6():
-    """Scales, raise, pan, bucket, go to other side"""
+def mission_3():
+    """Scales and raise pan."""
     print(ld.control.stall_tolerances())
     reset_headings()
     db.settings(straight_speed=400)
@@ -338,20 +256,88 @@ def mission_6():
     lbm.stop()
     db.straight(-50)
     db.turn(45)
-    db.settings(straight_speed=500, straight_acceleration=1000, turn_rate=400, turn_acceleration=1000)
+    db.settings(
+        straight_speed=500,
+        straight_acceleration=1000,
+        turn_rate=400,
+        turn_acceleration=1000,
+    )
     db.arc(-800, 1000)
+
+
+@mission
+def mission_4():  # ship
+    reset_headings()
+    rbm.hold()
+    db.settings(straight_speed=500)
+    db.straight(450)
+    db.settings(straight_speed=250)
+    db.straight(200)
+
+
+@mission
+def mission_5():
+    """Brush and broom."""
+    db.settings(straight_speed=500)
+    # Brush
+    db.straight(650)  # Drive forward and push brush forward
+    lbm.run_angle(200, -95)
+    db.straight(-95)
+    lbm.run_angle(200, 90)
+    db.straight(70)
+
+    # Move to map
+    db.turn(45)
+    db.straight(134)
+    db.turn(-88)  # Face map
+    db.straight(150)
+
+    rbm.run_angle(200, 90)  # Pick up liftable map
+    db.straight(-140)
+    db.turn(55)
+    db.straight(-750)
+
+
+@mission
+def mission_6():
+    """Minecart."""
+    db.settings(straight_speed=350)
+    db.straight(905)
+    db.turn(90.1)  # Face minecart
+    rbm.run_time(-200, 800, then=Stop.COAST, wait=False)
+    lbm.stop()
+    db.straight(-90)  # Give space for arms
+    lbm.run_time(200, 870, then=Stop.COAST)  # Left arm down
+    db.settings(straight_speed=100)
+    db.straight(170)  # Drive into the minecart area
+    lbm.run_angle(200, -12)  # Pick up artefact
+    rbm.dc(100)  # Push up minecart track
+    wait(500)
+    lbm.run_angle(150, -25, then=Stop.COAST, wait=False)
+    db.straight(-50)
+    rbm.stop()
+    db.settings(straight_speed=500)
+    db.straight(-160)  # Return
+    db.turn(90)
+    lbm.run_time(200, -80, then=Stop.COAST, wait=False)  # Arms back
+    db.straight(810)
 
 
 @mission
 def mission_7():
     db.settings(straight_speed=200)
     db.straight_until_stalled(tolerance=40)
-    db.settings(straight_speed=1000) 
+    db.settings(straight_speed=1000)
     db.straight(-700)
 
 
+@mission
+def mission_8():
+    reset_headings
+
+
 def mission_selector():
-    mission_index = 6
+    mission_index = 0
 
     if not MISSIONS:
         raise ValueError("MISSIONS is empty.")
