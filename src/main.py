@@ -220,41 +220,43 @@ def mission_3():
     rbm.stop()
     db.settings(straight_speed=100)
     db.straight(-70)
-    rbm.run_angle(380, 150, wait=False)  # Raise
+    rbm.run_angle(400, 150, wait=False)  # Raise
     db.straight(-26)  # Pull the platform up at the same time
     db.settings(straight_speed=400)
-    db.straight(70)  # Let go of the arm and go up to the scales
+    db.straight(80)  # Let go of the arm and go up to the scales
 
     # Go to pan
     rd.run_time(
         400, 1000, then=Stop.COAST
     )  # Turn left by only moving the right wheel, and knock the scales
     db.turn(-50)
-    db.straight(80)
+    db.straight(110)
     db.arc(
-        120.7,
-        156.4,
+        131,
+        164,
     )
-    rbm.run_angle(800, -150)  # Arm down to hit pan
-    rbm.run_angle(200, 120)
-    db.settings(50)  # Keep slow
-    db.straight(-53)  # Take pan out
+    db.straight(20)
+    rbm.run_angle(400, -160)  # Arm down to hit pan
+    wait(200)
+    rbm.run_angle(600, 120)
+    db.straight(-110)  # Take pan out
     db.settings(400)
-    db.turn(-96)
-    db.straight(145)
+    db.turn(-95)
+    db.straight(60)
     db.turn_until_stalled(tolerance=20, then=Stop.HOLD)
     lbm.dc(100)
     rd.run_time(-50, 1500)
     lbm.stop()
     db.straight(-50)
-    db.turn(45)
+    db.turn(35)
     db.settings(
         straight_speed=500,
         straight_acceleration=1000,
         turn_rate=400,
         turn_acceleration=1000,
     )
-    db.arc(-800, 1000)
+    db.arc(-650, 60)
+    db.straight(600)
 
 
 @mission
@@ -303,7 +305,7 @@ def mission_6():
     db.straight(170)  # Drive into the minecart area
     lbm.run_angle(200, -12)  # Pick up artefact
     rbm.dc(100)  # Push up minecart track
-    wait(500)
+    wait(350)
     lbm.run_angle(150, -25, then=Stop.COAST, wait=False)
     db.straight(-50)
     rbm.stop()
