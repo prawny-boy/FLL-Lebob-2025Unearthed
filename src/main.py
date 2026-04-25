@@ -154,10 +154,11 @@ def reset_robot_state():
 
 @mission
 def mission_1():
+    rbm.dc(100)
+    wait(50000000)
     """Flip boulders and heavy."""
     db.settings(straight_speed=400)
-    db.straight(310)  # Drive up to silo
-    lbm.hold()  # Hold arm up to prevent wobbling
+    db.straight(300)  # Drive up to silo
 
     # smash_silo_times = 3
     # for _ in range(smash_silo_times):
@@ -169,29 +170,24 @@ def mission_1():
     #    rbm.hold()
     #    wait(800) # Stop wobbling
 
-    db.turn(-55.1195)
-    db.arc(300, 85)
-    db.turn(-10)
+    db.turn(-55)
+    db.arc(272, 100)
 
     db.settings(straight_speed=150, turn_rate=130)
-    # lbm.run_angle(400, 100, wait=False)
-    lbm.run_until_stalled(400)
-    rbm.run_angle(600, -90, then=Stop.COAST)  # Arm to hit heavy
-    wait(400)
-    db.turn(40)  # Turn and push heavy off
-
+    lbm.run_angle(400, 120, wait=False)
+    # lbm.run_until_stalled(200)
+    # rbm.run_angle(200, -90, then=Stop.COAST)
+    rbm.run_until_stalled(-100, then=Stop.COAST)  # Arm down
     # Arm back up
-    rbm.dc(85)
-    wait(410)
-    rbm.stop()
+    rbm.dc(100)
+    wait(2000)
+    # rbm.run_angle(300, 120, wait=True)
 
     # Return
     db.settings(straight_speed=400, turn_rate=90, turn_acceleration=180)
-    db.straight(-80)
-    db.turn(-80)
-    rbm.run_angle(
-        300, -25, wait=False
-    )  # Raise arm so it fits
+    db.straight(-30)
+    db.arc(100, -80)
+    lbm.run_angle(400, -120, wait=False)
     db.straight(-700)
 
 
