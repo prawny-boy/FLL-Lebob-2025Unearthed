@@ -115,8 +115,8 @@ ld = Motor(Port.D, positive_direction=Direction.COUNTERCLOCKWISE)
 rd = Motor(Port.C, positive_direction=Direction.CLOCKWISE)
 
 # FLL attachment motors
-lbm = Motor(Port.F)
-rbm = Motor(Port.E)
+lbm = Motor(Port.F, gears=[12, 20])
+rbm = Motor(Port.E, gears=[12, 20])
 
 # DriveBase
 db = LebobDriveBase(
@@ -154,11 +154,9 @@ def reset_robot_state():
 
 @mission
 def mission_1():
-    rbm.dc(100)
-    wait(50000000)
     """Flip boulders and heavy."""
     db.settings(straight_speed=400)
-    db.straight(300)  # Drive up to silo
+    db.straight(280)  # Drive up to silo
 
     # smash_silo_times = 3
     # for _ in range(smash_silo_times):
@@ -171,24 +169,31 @@ def mission_1():
     #    wait(800) # Stop wobbling
 
     db.turn(-55)
-    db.arc(272, 100)
+    rbm.run_angle(75, -50, wait=False)
+    db.arc(265, 90)
+    db.straight(60)
 
     db.settings(straight_speed=150, turn_rate=130)
-    lbm.run_angle(400, 120, wait=False)
+    lbm.run_angle(200, 180, wait=False)
     # lbm.run_until_stalled(200)
     # rbm.run_angle(200, -90, then=Stop.COAST)
-    rbm.run_until_stalled(-100, then=Stop.COAST)  # Arm down
+    rbm.run_until_stalled(-125, then=Stop.COAST)  # Arm down
+    # lbm.run_angle(400, -120, wait=False)
     # Arm back up
-    rbm.dc(100)
-    wait(2000)
+    rbm.run_until_stalled(75, then=Stop.HOLD)
+    # rbm.dc(100)
+    # rbm.reset_angle()
+    # starting_angle = rbm.angle()
+    # while rbm.angle() < starting_angle + 120:
+    #     wait(10)
+    # rbm.hold()
     # rbm.run_angle(300, 120, wait=True)
 
     # Return
-    db.settings(straight_speed=400, turn_rate=90, turn_acceleration=180)
+    db.settings(straight_speed=1000, turn_rate=200, turn_acceleration=180)
     db.straight(-30)
-    db.arc(100, -80)
-    lbm.run_angle(400, -120, wait=False)
-    db.straight(-700)
+    db.arc(275, -120)
+    db.straight(-400)
 
 
 @mission
@@ -350,7 +355,7 @@ def mission_7():
 
 
 def mission_selector():
-    mission_index = 5
+    mission_index = 0
 
     if not MISSIONS:
         raise ValueError("MISSIONS is empty.")
