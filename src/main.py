@@ -6,7 +6,7 @@ from pybricks.hubs import PrimeHub
 from pybricks.parameters import Button, Color, Direction, Port, Side, Stop
 from pybricks.pupdevices import Motor
 from pybricks.robotics import DriveBase
-from pybricks.tools import wait
+from pybricks.tools import wait, StopWatch
 
 DRIVEBASE_WHEEL_DIAMETER = 62.4  # Medium treaded wheel diameter (mm)
 DRIVEBASE_AXLE_TRACK = 130
@@ -271,6 +271,7 @@ def mission_4():  # ship
 @mission
 def mission_5():
     """Brush and broom."""
+    reset_headings()
     db.settings(straight_speed=500)
     # Brush
     db.straight(650)  # Drive forward and push brush forward
@@ -294,25 +295,33 @@ def mission_5():
 @mission
 def mission_6():
     """Minecart."""
-    db.settings(straight_speed=350)
-    db.straight(905)
-    db.turn(90.1)  # Face minecart
-    rbm.run_time(-200, 800, then=Stop.COAST, wait=False)
-    lbm.stop()
-    db.straight(-90)  # Give space for arms
-    lbm.run_time(200, 870, then=Stop.COAST)  # Left arm down
+    reset_headings()
+    db.settings(straight_speed=500)
+    db.straight(910)
+    db.turn(90)  # Face minecart
+    db.straight(-90, wait=False)  # Give space for arms
+    rbm.run_time(-200, 800, Stop.COAST, False)  # Right arm down
+    lbm.run_until_stalled(200, Stop.COAST, 50)  # Left arm down
+
     db.settings(straight_speed=100)
     db.straight(170)  # Drive into the minecart area
-    lbm.run_angle(200, -12)  # Pick up artefact
-    rbm.dc(100)  # Push up minecart track
-    wait(350)
-    lbm.run_angle(150, -25, then=Stop.COAST, wait=False)
-    db.straight(-50)
+    lbm.run_angle(200, -12, wait=False)  # Pick up artefact
+    rbm.dc(85)
+    rbm.reset_angle(0)
+    current_angle = rbm.angle()
+    print(current_angle)
+    while rbm.angle() < current_angle + 90:
+        wait(10)
+    print(rbm.angle())
     rbm.stop()
-    db.settings(straight_speed=500)
-    db.straight(-160)  # Return
-    db.turn(90)
-    lbm.run_time(200, -80, then=Stop.COAST, wait=False)  # Arms back
+    wait(350)
+    lbm.run_angle(200, -25, then=Stop.COAST, wait=False)
+    db.straight(-170)  # Return
+
+    db.settings(straight_speed=1000)
+    lbm.run_angle(100, -45, wait=False)
+    rbm.run_angle(200, 80, wait=False)
+    db.turn(93)
     db.straight(810)
 
 
@@ -341,7 +350,7 @@ def mission_7():
 
 
 def mission_selector():
-    mission_index = 0
+    mission_index = 5
 
     if not MISSIONS:
         raise ValueError("MISSIONS is empty.")
@@ -369,9 +378,12 @@ def mission_selector():
             while hub.buttons.pressed():
                 wait(20)
             hub.light.on(Color.GREEN)
+            timer = StopWatch()
             try:
+                timer.resume()
                 MISSIONS[mission_index]()
             finally:
+                print(f"Time Elapsed: {timer.time()}ms")
                 reset_robot_state()
                 hub.light.on(Color.BLUE)
             mission_index = (mission_index + 1) % len(MISSIONS)
