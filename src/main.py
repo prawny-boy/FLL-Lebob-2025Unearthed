@@ -105,8 +105,6 @@ class LebobDriveBase(DriveBase):
         self._stop_with(then)
 
 
-PID = 550
-
 # Hub
 hub = PrimeHub()
 
@@ -117,36 +115,29 @@ rd = Motor(Port.C, positive_direction=Direction.CLOCKWISE)
 # FLL attachment motors
 lbm = Motor(Port.F, gears=[12, 20])
 rbm = Motor(Port.E, gears=[12, 20])
-
-# DriveBase
-db = LebobDriveBase(
+db = LebobDriveBase(  # DriveBase
     ld,
     rd,
     wheel_diameter=DRIVEBASE_WHEEL_DIAMETER,
     axle_track=DRIVEBASE_AXLE_TRACK,
 )
-
 db.use_gyro(True)
-
 
 # Missions
 MISSIONS = []
 
 
-def mission(func):
+def mission(func_ptr):
     """Register a mission function in menu order."""
-    MISSIONS.append(func)
-    return func
+    MISSIONS.append(func_ptr)
+    return func_ptr
 
 
-def reset_headings():
+def reset_robot():
     db.reset()
     hub.imu.reset_heading(0)
     lbm.reset_angle(0)
     rbm.reset_angle(0)
-
-
-def reset_robot_state():
     db.stop()
     lbm.stop()
     rbm.stop()
@@ -155,51 +146,27 @@ def reset_robot_state():
 @mission
 def mission_1():
     """Flip boulders and heavy."""
-    db.settings(straight_speed=400)
     db.straight(280)  # Drive up to silo
-
-    # smash_silo_times = 3
-    # for _ in range(smash_silo_times):
-    #    rbm.dc(-40) # Smash siloun_angle(400, 90)
-    #    wait(500)
-    #    rbm.stop()
-    #    rbm.dc(90)
-    #    wait(500)  # Arm back up
-    #    rbm.hold()
-    #    wait(800) # Stop wobbling
 
     db.turn(-55)
     rbm.run_angle(75, -50, wait=False)
     db.arc(265, 90)
     db.straight(60)
 
-    db.settings(straight_speed=150, turn_rate=130)
     lbm.run_angle(200, 180, wait=False)
-    # lbm.run_until_stalled(200)
-    # rbm.run_angle(200, -90, then=Stop.COAST)
     rbm.run_until_stalled(-125, then=Stop.COAST)  # Arm down
-    # lbm.run_angle(400, -120, wait=False)
-    # Arm back up
-    rbm.run_until_stalled(75, then=Stop.HOLD)
-    # rbm.dc(100)
-    # rbm.reset_angle()
-    # starting_angle = rbm.angle()
-    # while rbm.angle() < starting_angle + 120:
-    #     wait(10)
-    # rbm.hold()
-    # rbm.run_angle(300, 120, wait=True)
+    rbm.run_until_stalled(150, then=Stop.HOLD)  # Arm back up
 
     # Return
-    db.settings(straight_speed=1000, turn_rate=200, turn_acceleration=180)
-    db.straight(-30)
-    db.arc(275, -120)
-    db.straight(-400)
+    db.drive(-1000, 0)
+    wait(100)
+    db.drive(-1000, -80)
+    wait(2000)
 
 
 @mission
 def mission_2():
     """Silo."""
-    reset_headings()
     db.straight(400)
     db.turn(10)
     lbm.run_target(500, 90)
@@ -212,14 +179,10 @@ def mission_2():
 @mission
 def mission_3():
     """Scales and raise pan."""
-    print(ld.control.stall_tolerances())
-    reset_headings()
-    db.settings(straight_speed=400)
-
     # Drive to raise
-    db.straight(320)
+    db.straight(220)
     db.turn(-45)
-    db.straight(110)
+    db.straight(210)
     rbm.run_angle(380, -140, then=Stop.COAST, wait=False)  # Arm down onto the platform
     wait(800)
     rbm.stop()
@@ -245,7 +208,7 @@ def mission_3():
     wait(200)
     rbm.run_angle(600, 120)
     db.straight(-110)  # Take pan out
-    db.settings(400)
+    db.settings(straight_speed=1000)
     db.turn(-95)
     db.straight(60)
     db.turn_until_stalled(tolerance=20, then=Stop.HOLD)
@@ -254,19 +217,18 @@ def mission_3():
     lbm.stop()
     db.straight(-50)
     db.turn(35)
-    db.settings(
-        straight_speed=500,
-        straight_acceleration=1000,
-        turn_rate=400,
-        turn_acceleration=1000,
-    )
     db.arc(-650, 60)
     db.straight(600)
 
 
 @mission
-def mission_4():  # ship
-    reset_headings()
+def mission_4():
+    """Angler artifacts."""
+
+    
+@mission
+def mission_5():
+    """Ship."""
     db.settings(straight_speed=200)
     db.straight_until_stalled(tolerance=40)
     db.settings(straight_speed=1000)
@@ -274,16 +236,16 @@ def mission_4():  # ship
 
 
 @mission
-def mission_5():
+def mission_6():
     """Brush and broom."""
-    reset_headings()
-    db.settings(straight_speed=500)
     # Brush
+    lbm.run_angle(200, 90, wait=False)
+    rbm.run_angle(200, 90, wait=False)
     db.straight(650)  # Drive forward and push brush forward
-    lbm.run_angle(200, -95)
-    db.straight(-95)
-    lbm.run_angle(200, 90)
-    db.straight(70)
+    lbm.run_angle(200, 95)
+    db.straight(-120)
+    lbm.run_angle(200, -90)
+    db.straight(105)
 
     # Move to map
     db.turn(45)
@@ -291,17 +253,15 @@ def mission_5():
     db.turn(-88)  # Face map
     db.straight(150)
 
-    rbm.run_angle(200, 90)  # Pick up liftable map
+    rbm.run_angle(200, -90)  # Pick up liftable map
     db.straight(-140)
     db.turn(55)
     db.straight(-750)
 
 
 @mission
-def mission_6():
+def mission_7():
     """Minecart."""
-    reset_headings()
-    db.settings(straight_speed=500)
     db.straight(910)
     db.turn(90)  # Face minecart
     db.straight(-90, wait=False)  # Give space for arms
@@ -331,16 +291,14 @@ def mission_6():
 
 
 @mission
-def mission_7():
+def mission_8():
     """Forum, Statue and Flags"""
-    reset_headings()
-    db.straight(150)
     db.arc(250, 45)
     db.straight(150)
     db.settings(straight_speed=200)
     db.straight(-170)
     lbm.run_angle(300, -90)
-    db.settings(straight_speed=400)
+    db.settings(straight_speed=1000)
     db.turn(50)
     db.straight(300)
     lbm.run_until_stalled(300, then=Stop.COAST, duty_limit=25)
@@ -357,9 +315,6 @@ def mission_7():
 def mission_selector():
     mission_index = 0
 
-    if not MISSIONS:
-        raise ValueError("MISSIONS is empty.")
-
     while True:
         hub.display.char(str(mission_index + 1))
         pressed = hub.buttons.pressed()
@@ -368,18 +323,13 @@ def mission_selector():
             mission_index = (mission_index + 1) % len(MISSIONS)
             while hub.buttons.pressed():
                 wait(20)
-            wait(120)
-            continue
 
-        if Button.RIGHT in pressed:
+        elif Button.RIGHT in pressed:
             mission_index = (mission_index - 1) % len(MISSIONS)
             while hub.buttons.pressed():
                 wait(20)
 
-            wait(120)
-            continue
-
-        if Button.CENTER in pressed:
+        elif Button.CENTER in pressed:
             while hub.buttons.pressed():
                 wait(20)
             hub.light.on(Color.GREEN)
@@ -389,29 +339,34 @@ def mission_selector():
                 MISSIONS[mission_index]()
             finally:
                 print(f"Time Elapsed: {timer.time()}ms")
-                reset_robot_state()
+                reset_robot()
                 hub.light.on(Color.BLUE)
             mission_index = (mission_index + 1) % len(MISSIONS)
-            wait(250)
 
         wait(20)
 
 
 def main():
-    # Buttons
-    hub.system.set_stop_button(Button.BLUETOOTH)
-    hub.display.orientation(Side.BOTTOM)
-    reset_robot_state()  # Stop motors
-    hub.light.on(Color.BLUE)  # Ready
-
     # Battery
     voltage = hub.battery.voltage()
     percentage = max(0, min(100, (voltage - 6000) * 100 // (8400 - 6000)))
-    print("Battery: " + str(percentage) + "% (" + str(voltage) + " mV)")
+    print(f"Battery: {str(percentage)}% ({str(voltage)}mV)")
     print(f"Settings: {tuple(db.settings())}")
 
-    # Start mission selector
-    mission_selector()
+    # Buttons
+    hub.system.set_stop_button(Button.BLUETOOTH)
+    hub.display.orientation(Side.BOTTOM)
+    hub.light.on(Color.RED if percentage < 80 else Color.BLUE)  # Ready
+    reset_robot()
+    db.settings(
+        straight_speed=1000,
+        straight_acceleration=1000,
+        turn_rate=400,
+        turn_acceleration=500
+    )
+
+    mission_selector()  # Start mission selector
 
 
 main()
+
