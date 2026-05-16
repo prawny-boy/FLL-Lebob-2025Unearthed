@@ -179,32 +179,27 @@ def mission_2():
 def mission_3():
     """Scales and raise pan."""
     # Drive to raise
-    db.straight(260)
-    lbm.run_angle(200, 150, wait=False)
+    lbm.run_angle(400, 160, then=Stop.BRAKE)
+    db.straight(280)
     db.turn(-45)
-    db.straight(220)
-    lbm.run_angle(100, -150, wait=False)
-    rbm.run_angle(400, -90)
-    lbm.run_angle(400, 150)
-    rbm.run_angle(400, 90)
+    db.straight(200)
+    lbm.run_angle(100, -95)
+    rbm.run_angle(100, -140, then=Stop.COAST, wait=False)  # Arm down onto the platform
+    wait(800)
+    rbm.stop()
+    lbm.run_angle(50, 90)
+    lbm.run_angle(300, 60)
+    db.straight(-100)
+    rbm.run_angle(400, 150, then=Stop.COAST, wait=False)  # Raise
+    db.straight(-100)  # Pull the platform up at the same time
+    db.straight(80)  # Let go of the arm and go up to the scales
 
-    # db.straight(210)
-    # rbm.run_angle(380, -140, then=Stop.COAST, wait=False)  # Arm down onto the platform
-    # wait(800)
-    # rbm.stop()
-    # db.settings(straight_speed=100)
-    # db.straight(-70)
-    # rbm.run_angle(400, 150, wait=False)  # Raise
-    # db.straight(-26)  # Pull the platform up at the same time
-    # db.settings(straight_speed=400)
-    # db.straight(80)  # Let go of the arm and go up to the scales
-
-    # # Go to pan
-    # rd.run_time(
-    #     400, 1000, then=Stop.COAST
-    # )  # Turn left by only moving the right wheel, and knock the scales
-    # db.turn(-50)
-    # db.straight(110)
+    # Go to pan
+    rd.run_time(
+        400, 1000, then=Stop.COAST
+    )  # Turn left by only moving the right wheel, and knock the scales
+    rbm.run_angle(500, 1000)
+    db.straight(2000)
     # db.arc(
     #     131,
     #     164,
