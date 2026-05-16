@@ -149,31 +149,30 @@ def mission_1():
     db.straight(280)  # Drive up to silo
 
     db.turn(-55)
-    rbm.run_angle(75, -50, wait=False)
-    db.arc(265, 90)
+    rbm.run_angle(75, -45, wait=False) # Reset arm
+    db.arc(265, 90) # Go to flip boulders
     db.straight(60)
 
     lbm.run_angle(200, 180, wait=False)
     rbm.run_until_stalled(-125, then=Stop.COAST)  # Arm down
-    rbm.run_until_stalled(150, then=Stop.HOLD)  # Arm back up
+    rbm.run_until_stalled(100, then=Stop.HOLD)  # Arm back up
 
     # Return
     db.drive(-1000, 0)
-    wait(100)
+    # wait(100) # So the boulder's don't fall out
     db.drive(-1000, -80)
-    wait(2000)
+    # wait(2000)
 
 
 @mission
 def mission_2():
     """Silo."""
-    db.straight(400)
-    db.turn(10)
-    lbm.run_target(500, 90)
+    db.straight(350)
     for _ in range(3):
-        lbm.dc(100)
-        wait(500)
-        lbm.run_target(500, 135)
+        rbm.dc(-100)
+        wait(150)
+        rbm.run_target(500, 60)
+    db.straight(-350)
 
 
 @mission
@@ -187,7 +186,6 @@ def mission_3():
     lbm.run_angle(100, -150, wait=False)
     rbm.run_angle(400, -90)
     lbm.run_angle(400, 150)
-    db.straight
     rbm.run_angle(400, 90)
 
     # db.straight(210)
@@ -237,8 +235,8 @@ def mission_4():
 @mission
 def mission_5():
     """Ship."""
-    db.settings(straight_speed=200)
-    db.straight_until_stalled(tolerance=40)
+    db.settings(straight_speed=500)
+    db.straight(500)
     db.settings(straight_speed=1000)
     db.straight(-700)
 
@@ -247,22 +245,28 @@ def mission_5():
 def mission_6():
     """Brush and broom."""
     # Brush
-    lbm.run_angle(200, 90, wait=False)
-    rbm.run_angle(200, 90, wait=False)
+    # lbm.run_angle(200, 120, wait=False)
+    # rbm.run_angle(200, -90, wait=False)
+    rbm.run_until_stalled(-500, duty_limit=50)
+    lbm.run_until_stalled(-500, duty_limit=50)
     db.straight(650)  # Drive forward and push brush forward
-    lbm.run_angle(200, 95)
-    db.straight(-120)
-    lbm.run_angle(200, -90)
-    db.straight(105)
+    db.straight(-170)
+    lbm.run_until_stalled(500, duty_limit=50)
+    db.settings(straight_speed=100)
+    db.straight(70)
+    db.settings(straight_speed=1000)
+    lbm.run_until_stalled(-500, duty_limit=50)
 
     # Move to map
     db.turn(45)
-    db.straight(134)
+    db.straight(210)
     db.turn(-88)  # Face map
-    db.straight(150)
+    db.settings(straight_speed=100)
+    db.straight(200)
+    db.settings(straight_speed=1000)
 
-    rbm.run_angle(200, -90)  # Pick up liftable map
-    db.straight(-140)
+    rbm.run_until_stalled(300)  # Pick up liftable map
+    db.straight(-200)
     db.turn(55)
     db.straight(-750)
 
