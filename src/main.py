@@ -151,7 +151,7 @@ def mission_1():
     db.turn(-55)
     rbm.run_angle(75, -45, wait=False) # Reset arm
     db.arc(265, 90) # Go to flip boulders
-    db.straight(60)
+    db.straight(70)
 
     lbm.run_angle(200, 180, wait=False)
     rbm.run_until_stalled(-125, then=Stop.COAST)  # Arm down
@@ -159,47 +159,51 @@ def mission_1():
 
     # Return
     db.drive(-1000, 0)
-    # wait(100) # So the boulder's don't fall out
+    wait(100) # So the boulder's don't fall out
     db.drive(-1000, -80)
-    # wait(2000)
+    wait(2000)
 
 
 @mission
 def mission_2():
     """Silo."""
+    rbm.run_angle(300, -45, wait=False)
     db.straight(350)
     for _ in range(3):
-        rbm.dc(-100)
-        wait(150)
-        rbm.run_target(500, 60)
+        rbm.dc(-75)
+        wait(250)
+        rbm.dc(75)
+        wait(250)
     db.straight(-350)
 
 
 @mission
 def mission_3():
-    """Scales and raise pan."""
+    """Scales, raise pan, angler artifacts."""
+    rbm.run_angle(300, -140)
+    rbm.run_angle(300, 1000)
     # Drive to raise
-    lbm.run_angle(400, 160, then=Stop.BRAKE)
-    db.straight(280)
-    db.turn(-45)
-    db.straight(200)
-    lbm.run_angle(100, -95)
-    rbm.run_angle(100, -140, then=Stop.COAST, wait=False)  # Arm down onto the platform
-    wait(800)
-    rbm.stop()
-    lbm.run_angle(50, 90)
-    lbm.run_angle(300, 60)
-    db.straight(-100)
-    rbm.run_angle(400, 150, then=Stop.COAST, wait=False)  # Raise
-    db.straight(-100)  # Pull the platform up at the same time
-    db.straight(80)  # Let go of the arm and go up to the scales
-
-    # Go to pan
-    rd.run_time(
-        400, 1000, then=Stop.COAST
-    )  # Turn left by only moving the right wheel, and knock the scales
-    rbm.run_angle(500, 1000)
-    db.straight(2000)
+    # lbm.run_angle(400, 150, then=Stop.BRAKE)
+    # db.straight(300)
+    # db.turn(-45)
+    # db.straight(200)
+    # lbm.run_angle(100, -95)
+    # rbm.run_angle(100, -140, then=Stop.COAST, wait=False)  # Arm down onto the platform
+    # wait(800)
+    # rbm.stop()
+    # lbm.run_angle(50, 90)
+    # lbm.run_angle(300, 60)
+    # db.straight(-100)
+    # rbm.run_angle(400, 150, then=Stop.COAST, wait=False)  # Raise
+    # db.straight(-100)  # Pull the platform up at the same time
+    # db.straight(80)  # Let go of the arm and go up to the scales
+    #
+    # # Go to pan
+    # rd.run_time(
+    #     400, 1000, then=Stop.COAST
+    # )  # Turn left by only moving the right wheel, and knock the scales
+    # rbm.run_angle(500, 1000)
+    # db.straight(2000)
     # db.arc(
     #     131,
     #     164,
@@ -225,6 +229,7 @@ def mission_3():
 @mission
 def mission_4():
     """Angler artifacts."""
+    pass
 
     
 @mission
@@ -238,7 +243,7 @@ def mission_5():
 
 @mission
 def mission_6():
-    """Brush and broom."""
+    """Map and Brush."""
     # Brush
     # lbm.run_angle(200, 120, wait=False)
     # rbm.run_angle(200, -90, wait=False)
@@ -299,24 +304,21 @@ def mission_7():
 
 @mission
 def mission_8():
-    """Forum, Statue and Flags"""
-    db.arc(250, 45)
-    db.straight(150)
+    """Forum, Statue, Flags, Opponent's Minecart."""
+    db.straight(600)
+    db.curve(150, 90)
+    db.straight(180)
+    db.turn(55)
+    db.straight(-100, wait=False)
+    lbm.run_until_stalled(100, duty_limit=20)
     db.settings(straight_speed=200)
-    db.straight(-170)
-    lbm.run_angle(300, -90)
-    db.settings(straight_speed=1000)
-    db.turn(50)
-    db.straight(300)
-    lbm.run_until_stalled(300, then=Stop.COAST, duty_limit=25)
-    db.arc(-150, 50)
-    db.straight(20)
-    lbm.run_angle(300, -90, then=Stop.COAST)
-    wait(500)
-    db.turn(10)
-    db.straight(150)
-    db.turn(-35)
-    db.straight(550)
+    db.straight(120)
+    lbm.run_angle(500, -90)
+    db.straight(-100)
+    rbm.run_angle(1000, 720)
+    db.turn(-55)
+    db.straight(400)
+
 
 
 def mission_selector():
