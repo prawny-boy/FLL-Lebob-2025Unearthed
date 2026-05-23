@@ -149,19 +149,22 @@ def mission_1():
     db.straight(280)  # Drive up to silo
 
     db.turn(-55)
-    rbm.run_angle(75, -45, wait=False) # Reset arm
+    rbm.run_angle(25, -25, wait=False) # Reset arm
     db.arc(265, 90) # Go to flip boulders
-    db.straight(70)
+    db.straight(80)
 
-    lbm.run_angle(200, 180, wait=False)
-    rbm.run_until_stalled(-125, then=Stop.COAST)  # Arm down
-    rbm.run_until_stalled(100, then=Stop.HOLD)  # Arm back up
+    lbm.run_angle(100, 180, wait=False)
+    rbm.run_until_stalled(-75, then=Stop.COAST)  # Arm down
+    rbm.dc(60)
+    wait(2000)
+    #rbm.run_until_stalled(70, then=Stop.HOLD)  # Arm back up
 
     # Return
-    db.drive(-1000, 0)
-    wait(100) # So the boulder's don't fall out
-    db.drive(-1000, -80)
-    wait(2000)
+    db.straight(-70)
+    db.turn(-45)
+    # wait(100) # So the boulder's don't fall out
+    # db.drive(-1000, -80)
+    # wait(2000)
 
 
 @mission
@@ -217,7 +220,7 @@ def mission_4():
     lbm.stop()
     rbm.run_angle(300, -90, wait=False)
     wait(100)
-    db.straight(-1000)
+    db.straight(-3000)
 
 
 @mission
@@ -257,22 +260,22 @@ def mission_6():
     db.turn(90)  # Face minecart
     db.straight(-90, wait=False)  # Give space for arms
     rbm.run_time(-200, 800, Stop.COAST, False)  # Right arm down
-    lbm.run_until_stalled(200, Stop.COAST, 50)  # Left arm down
-
+    lbm.run_until_stalled(200, Stop.BRAKE, 50)  # Left arm down
+    lbm.run_angle(200, -1, then=Stop.HOLD)  # Left arm back
     db.settings(straight_speed=100)
     db.straight(170)  # Drive into the minecart area
-    lbm.run_angle(200, -12, wait=False)  # Pick up artefact
-    rbm.dc(85)
+    lbm.run_angle(150, -40, wait=False)  # Pick up artefact
+    rbm.dc(60)
     rbm.reset_angle(0)
     current_angle = rbm.angle()
     print(current_angle)
     while rbm.angle() < current_angle + 90:
-        wait(10)
+        wait(5)
     print(rbm.angle())
     rbm.stop()
     wait(350)
-    lbm.run_angle(200, -25, then=Stop.COAST, wait=False)
-    db.straight(-170)  # Return
+    lbm.run_angle(20, -20, then=Stop.COAST, wait=False)
+    db.straight(-200)  # Return
 
     db.settings(straight_speed=1000)
     lbm.run_angle(100, -45, wait=False)
