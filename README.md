@@ -1,164 +1,79 @@
-# FLL Unearthed 2025 - Team LEBOB
+# FLL Unearthed — Team LEBOB
 
-Robot mission system for FIRST LEGO League *SUBMERGED / UNEARTHED 2025* season, featuring autonomous missions for LEGO SPIKE Prime with PyBricks.
+Our robot code for the FIRST LEGO League UNEARTHED season. It runs on a LEGO
+SPIKE Prime hub flashed with PyBricks, and keeps all of our competition missions
+in one file with an on-hub menu for picking which one to run.
 
-## 🎯 Project Overview
+## What's here
 
-This repository focuses on the **Robot Mission System** - autonomous mission programs with on-hub menu selection, PID control, smart navigation, and battery monitoring for the LEGO SPIKE Prime hub running PyBricks firmware.
+`src/main.py` is the whole robot program: the drive base, the attachment motors,
+the seven missions, and the menu you scroll through on the hub before a match.
+It's deliberately one file so it's quick to download to the hub and easy to read
+at the table.
 
-## ✨ Key Features
+## Running it
 
-- **On-hub mission menu** - Slot-based `@mission("slot")` decorator system for easy mission management
-- **Smart PID navigation** - Closed-loop drive and turn routines for precise, repeatable movements
-- **Battery safety** - Low-voltage alerts and monitoring to prevent brownouts during competition
+You need a SPIKE Prime hub (a Robot Inventor hub works too) running PyBricks. To
+flash the firmware, open https://code.pybricks.com, click *Install Firmware*, and
+follow the steps.
 
-## 🚀 Installing firware
-
-* Open [PyBricks.com](code.pybricks.com) and click `Install Firmware` and follow the instructions.
-
-## 📁 Repository Structure
-
-```
-FLL-Lebob-Unearthed/
-├── src/
-│   └── main.py            # Competition missions (deploy to hub)
-├── resources/             # Field maps and path visualizations
-│   ├── Map.pdf            # Competition field map
-│   └── PathV*.png         # Mission path diagrams (V1-V5)
-├── LICENSE                # Apache 2.0 License
-└── README.md              # This file
-```
-
-## 🔧 Requirements
-
-### Hardware
-
-- **LEGO SPIKE Prime Hub** (Robot Inventor hub also compatible)
-- **PyBricks firmware** v3.4 or later installed on hub
-- **4 motors**: 2 drive motors (ports C, D) + 2 attachment motors (ports E, F)
-
-### Software
-
-- **PyBricks IDE** or **pybricksdev** CLI for deployment
-
-## 💻 Deployment
-
-### Deployment (GUI)
-
-1. Open PyBricks IDE or SPIKE Prime app
-2. Load `src/main.py`
-3. Connect to hub and click "Download and Run"
-
-### CLI Deployment (Bluetooth)
+Then either load and run it from the PyBricks IDE (open `src/main.py`, connect to
+the hub, hit *Download and Run*), or push it over Bluetooth:
 
 ```bash
 pybricksdev run ble --name "FatSean" src/main.py
 ```
 
-## 🎮 Robot Mission Details
+`FatSean` is our hub's name; change it if yours is different.
 
-### Hardware Configuration
+## Using the menu
 
-- **Drive base**: 2 motors (left: Port D, right: Port C), 62.4mm diameter wheels, 150mm axle track
-- **Left aux motor**: Port F (attachment arm)
-- **Right aux motor**: Port E (attachment arm)
-- **Gyro/IMU**: Built-in hub IMU for heading control
+On start, the hub light turns blue and the display shows a mission number.
 
-### Mission aims
+- Left and Right buttons scroll through the missions.
+- Center button runs the one shown. The light goes green while it runs, then back
+  to blue when it finishes.
 
-- **Mission 1**: Release ores, Heavy lifting, Who lived here
-- **Mission 2**: Silo
-- **Mission 3**: Scales, Roof raise, Market wares
-- **Mission 4**: Shipwreck
-- **Mission 5**: Brushing, Topsoil reveal
-- **Mission 6**: Minecart, Precious recovery
-- **Mission 7**: Forum, statue, flags
+The hub also prints the battery level to the console when it boots, so we can
+check it's charged before a round.
 
-See `src/main.py` for mission code and sequencing.
+## The robot
 
-### PID Control System
+- Drive base: two motors, left on port D and right on port C, 62.4 mm wheels,
+  130 mm axle track.
+- Attachment arms: left on port F, right on port E.
+- Heading is kept straight with the hub's built-in gyro.
 
-The robot includes a custom PID controller for:
+Missions are plain functions tagged with the `@mission` decorator, which adds
+them to the menu in the order they appear in the file. Alongside the normal
+PyBricks drive commands there are a few "until stalled" helpers
+(`straight_until_stalled`, `arc_until_stalled`, `turn_until_stalled`) for driving
+into a wall or model and stopping once the robot can't move any further.
 
-- **Smart driving**: Gyro-corrected straight line movement
-- **Smart turning**: Precise angle control with overshoot prevention
-- **Battery compensation**: Adjusts for voltage drop during runs
+## Missions
 
-Configure PID constants in the `Robot` class initialization.
+In menu order (see `src/main.py` for the actual movements):
 
-## 🗺️ Field Resources
+1. Flip boulders and heavy
+2. Silo
+3. Scales and raise pan
+4. Ship
+5. Brush and broom
+6. Minecart
+7. Forum, statue and flags
 
-Competition field maps and path planning diagrams are stored in `resources/`:
+## Field resources
 
-- `Map.pdf` - Official FLL Unearthed field layout
-- `PathV1.png` through `PathV5.png` - Documented mission paths and strategies
+`resources/` holds the field map (`Map.pdf`) and our path sketches (`PathV1.png`
+through `PathV5.png`).
 
-## 📊 Battery Management
+## Working on it
 
-The robot monitors battery voltage and provides visual feedback:
+- Keep `src/main.py` a single file with minimal imports so it stays hub-friendly.
+- Follow PEP 8 (4-space indents, snake_case).
+- Test on the table before committing, and note the battery voltage while you do.
+- Update the path images in `resources/` if a route changes.
 
-- **High voltage** (>8.4V): Green indicator
-- **Medium voltage** (7.2V-8.4V): Orange indicator
-- **Low voltage** (<7.2V): Red warning, recommend recharge
+## License
 
-Each mission displays battery status before running. The system includes `LOW_VOLTAGE` protection to prevent brownouts during critical movements.
-
-## Contributing
-
-We welcome contributions from team members! Please follow these guidelines:
-
-### Code Style
-
-- Follow PEP 8 conventions (4-space indentation, `snake_case` functions)
-- Use descriptive variable names
-- Add comments for complex mission logic
-- Keep `src/main.py` hub-friendly (minimal imports, single file)
-
-### Mission Development
-
-1. Test missions thoroughly on the competition table
-2. Document attachment requirements
-3. Note battery voltage during testing
-4. Update path diagrams in `resources/` if routes change
-5. Use the `@mission("slot")` decorator for new missions
-
-### Pull Requests
-
-- Use [conventional commit](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13 "Cheat sheet for conventional commits") format: `feat:`, `fix:`, `docs:`, etc.
-- Describe mission changes and required attachments
-- Include field test results
-- Reference related issues
-
-## 🫠 Troubleshooting
-
-### Hub won't connect
-
-- Ensure PyBricks firmware is installed (not LEGO firmware)
-- Check Bluetooth is enabled
-- Verify hub name matches deployment script (default: "FatSean")
-- Try restarting the hub
-
-### Mission runs incorrectly
-
-- Check battery voltage (should be >7.5V for consistent performance)
-- Verify attachments are properly installed
-- Reset gyro by restarting the mission or hub
-- Ensure starting position is correct
-
-## 📄 License
-
-This project is licensed under the [Apache License 2.0](LICENSE).
-
-Copyright © 2026 Team LEBOB - FLL Unearthed
-
-You are free to use, modify, and distribute this code. See the LICENSE file for full terms and conditions.
-
-## 👥 Team
-
-**Team LEBOB** - FIRST LEGO League Unearthed Season 2026
-
-For questions, issues, or contributions, please open an issue on GitHub or contact the team.
-
----
-
-**Good luck at competition! 🏆**
+Apache License 2.0, see [LICENSE](LICENSE). Copyright © 2026 Team LEBOB.
