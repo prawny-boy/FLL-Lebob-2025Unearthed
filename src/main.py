@@ -180,51 +180,27 @@ def mission_2():
 @mission
 def mission_3():
     """Scales, raise pan, angler artifacts."""
-    rbm.run_angle(300, -140)
-    rbm.run_angle(300, 1000)
     # Drive to raise
-    # lbm.run_angle(400, 150, then=Stop.BRAKE)
-    # db.straight(300)
-    # db.turn(-45)
-    # db.straight(200)
-    # lbm.run_angle(100, -95)
-    # rbm.run_angle(100, -140, then=Stop.COAST, wait=False)  # Arm down onto the platform
-    # wait(800)
-    # rbm.stop()
-    # lbm.run_angle(50, 90)
-    # lbm.run_angle(300, 60)
-    # db.straight(-100)
-    # rbm.run_angle(400, 150, then=Stop.COAST, wait=False)  # Raise
-    # db.straight(-100)  # Pull the platform up at the same time
-    # db.straight(80)  # Let go of the arm and go up to the scales
-    #
-    # # Go to pan
-    # rd.run_time(
-    #     400, 1000, then=Stop.COAST
-    # )  # Turn left by only moving the right wheel, and knock the scales
-    # rbm.run_angle(500, 1000)
-    # db.straight(2000)
-    # db.arc(
-    #     131,
-    #     164,
-    # )
-    # db.straight(20)
-    # rbm.run_angle(400, -160)  # Arm down to hit pan
-    # wait(200)
-    # rbm.run_angle(600, 120)
-    # db.straight(-110)  # Take pan out
-    # db.settings(straight_speed=1000)
-    # db.turn(-95)
-    # db.straight(60)
-    # db.turn_until_stalled(tolerance=20, then=Stop.HOLD)
-    # lbm.dc(100)
-    # rd.run_time(-50, 1500)
-    # lbm.stop()
-    # db.straight(-50)
-    # db.turn(35)
-    # db.arc(-650, 60)
-    # db.straight(600)
-
+    lbm.run_angle(200, 120, wait=False)
+    db.straight(250)
+    db.turn(-43)
+    db.straight(210)
+    rbm.run_angle(200, 90)
+    lbm.run_angle(200, -50)
+    lbm.run_until_stalled(85)
+    db.settings(straight_speed=500)
+    db.straight(-50)
+    db.settings(straight_speed=1000)
+    rbm.run_angle(50, -60, wait=False)
+    db.straight(-150)
+    db.straight(150)
+    rbm.run_angle(300, -90, wait=False)
+    db.turn(-47)
+    lbm.run_angle(300, -180, wait=False)
+    db.drive(1500, -3)
+    wait(3500)
+    rbm.stop()
+    lbm.stop()
 
 @mission
 def mission_4():
