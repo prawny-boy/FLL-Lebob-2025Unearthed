@@ -179,7 +179,7 @@ def mission_2():
 
 @mission
 def mission_3():
-    """Scales, raise pan, angler artifacts."""
+    """Scales and raise pan."""
     # Drive to raise
     lbm.run_angle(200, 120, wait=False)
     db.straight(250)
@@ -202,15 +202,10 @@ def mission_3():
     rbm.stop()
     lbm.stop()
 
-@mission
-def mission_4():
-    """Angler artifacts."""
-    pass
-
     
 @mission
-def mission_5():
-    """Ship."""
+def mission_4():
+    """Ship and Angler Artifacts."""
     db.settings(straight_speed=500)
     db.straight(500)
     db.settings(straight_speed=1000)
@@ -218,7 +213,7 @@ def mission_5():
 
 
 @mission
-def mission_6():
+def mission_5():
     """Map and Brush."""
     # Brush
     # lbm.run_angle(200, 120, wait=False)
@@ -248,7 +243,7 @@ def mission_6():
 
 
 @mission
-def mission_7():
+def mission_6():
     """Minecart."""
     db.straight(910)
     db.turn(90)  # Face minecart
@@ -279,7 +274,7 @@ def mission_7():
 
 
 @mission
-def mission_8():
+def mission_7():
     """Forum, Statue, Flags, Opponent's Minecart."""
     db.straight(600)
     db.curve(150, 90)
