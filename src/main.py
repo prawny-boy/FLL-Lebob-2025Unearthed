@@ -209,6 +209,9 @@ def mission_4():
     db.settings(straight_speed=500)
     db.straight(500)
     db.settings(straight_speed=1000)
+    rbm.run_until_stalled(-100)
+    lbm.run_angle(500, -720)
+    rbm.run_angle(300, 90)
     db.straight(-700)
 
 
