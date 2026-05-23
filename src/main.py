@@ -206,12 +206,20 @@ def mission_3():
 @mission
 def mission_4():
     """Ship and Angler Artifacts."""
-    db.settings(straight_speed=500)
+    db.settings(straight_speed=300)
     db.straight(500)
     db.settings(straight_speed=1000)
-    rbm.run_until_stalled(-100)
-    lbm.run_angle(500, -720)
-    rbm.run_angle(300, 90)
+    db.straight(-50)
+    rbm.run_until_stalled(100)
+    db.straight(50)
+    lbm.dc(100)
+    db.settings(turn_rate=50)
+    db.turn(15, wait=False)
+    wait(2000)
+    db.settings(turn_rate=160)
+    lbm.stop()
+    rbm.run_angle(300, -90)
+    wait(100)
     db.straight(-700)
 
 
