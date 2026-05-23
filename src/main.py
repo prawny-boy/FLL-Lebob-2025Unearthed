@@ -211,16 +211,13 @@ def mission_4():
     db.settings(straight_speed=1000)
     db.straight(-50)
     rbm.run_until_stalled(100)
-    db.straight(50)
+    db.straight(75)
     lbm.dc(100)
-    db.settings(turn_rate=50)
-    db.turn(15, wait=False)
     wait(2000)
-    db.settings(turn_rate=160)
     lbm.stop()
-    rbm.run_angle(300, -90)
+    rbm.run_angle(300, -90, wait=False)
     wait(100)
-    db.straight(-700)
+    db.straight(-1000)
 
 
 @mission
