@@ -151,13 +151,14 @@ def reset_robot():
 def mission_1():
     """Flip boulders and heavy."""
     print("Mission 1: Flip boulders and heavy")
-    db.straight(300)  # Drive up to silo
+    db.straight(310)  # Drive up to silo
 
     db.turn(-55)
     db.arc(300, 100) # Go to flip boulders
+    db.straight(25)
     
     lbm.run_angle(500, 110)
-    rbm.run_angle(300, -160)
+    rbm.run_angle(200, -180)
     wait(1000)
     rbm.run_angle(300, 160)
     #rbm.run_until_stalled(70, then=Stop.HOLD)  # Arm back up
@@ -175,9 +176,9 @@ def mission_2():
     rbm.run_angle(300, -45, wait=False)
     db.straight(350)
     for _ in range(3):
-        rbm.dc(-75)
+        rbm.dc(-90)
         wait(250)
-        rbm.dc(75)
+        rbm.dc(90)
         wait(250)
     db.straight(-350)
 
@@ -216,7 +217,8 @@ def mission_4():
     db.settings(straight_speed=1000)
     db.straight(-50)
     rbm.run_until_stalled(100)
-    db.straight(75)
+    db.straight(50)
+    db.turn(10, wait=False)
     lbm.dc(100)
     wait(2000)
     lbm.stop()
@@ -289,20 +291,24 @@ def mission_6():
 @mission
 def mission_7():
     """Forum, Statue, Flags, Opponent's Minecart."""
-    db.straight(600)
-    db.curve(150, 90)
-    db.straight(180)
-    db.turn(55)
-    db.straight(-100, wait=False)
-    lbm.run_until_stalled(100, duty_limit=20)
-    db.settings(straight_speed=200)
-    db.straight(120)
-    lbm.run_angle(500, -90)
-    db.straight(-100)
-    rbm.run_angle(1000, 720)
+    db.curve(478, 43)
+    db.straight(50)
+    rbm.run_until_stalled(-100, duty_limit=50)
+    db.straight(80)
+    rbm.run_angle(300, 90)
+    db.straight(-200)
+    db.turn(45)
+    db.straight(520)
     db.turn(-55)
-    db.straight(400)
-
+    db.straight(510)
+    lbm.run_until_stalled(100, duty_limit=20)
+    db.straight(30)
+    lbm.run_angle(100, -90)
+    db.turn(-120)
+    lbm.run_until_stalled(300)
+    db.straight(370)
+    db.turn(-45)
+    db.straight(-200)
 
 
 def mission_selector():
