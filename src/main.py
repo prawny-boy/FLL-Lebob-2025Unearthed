@@ -134,27 +134,31 @@ def mission(func_ptr):
 
 
 def reset_robot():
+    # Stop everything first so reset_angle/reset don't throw EPERM.
+    db.stop()
+    lbm.stop()
+    rbm.stop()
+    wait(50)
+
     db.reset()
     hub.imu.reset_heading(0)
     lbm.reset_angle(0)
     rbm.reset_angle(0)
-    db.stop()
-    lbm.stop()
-    rbm.stop()
+
 
 
 @mission
 def mission_1():
     """Flip boulders and heavy."""
+    print("Mission 1: Flip boulders and heavy")
     db.straight(280)  # Drive up to silo
 
     db.turn(-55)
-    rbm.run_angle(25, -25, wait=False) # Reset arm
-    db.arc(265, 90) # Go to flip boulders
-    db.straight(80)
-
-    lbm.run_angle(100, 180, wait=False)
-    rbm.run_until_stalled(-75, then=Stop.COAST)  # Arm down
+    db.arc(290, 100) # Go to flip boulders
+    db.straight(50)
+    
+    lbm.run_angle(50, 180)
+    rbm.run_until_stalled(-75, then=Stop.COAST, duty_limit=10)  # Arm down
     rbm.dc(60)
     wait(2000)
     #rbm.run_until_stalled(70, then=Stop.HOLD)  # Arm back up
@@ -165,6 +169,8 @@ def mission_1():
     # wait(100) # So the boulder's don't fall out
     # db.drive(-1000, -80)
     # wait(2000)
+
+    # Restore default gearing for later missions.
 
 
 @mission
