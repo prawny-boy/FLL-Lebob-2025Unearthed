@@ -151,26 +151,22 @@ def reset_robot():
 def mission_1():
     """Flip boulders and heavy."""
     print("Mission 1: Flip boulders and heavy")
-    db.straight(280)  # Drive up to silo
+    db.straight(300)  # Drive up to silo
 
     db.turn(-55)
-    db.arc(290, 100) # Go to flip boulders
-    db.straight(50)
+    db.arc(300, 100) # Go to flip boulders
     
-    lbm.run_angle(50, 180)
-    rbm.run_until_stalled(-75, then=Stop.COAST, duty_limit=10)  # Arm down
-    rbm.dc(60)
-    wait(2000)
+    lbm.run_angle(500, 110)
+    rbm.run_angle(300, -160)
+    wait(1000)
+    rbm.run_angle(300, 160)
     #rbm.run_until_stalled(70, then=Stop.HOLD)  # Arm back up
 
     # Return
-    db.straight(-70)
+    db.straight(-120)
     db.turn(-45)
-    # wait(100) # So the boulder's don't fall out
-    # db.drive(-1000, -80)
-    # wait(2000)
-
-    # Restore default gearing for later missions.
+    db.drive(-1000, -40)
+    wait(3000)
 
 
 @mission
@@ -226,7 +222,7 @@ def mission_4():
     lbm.stop()
     rbm.run_angle(300, -90, wait=False)
     wait(100)
-    db.straight(-3000)
+    db.straight(-1000)
 
 
 @mission
