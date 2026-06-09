@@ -160,7 +160,7 @@ def mission_1():
     rbm.run_angle(200, -190)
     lbm.run_angle(500, -360, wait=False)
     wait(500)
-    rbm.run_angle(300, 190)
+    rbm.run_angle(300, 290)
 
     # Return
     db.straight(-150)
@@ -271,15 +271,7 @@ def mission_6():
     db.settings(straight_speed=100)
     db.straight(170)  # Drive into the minecart area
     lbm.run_angle(150, -40, wait=False)  # Pick up artefact
-    rbm.dc(60)
-    rbm.reset_angle(0)
-    current_angle = rbm.angle()
-    print(current_angle)
-    while rbm.angle() < current_angle + 80:
-        wait(5)
-    print(rbm.angle())
-    rbm.stop()
-    wait(350)
+    rbm.run_angle(100, 150)
     lbm.run_angle(20, -20, then=Stop.COAST, wait=False)
     db.straight(-200)  # Return
 
@@ -370,7 +362,7 @@ def main():
     # Buttons
     hub.system.set_stop_button(Button.BLUETOOTH)
     hub.display.orientation(Side.BOTTOM)
-    hub.light.on(Color.RED if percentage < 80 else Color.BLUE)  # Ready
+    hub.light.on(Color.RED if percentage < 75 else Color.BLUE)  # Ready
     reset_robot()
     db.settings(
         straight_speed=1000,
