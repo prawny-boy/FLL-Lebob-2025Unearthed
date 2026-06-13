@@ -157,16 +157,16 @@ def mission_1():
     db.arc(304, 100) # Go to flip boulders
     db.straight(10)
     
-    rbm.run_angle(200, -190)
+    rbm.run_angle(200, -210)
     lbm.run_angle(500, -360, wait=False)
     wait(500)
-    rbm.run_angle(300, 290)
+    rbm.run_angle(100, 290)
 
     # Return
     db.straight(-150)
     db.turn(-45)
-    db.drive(-1000, -35)
-    wait(3000)
+    db.drive(-1000, -15)
+    wait(2000)
 
 
 @mission
@@ -196,37 +196,39 @@ def mission_3():
     db.settings(straight_speed=500)
     db.straight(-50)
     db.settings(straight_speed=1000)
-    rbm.run_angle(40, -50, wait=False)
+    rbm.run_angle(50, -60, wait=False)
     db.straight(-175)
-    db.straight(130)
-    rbm.run_angle(300, -90, wait=False)
-    db.turn(-47)
-    lbm.run_angle(150, -120, wait=False)
+    db.straight(140)
+    rbm.run_angle(300, -60, wait=False)
+    db.turn(-55)
+    lbm.run_angle(150, -150)
     wait(500)
-    db.straight(600)
+    db.straight(800)
     db.turn(-10)
-    db.straight(1000)
-    wait(3500)
-    rbm.stop()
-    lbm.stop()
+    db.straight(600)
 
     
 @mission
 def mission_4():
-    """Ship and Angler Artifacts."""
-    db.settings(straight_speed=300)
-    db.straight(500)
+    """Minecart."""
+    db.straight(910)
+    db.turn(90)  # Face minecart
+    db.straight(-90, wait=False)  # Give space for arms
+    rbm.run_time(-200, 800, Stop.COAST, False)  # Right arm down
+    lbm.run_until_stalled(200, Stop.BRAKE, 50)  # Left arm down
+    lbm.run_angle(200, -1, then=Stop.HOLD)  # Left arm back
+    db.settings(straight_speed=100)
+    db.straight(170)  # Drive into the minecart area
+    lbm.run_angle(150, -40, wait=False)  # Pick up artefact
+    rbm.run_angle(100, 150)
+    lbm.run_angle(20, -15, then=Stop.COAST, wait=False)
+    db.straight(-200)  # Return
+
     db.settings(straight_speed=1000)
-    db.straight(-50)
-    rbm.run_until_stalled(100)
-    db.straight(50)
-    db.turn(10, wait=False)
-    lbm.dc(100)
-    wait(2000)
-    lbm.stop()
-    rbm.run_angle(300, -90, wait=False)
-    wait(100)
-    db.straight(-1000)
+    lbm.run_angle(100, -45, wait=False)
+    rbm.run_angle(200, 80, wait=False)
+    db.turn(93)
+    db.straight(810)
 
 
 @mission
@@ -261,61 +263,55 @@ def mission_5():
 
 @mission
 def mission_6():
-    """Minecart."""
-    db.straight(910)
-    db.turn(90)  # Face minecart
-    db.straight(-90, wait=False)  # Give space for arms
-    rbm.run_time(-200, 800, Stop.COAST, False)  # Right arm down
-    lbm.run_until_stalled(200, Stop.BRAKE, 50)  # Left arm down
-    lbm.run_angle(200, -1, then=Stop.HOLD)  # Left arm back
-    db.settings(straight_speed=100)
-    db.straight(170)  # Drive into the minecart area
-    lbm.run_angle(150, -40, wait=False)  # Pick up artefact
-    rbm.run_angle(100, 150)
-    lbm.run_angle(20, -20, then=Stop.COAST, wait=False)
-    db.straight(-200)  # Return
-
+    """Ship and Angler Artifacts."""
+    db.settings(straight_speed=300)
+    db.straight(500)
     db.settings(straight_speed=1000)
-    lbm.run_angle(100, -45, wait=False)
-    rbm.run_angle(200, 80, wait=False)
-    db.turn(93)
-    db.straight(810)
+    db.straight(-50)
+    rbm.run_until_stalled(100)
+    db.straight(50)
+    db.turn(20, wait=False)
+    lbm.dc(100)
+    wait(3000)
+    lbm.stop()
+    rbm.run_angle(300, -90, wait=False)
+    wait(100)
+    db.straight(-1000)
 
 
 @mission
 def mission_7():
-    """Forum, Statue, Flags, Opponent's Minecart."""
-    db.curve(478, 43)
-    db.straight(50)
-    rbm.run_until_stalled(-150, duty_limit=50)
-    rbm.run_angle(100, 80, wait=False)
-    db.settings(straight_speed=200)
-    db.straight(65)
+    """Forum, Statue, Flags, Opp's Minecart."""
+    db.curve(478, 43)  # Drive to area
+    db.straight(50)  # Go into statue
+    rbm.run_until_stalled(-150, duty_limit=50)  # Reset arm
+    rbm.run_angle(110, 80, wait=False)  # Lift statue slow
+    db.settings(straight_speed=300)
+    db.straight(65)  # Push statue
     db.settings(straight_speed=1000)
-    rbm.run_until_stalled(300, duty_limit=40)
-    db.straight(-200)
-    db.turn(45)
+    # rbm.run_until_stalled(300, duty_limit=40)
+    rbm.run_angle(200, 100, wait=False)  # Lift statue fast
+    db.straight(-200)  # Leave area
+    db.turn(45)  # Go to Opp minecart
     db.straight(510)
     db.turn(-55)
     db.straight(470, wait=False)
-    wait(500)
-    rbm.run_angle(300, -60)
+    rbm.run_angle(200, -64)  # Right arm down for minecart
     wait(1000)
-    db.straight(110)
-    rbm.run_angle(300, 30)
-    lbm.run_time(200, 1000, then=Stop.COAST)
+    db.straight(115)  # Hook into minecart
+    rbm.run_angle(300, 30)  # Pick up minecart
+    lbm.run_time(200, 1000, then=Stop.COAST)  # Put down flag
     wait(500)
-    db.settings(turn_rate=100)
     db.straight(-40)
-    lbm.run_angle(300, -90, wait=False)
+    lbm.run_angle(300, -120, wait=False)  # Arm out of the way
     wait(300)
-    db.turn(-115)
+    db.turn(-121)  # Go to forum
     db.straight(390)
-    db.turn(-75)
+    db.turn(-62)
     db.straight(-150)
-    rbm.run_angle(300, -60)
-    db.straight(-150)
-    rbm.run_angle(300, 80)
+    rbm.run_angle(300, -60)  # Put minecart down
+    db.straight(-50)
+    rbm.run_angle(300, 60)
 
 
 def mission_selector():
