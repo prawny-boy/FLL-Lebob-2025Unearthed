@@ -155,7 +155,7 @@ def mission_1():
 
     db.turn(-55)
     db.arc(304, 100) # Go to flip boulders
-    db.straight(10)
+    db.straight(15)
     
     rbm.run_angle(200, -210)
     lbm.run_angle(500, -360, wait=False)
@@ -191,7 +191,7 @@ def mission_3():
     db.turn(-43)
     db.straight(210)
     rbm.run_angle(200, 90)
-    lbm.run_angle(200, -55)
+    lbm.run_angle(200, -60)
     lbm.run_angle(100, 110)
     db.settings(straight_speed=500)
     db.straight(-50)
@@ -203,9 +203,9 @@ def mission_3():
     db.turn(-55)
     lbm.run_angle(150, -150)
     wait(500)
-    db.straight(800)
+    db.straight(900)
     db.turn(-10)
-    db.straight(600)
+    db.straight(500)
 
     
 @mission
@@ -265,18 +265,20 @@ def mission_5():
 def mission_6():
     """Ship and Angler Artifacts."""
     db.settings(straight_speed=300)
-    db.straight(500)
+    db.straight(490)
     db.settings(straight_speed=1000)
     db.straight(-50)
     rbm.run_until_stalled(100)
-    db.straight(50)
-    db.turn(20, wait=False)
+    db.straight(30)
     lbm.dc(100)
-    wait(3000)
+    wait(2000)
     lbm.stop()
     rbm.run_angle(300, -90, wait=False)
-    wait(100)
-    db.straight(-1000)
+    wait(500)
+    db.turn(10)
+    db.settings(straight_speed=500)
+    db.straight(-750)
+    db.settings(straight_speed=1000)
 
 
 @mission
@@ -296,7 +298,7 @@ def mission_7():
     db.straight(510)
     db.turn(-55)
     db.straight(470, wait=False)
-    rbm.run_angle(200, -64)  # Right arm down for minecart
+    rbm.run_angle(200, -55)  # Right arm down for minecart
     wait(1000)
     db.straight(115)  # Hook into minecart
     rbm.run_angle(300, 30)  # Pick up minecart
@@ -308,9 +310,8 @@ def mission_7():
     db.turn(-121)  # Go to forum
     db.straight(390)
     db.turn(-62)
-    db.straight(-150)
     rbm.run_angle(300, -60)  # Put minecart down
-    db.straight(-50)
+    db.straight(-200)
     rbm.run_angle(300, 60)
 
 
