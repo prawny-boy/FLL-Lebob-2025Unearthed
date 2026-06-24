@@ -149,16 +149,17 @@ def reset_robot():
 
 @mission
 def mission_1():
-    """Flip boulders and heavy."""
+    """Flip boulders and heavy."""      
     print("Mission 1: Flip boulders and heavy")
+
     db.straight(310)  # Drive up to silo
 
     db.turn(-55)
     db.arc(304, 100) # Go to flip boulders
-    db.straight(10)
+    db.straight(8)
     
     rbm.run_angle(200, -210)
-    lbm.run_angle(500, -360, wait=False)
+    lbm.run_angle(300, -360, wait=False)
     wait(500)
     rbm.run_angle(100, 290)
 
