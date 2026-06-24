@@ -21,10 +21,10 @@ Then either load and run it from the PyBricks IDE (open `src/main.py`, connect t
 the hub, hit *Download and Run*), or push it over Bluetooth:
 
 ```bash
-pybricksdev run ble src/main.py
+pybricksdev run ble --name "FatSean" src/main.py
 ```
 
-If the hub has a name, add `--name {Name}`.
+`FatSean` is our hub's name; change it if yours is different.
 
 ## Using the menu
 
