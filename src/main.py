@@ -149,9 +149,8 @@ def reset_robot():
 
 @mission
 def mission_1():
-    """Flip boulders and heavy."""      
+    """Flip boulders and heavy."""
     print("Mission 1: Flip boulders and heavy")
-
     db.straight(310)  # Drive up to silo
 
     db.turn(-55)
@@ -266,18 +265,20 @@ def mission_5():
 def mission_6():
     """Ship and Angler Artifacts."""
     db.settings(straight_speed=300)
-    db.straight(500)
+    db.straight(490)
     db.settings(straight_speed=1000)
     db.straight(-50)
     rbm.run_until_stalled(100)
-    db.straight(50)
-    db.turn(20, wait=False)
+    db.straight(30)
     lbm.dc(100)
-    wait(3000)
+    wait(2000)
     lbm.stop()
     rbm.run_angle(300, -90, wait=False)
-    wait(100)
-    db.straight(-1000)
+    wait(500)
+    db.turn(10)
+    db.settings(straight_speed=500)
+    db.straight(-750)
+    db.settings(straight_speed=1000)
 
 
 @mission
@@ -297,7 +298,7 @@ def mission_7():
     db.straight(510)
     db.turn(-55)
     db.straight(470, wait=False)
-    rbm.run_angle(200, -64)  # Right arm down for minecart
+    rbm.run_angle(200, -55)  # Right arm down for minecart
     wait(1000)
     db.straight(115)  # Hook into minecart
     rbm.run_angle(300, 30)  # Pick up minecart
@@ -309,14 +310,33 @@ def mission_7():
     db.turn(-121)  # Go to forum
     db.straight(390)
     db.turn(-62)
-    db.straight(-150)
     rbm.run_angle(300, -60)  # Put minecart down
-    db.straight(-50)
+    db.straight(-200)
     rbm.run_angle(300, 60)
 
 
+STORAGE_OFFSET = 0
+
+
+def load_saved_mission_index():
+    try:
+        data = hub.system.storage(STORAGE_OFFSET, read=1)
+        if len(data) == 1:
+            return data[0] % len(MISSIONS)
+    except Exception:
+        pass
+    return 0
+
+
+def save_mission_index(index):
+    try:
+        hub.system.storage(STORAGE_OFFSET, write=bytes([index]))
+    except Exception:
+        pass
+
+
 def mission_selector():
-    mission_index = 0
+    mission_index = load_saved_mission_index()
 
     while True:
         hub.display.char(str(mission_index + 1))
@@ -335,6 +355,8 @@ def mission_selector():
         elif Button.CENTER in pressed:
             while hub.buttons.pressed():
                 wait(20)
+            next_index = (mission_index + 1) % len(MISSIONS)
+            save_mission_index(next_index)
             hub.light.on(Color.GREEN)
             timer = StopWatch()
             try:
@@ -344,7 +366,7 @@ def mission_selector():
                 print(f"Time Elapsed: {timer.time()}ms")
                 reset_robot()
                 hub.light.on(Color.BLUE)
-            mission_index = (mission_index + 1) % len(MISSIONS)
+            mission_index = next_index
 
         wait(20)
 
@@ -353,8 +375,9 @@ def main():
     # Battery
     voltage = hub.battery.voltage()
     percentage = max(0, min(100, (voltage - 6000) * 100 // (8400 - 6000)))
+    settings = db.settings()
     print(f"Battery: {str(percentage)}% ({str(voltage)}mV)")
-    print(f"Settings: {tuple(db.settings())}")
+    print(f"Settings: {tuple(settings) if settings else ()}")
 
     # Buttons
     hub.system.set_stop_button(Button.BLUETOOTH)
