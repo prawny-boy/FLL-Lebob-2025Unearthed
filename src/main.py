@@ -154,12 +154,13 @@ def mission_1():
     db.straight(310)  # Drive up to silo
 
     db.turn(-55)
-    db.arc(304, 100) # Go to flip boulders
-    db.straight(8)
+    db.arc(293, 100) # Go to flip boulders
+    db.straight(20)
+    db.straight(-1)
     
     rbm.run_angle(200, -210)
     lbm.run_angle(300, -360, wait=False)
-    wait(500)
+    wait(200)
     rbm.run_angle(100, 290)
 
     # Return
@@ -201,8 +202,8 @@ def mission_3():
     db.straight(140)
     rbm.run_angle(300, -60, wait=False)
     db.turn(-55)
-    lbm.run_angle(150, -150)
-    wait(500)
+    lbm.run_angle(150, -150, wait=False)
+    wait(750)
     db.straight(800)
     db.turn(-10)
     db.straight(600)
