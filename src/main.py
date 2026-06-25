@@ -155,10 +155,10 @@ def mission_1():
 
     db.turn(-55)
     db.arc(304, 100) # Go to flip boulders
-    db.straight(15)
+    db.straight(8)
     
     rbm.run_angle(200, -210)
-    lbm.run_angle(500, -360, wait=False)
+    lbm.run_angle(300, -360, wait=False)
     wait(500)
     rbm.run_angle(100, 290)
 
@@ -190,8 +190,8 @@ def mission_3():
     db.straight(250)
     db.turn(-43)
     db.straight(210)
-    rbm.run_angle(200, 90)
-    lbm.run_angle(200, -60)
+    lbm.run_angle(200, -55)
+    rbm.run_angle(200, 90) 
     lbm.run_angle(100, 110)
     db.settings(straight_speed=500)
     db.straight(-50)
@@ -203,9 +203,9 @@ def mission_3():
     db.turn(-55)
     lbm.run_angle(150, -150)
     wait(500)
-    db.straight(900)
+    db.straight(800)
     db.turn(-10)
-    db.straight(500)
+    db.straight(600)
 
     
 @mission
@@ -315,8 +315,28 @@ def mission_7():
     rbm.run_angle(300, 60)
 
 
+STORAGE_OFFSET = 0
+
+
+def load_saved_mission_index():
+    try:
+        data = hub.system.storage(STORAGE_OFFSET, read=1)
+        if len(data) == 1:
+            return data[0] % len(MISSIONS)
+    except Exception:
+        pass
+    return 0
+
+
+def save_mission_index(index):
+    try:
+        hub.system.storage(STORAGE_OFFSET, write=bytes([index]))
+    except Exception:
+        pass
+
+
 def mission_selector():
-    mission_index = 0
+    mission_index = load_saved_mission_index()
 
     while True:
         hub.display.char(str(mission_index + 1))
@@ -335,6 +355,8 @@ def mission_selector():
         elif Button.CENTER in pressed:
             while hub.buttons.pressed():
                 wait(20)
+            next_index = (mission_index + 1) % len(MISSIONS)
+            save_mission_index(next_index)
             hub.light.on(Color.GREEN)
             timer = StopWatch()
             try:
@@ -344,7 +366,7 @@ def mission_selector():
                 print(f"Time Elapsed: {timer.time()}ms")
                 reset_robot()
                 hub.light.on(Color.BLUE)
-            mission_index = (mission_index + 1) % len(MISSIONS)
+            mission_index = next_index
 
         wait(20)
 
@@ -353,8 +375,9 @@ def main():
     # Battery
     voltage = hub.battery.voltage()
     percentage = max(0, min(100, (voltage - 6000) * 100 // (8400 - 6000)))
+    settings = db.settings()
     print(f"Battery: {str(percentage)}% ({str(voltage)}mV)")
-    print(f"Settings: {tuple(db.settings())}")
+    print(f"Settings: {tuple(settings) if settings else ()}")
 
     # Buttons
     hub.system.set_stop_button(Button.BLUETOOTH)
