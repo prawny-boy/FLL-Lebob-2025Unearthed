@@ -159,9 +159,10 @@ def mission_1():
     db.straight(-1)
     
     rbm.run_angle(200, -210)
-    lbm.run_angle(300, -360, wait=False)
     wait(200)
-    rbm.run_angle(100, 290)
+    rbm.run_angle(100, 290, wait=False)
+    wait(1000)
+    lbm.run_angle(300, -360)
 
     # Return
     db.straight(-150)
@@ -175,9 +176,11 @@ def mission_2():
     """Silo."""
     rbm.run_angle(300, -45, wait=False)
     db.straight(350)
-    for _ in range(3):
+    for _ in range(4):
         rbm.dc(-90)
         wait(250)
+        rbm.stop()
+        wait(100)
         rbm.dc(90)
         wait(250)
     db.straight(-350)
@@ -202,9 +205,11 @@ def mission_3():
     db.straight(140)
     rbm.run_angle(300, -60, wait=False)
     db.turn(-55)
-    lbm.run_angle(150, -150, wait=False)
+    lbm.run_angle(200, -175, wait=False)
+    wait(800)
+    db.straight(800, wait=False)
     wait(750)
-    db.straight(800)
+    lbm.run_angle(50, 45)
     db.turn(-10)
     db.straight(600)
 
@@ -221,7 +226,7 @@ def mission_4():
     db.settings(straight_speed=100)
     db.straight(170)  # Drive into the minecart area
     lbm.run_angle(150, -40, wait=False)  # Pick up artefact
-    rbm.run_angle(100, 150)
+    rbm.run_angle(100, 125)
     lbm.run_angle(20, -15, then=Stop.COAST, wait=False)
     db.straight(-200)  # Return
 
@@ -299,7 +304,7 @@ def mission_7():
     db.straight(510)
     db.turn(-55)
     db.straight(470, wait=False)
-    rbm.run_angle(200, -55)  # Right arm down for minecart
+    rbm.run_angle(200, -56)  # Right arm down for minecart
     wait(1000)
     db.straight(115)  # Hook into minecart
     rbm.run_angle(300, 30)  # Pick up minecart
@@ -310,9 +315,10 @@ def mission_7():
     wait(300)
     db.turn(-121)  # Go to forum
     db.straight(390)
-    db.turn(-62)
-    rbm.run_angle(300, -60)  # Put minecart down
-    db.straight(-200)
+    db.turn(-70)
+    db.straight(-100)
+    rbm.run_angle(300, -60, wait=False)  # Put minecart down
+    db.straight(-150)
     rbm.run_angle(300, 60)
 
 
