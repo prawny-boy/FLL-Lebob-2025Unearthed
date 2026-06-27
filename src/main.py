@@ -223,13 +223,14 @@ def mission_4():
     while hub.imu.heading() < 85:
         wait(10)
     rd.stop()
-    hub.imu.reset_heading(0)
+    db.reset()
+    db.use_gyro(True)
     rbm.run_time(-200, 800, Stop.COAST, False)  # Right arm down
     lbm.run_until_stalled(200, Stop.BRAKE, 50)  # Left arm down
     lbm.run_angle(200, -2, then=Stop.HOLD)  # Left arm back
     db.settings(straight_speed=100)
     db.straight(150)  # Drive into the minecart area
-    lbm.run_angle(150, -40, wait=False)  # Pick up artefact
+    lbm.run_angle(150, -41, wait=False)  # Pick up artefact
     rbm.run_angle(100, 125)
     lbm.run_angle(20, -15, then=Stop.COAST, wait=False)
     db.straight(-200)  # Return
