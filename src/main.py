@@ -217,14 +217,17 @@ def mission_3():
 @mission
 def mission_4():
     """Minecart."""
-    db.straight(910)
-    db.turn(90)  # Face minecart
-    db.straight(-90, wait=False)  # Give space for arms
+    db.straight_until_stalled(1000)
+    hub.imu.reset_heading(0)
+    rd.run(-200)
+    while hub.imu.heading() < 85:
+        wait(10)
+    rd.stop()
     rbm.run_time(-200, 800, Stop.COAST, False)  # Right arm down
     lbm.run_until_stalled(200, Stop.BRAKE, 50)  # Left arm down
-    lbm.run_angle(200, -1, then=Stop.HOLD)  # Left arm back
+    lbm.run_angle(200, -2, then=Stop.HOLD)  # Left arm back
     db.settings(straight_speed=100)
-    db.straight(170)  # Drive into the minecart area
+    db.straight(150)  # Drive into the minecart area
     lbm.run_angle(150, -40, wait=False)  # Pick up artefact
     rbm.run_angle(100, 125)
     lbm.run_angle(20, -15, then=Stop.COAST, wait=False)
@@ -279,12 +282,8 @@ def mission_6():
     lbm.dc(100)
     wait(2000)
     lbm.stop()
-    rbm.run_angle(300, -90, wait=False)
-    wait(500)
-    db.turn(10)
-    db.settings(straight_speed=500)
+    rbm.run_angle(300, -90)
     db.straight(-750)
-    db.settings(straight_speed=1000)
 
 
 @mission
