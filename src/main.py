@@ -301,25 +301,26 @@ def mission_7():
     rbm.run_angle(200, 100, wait=False)  # Lift statue fast
     db.straight(-200)  # Leave area
     db.turn(45)  # Go to Opp minecart
+    rbm.run_until_stalled(100, duty_limit=50)
     db.straight(510)
     db.turn(-55)
     db.straight(470, wait=False)
-    rbm.run_angle(200, -56)  # Right arm down for minecart
+    rbm.run_angle(200, -52)  # Right arm down for minecart
     wait(1000)
     db.straight(115)  # Hook into minecart
-    rbm.run_angle(300, 30)  # Pick up minecart
+    rbm.run_angle(300, 40)  # Pick up minecart
     lbm.run_time(200, 1000, then=Stop.COAST)  # Put down flag
     wait(500)
-    db.straight(-40)
     lbm.run_angle(300, -120, wait=False)  # Arm out of the way
-    wait(300)
-    db.turn(-121)  # Go to forum
-    db.straight(390)
-    db.turn(-70)
-    db.straight(-100)
-    rbm.run_angle(300, -60, wait=False)  # Put minecart down
+    db.straight(-450)
+    ld.run_angle(500, -360)
+    db.straight(50)
+    rbm.run_angle(300, -70, wait=False)  # Put minecart down
     db.straight(-150)
     rbm.run_angle(300, 60)
+    db.straight(100)
+    db.turn(-35)
+    db.straight(-1200)
 
 
 STORAGE_OFFSET = 0
