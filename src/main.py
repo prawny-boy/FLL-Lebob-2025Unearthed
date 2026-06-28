@@ -154,9 +154,8 @@ def mission_1():
     db.straight(310)  # Drive up to silo
 
     db.turn(-55)
-    db.arc(293, 100) # Go to flip boulders
-    db.straight(20)
-    db.straight(-1)
+    db.arc(295, 100) # Go to flip boulders
+    db.straight(10)
     
     rbm.run_angle(200, -210)
     wait(200)
@@ -211,7 +210,7 @@ def mission_3():
     wait(750)
     lbm.run_angle(50, 45)
     db.turn(-10)
-    db.straight(600)
+    db.straight(800)
 
     
 @mission
@@ -229,11 +228,11 @@ def mission_4():
     lbm.run_until_stalled(200, Stop.BRAKE, 50)  # Left arm down
     lbm.run_angle(200, -2, then=Stop.HOLD)  # Left arm back
     db.settings(straight_speed=100)
-    db.straight(150)  # Drive into the minecart area
-    lbm.run_angle(150, -41, wait=False)  # Pick up artefact
+    db.straight(125)  # Drive into the minecart area
+    lbm.run_angle(150, -39, wait=False)  # Pick up artefact
     rbm.run_angle(100, 125)
     lbm.run_angle(20, -15, then=Stop.COAST, wait=False)
-    db.straight(-200)  # Return
+    db.straight(-175)  # Return
 
     db.settings(straight_speed=1000)
     lbm.run_angle(100, -45, wait=False)
@@ -250,6 +249,7 @@ def mission_5():
     # rbm.run_angle(200, -90, wait=False)
     rbm.run_until_stalled(-500, duty_limit=50)
     lbm.run_until_stalled(-500, duty_limit=50)
+    db.settings(straight_speed=250)
     db.straight(650)  # Drive forward and push brush forward
     db.straight(-170)
     lbm.run_until_stalled(500, duty_limit=50)
@@ -311,11 +311,15 @@ def mission_7():
     wait(1000)
     db.straight(115)  # Hook into minecart
     rbm.run_angle(300, 40)  # Pick up minecart
-    lbm.run_time(200, 1000, then=Stop.COAST)  # Put down flag
+    lbm.run_time(500, 750, then=Stop.COAST)  # Put down flag
     wait(500)
     lbm.run_angle(300, -120, wait=False)  # Arm out of the way
     db.straight(-450)
-    ld.run_angle(500, -360)
+    db.reset()
+    ld.run(-500)
+    while hub.imu.heading() > -80:
+        wait(10)
+    ld.stop()
     db.straight(50)
     rbm.run_angle(300, -70, wait=False)  # Put minecart down
     db.straight(-150)
