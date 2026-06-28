@@ -317,15 +317,16 @@ def mission_7():
     db.straight(-450)
     db.reset()
     ld.run(-500)
-    while hub.imu.heading() > -80:
+    while hub.imu.heading() > -75:
         wait(10)
     ld.stop()
     db.straight(50)
-    rbm.run_angle(300, -70, wait=False)  # Put minecart down
+    rbm.run_angle(300, -65, wait=False)  # Put minecart down
     db.straight(-150)
+    wait(500)
     rbm.run_angle(300, 60)
     db.straight(100)
-    db.turn(-35)
+    db.turn(-40)
     db.straight(-1200)
 
 
