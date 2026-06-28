@@ -286,7 +286,9 @@ def mission_6():
     lbm.stop()
     db.straight(-30, wait=False)
     rbm.run_angle(300, -90)
+    db.settings(straight_speed=300)
     db.straight(-750)
+    db.settings(straight_acceleration=1000)
 
 
 @mission
