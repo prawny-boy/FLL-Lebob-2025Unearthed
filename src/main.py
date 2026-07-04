@@ -57,7 +57,7 @@ class LebobDriveBase(DriveBase):
         """
         if speed is None:
             speed = self.settings()[0]
-        self.drive(speed, 0)
+        self.straight(10000, wait=False)
         self._wait_until_stalled(speed_tolerance=tolerance, then=then)
 
     def arc_until_stalled(self, radius: float, tolerance: int = 0, then=Stop.COAST):
@@ -155,7 +155,7 @@ def mission_1():
 
     db.turn(-55)
     db.arc(295, 100) # Go to flip boulders
-    db.straight(10)
+    db.straight(20)
     
     rbm.run_angle(200, -210)
     wait(200)
@@ -276,11 +276,12 @@ def mission_5():
 def mission_6():
     """Ship and Angler Artifacts."""
     db.settings(straight_speed=300)
-    db.straight(490)
+    db.straight_until_stalled()
     db.settings(straight_speed=1000)
-    db.straight(-50)
-    rbm.run_until_stalled(100)
-    db.straight(30)
+    db.straight(-40)
+    db.turn(5)
+    rbm.run_until_stalled(250)
+    db.straight(40)
     lbm.dc(100)
     wait(2000)
     lbm.stop()
@@ -308,22 +309,23 @@ def mission_7():
     rbm.run_until_stalled(100, duty_limit=50)
     db.straight(510)
     db.turn(-55)
-    db.straight(470, wait=False)
-    rbm.run_angle(200, -52)  # Right arm down for minecart
+    db.straight(460, wait=False)
+    rbm.run_angle(200, -45)  # Right arm down for minecart
     wait(1000)
     db.straight(115)  # Hook into minecart
     rbm.run_angle(300, 40)  # Pick up minecart
     lbm.run_time(500, 750, then=Stop.COAST)  # Put down flag
     wait(500)
     lbm.run_angle(300, -120, wait=False)  # Arm out of the way
-    db.straight(-450)
+    db.straight(-460)
     db.reset()
     ld.run(-500)
     while hub.imu.heading() > -75:
         wait(10)
     ld.stop()
     db.straight(50)
-    rbm.run_angle(300, -65, wait=False)  # Put minecart down
+    rbm.run_angle(300, -72, wait=False)  # Put minecart down
+    wait(500)
     db.straight(-150)
     wait(500)
     rbm.run_angle(300, 60)
