@@ -231,7 +231,7 @@ def mission_4():
     db.straight(125)  # Drive into the minecart area
     lbm.run_angle(150, -39, wait=False)  # Pick up artefact
     rbm.run_angle(100, 125)
-    lbm.run_angle(20, -15, then=Stop.COAST, wait=False)
+    lbm.run_angle(20, -15.5, then=Stop.COAST, wait=False)
     db.straight(-175)  # Return
 
     db.settings(straight_speed=1000)
@@ -263,7 +263,7 @@ def mission_5():
     db.straight(210)
     db.turn(-88)  # Face map
     db.settings(straight_speed=100)
-    db.straight(200)
+    db.straight(190)
     db.settings(straight_speed=1000)
 
     rbm.run_until_stalled(300)  # Pick up liftable map
@@ -309,7 +309,7 @@ def mission_7():
     rbm.run_until_stalled(100, duty_limit=50)
     db.straight(510)
     db.turn(-55)
-    db.straight(460, wait=False)
+    db.straight(440, wait=False)
     rbm.run_angle(200, -45)  # Right arm down for minecart
     wait(1000)
     db.straight(115)  # Hook into minecart
@@ -317,14 +317,13 @@ def mission_7():
     lbm.run_time(500, 750, then=Stop.COAST)  # Put down flag
     wait(500)
     lbm.run_angle(300, -120, wait=False)  # Arm out of the way
-    db.straight(-460)
+    db.straight(-480)
     db.reset()
     ld.run(-500)
-    while hub.imu.heading() > -75:
+    while hub.imu.heading() > -60:
         wait(10)
     ld.stop()
-    db.straight(50)
-    rbm.run_angle(300, -72, wait=False)  # Put minecart down
+    rbm.run_angle(400, -72, wait=False)  # Put minecart down
     wait(500)
     db.straight(-150)
     wait(500)
